@@ -64,7 +64,7 @@ def process_hex(file_name, sbe: SBE) -> None:
         cnvfile = sbe.dat_cnv(hex_file.read())
         try:
             with open(
-                os.path.join(CONFIG["PROCESSED_PATH"] + "./" + file_name, file_name + "C" + ".cnv"), "w"
+                os.path.join(CONFIG["PROCESSING_PATH"] + "./" + file_name, file_name + "C" + ".cnv"), "w"
             ) as cnv_write_file:
                 cnv_write_file.write(cnvfile)
             print("HEX file converted successfully!")
@@ -99,7 +99,7 @@ def process_step(
     # run processing
     print("file name: ", file_name)
     with open(
-        os.path.join(CONFIG["PROCESSED_PATH"] + "./" + file_name, file_name + target_file_ext + ".cnv"),
+        os.path.join(CONFIG["PROCESSING_PATH"] + "./" + file_name, file_name + target_file_ext + ".cnv"),
         "r",
         encoding="utf-8",
     ) as read_file:
@@ -107,7 +107,7 @@ def process_step(
         try:
             with open(
                 os.path.join(
-                    CONFIG["PROCESSED_PATH"] + "./" + file_name, file_name + result_file_ext + ".cnv"
+                    CONFIG["PROCESSING_PATH"] + "./" + file_name, file_name + result_file_ext + ".cnv"
                 ),
                 "w",
             ) as write_file:
@@ -188,7 +188,7 @@ def process_cnv(file_name, sbe: SBE) -> None:
 def process_initsetup(file_name, config_folder)-> None:
         print("trying to create folder"
    )
-        os.mkdir(CONFIG["PROCESSED_PATH"] + "./" + file_name)
+        os.mkdir(CONFIG["PROCESSING_PATH"] + "./" + file_name)
 
         print("folder created")
         
@@ -196,7 +196,7 @@ def process_initsetup(file_name, config_folder)-> None:
         setupfiles=os.listdir(config_folder)
         print(setupfiles)
         for name in setupfiles:       
-            shutil.copy2(os.path.join(config_folder,name), CONFIG["PROCESSED_PATH"] + "./" + file_name)
+            shutil.copy2(os.path.join(config_folder,name), CONFIG["PROCESSING_PATH"] + "./" + file_name)
 
 def process_folders(file_name)-> None:
  #exception doesnt work. lay out correct file struct from here instead of raw and temp ect.
@@ -216,15 +216,15 @@ def process_relocate(file_name) ->None:
       
          shutil.copy2(CONFIG["RAW_PATH"] + "./" + file_name + ".hex", CONFIG["DESTINATION_PATH"] + "./" + file_name + "./raw") 
          print("raw file copied")
-         movingfiles=os.listdir(CONFIG["PROCESSED_PATH"] + "./" + file_name)
+         movingfiles=os.listdir(CONFIG["PROCESSING_PATH"] + "./" + file_name)
          print(movingfiles)
          for fname in movingfiles:
              if fname.endswith(".cnv"):
-                 shutil.move(os.path.join(CONFIG["PROCESSED_PATH"] + "./" + file_name,fname), CONFIG["DESTINATION_PATH"] + "./" + file_name + "./done")    
+                 shutil.move(os.path.join(CONFIG["PROCESSING_PATH"] + "./" + file_name,fname), CONFIG["DESTINATION_PATH"] + "./" + file_name + "./done")    
              elif fname.endswith(".psa"):
-                 shutil.move(os.path.join(CONFIG["PROCESSED_PATH"] + "./" + file_name,fname), CONFIG["DESTINATION_PATH"] + "./" + file_name + "./psa")  
+                 shutil.move(os.path.join(CONFIG["PROCESSING_PATH"] + "./" + file_name,fname), CONFIG["DESTINATION_PATH"] + "./" + file_name + "./psa")  
              elif fname.endswith(".xmlcon"):
-                 shutil.move(os.path.join(CONFIG["PROCESSED_PATH"] + "./" + file_name,fname), CONFIG["DESTINATION_PATH"] + "./" + file_name + "./config")  
+                 shutil.move(os.path.join(CONFIG["PROCESSING_PATH"] + "./" + file_name,fname), CONFIG["DESTINATION_PATH"] + "./" + file_name + "./config")  
        
     except FileNotFoundError:
        print("Files not copied")
@@ -519,13 +519,13 @@ def select_raw_directory(raw_path_label):
     raw_path_label.configure(text=CONFIG["RAW_PATH"])
 
 
-def select_processed_directory(processed_path_label):
-    """Get the processed directory with button click (default assigned to local directory)"""
-    print("Processed Directory Button clicked!")
-    processed_directory_selected = filedialog.askdirectory()
-    print(processed_directory_selected)
-    CONFIG["PROCESSED_PATH"] = (processed_directory_selected)
-    processed_path_label.configure(text=CONFIG["PROCESSED_PATH"])
+def select_processing_directory(PROCESSING_PATH_label):
+    """Get the processing directory with button click (default assigned to local directory)"""
+    print("Processing Directory Button clicked!")
+    processing_directory_selected = filedialog.askdirectory()
+    print(processing_directory_selected)
+    CONFIG["PROCESSING_PATH"] = (processing_directory_selected)
+    PROCESSING_PATH_label.configure(text=CONFIG["PROCESSING_PATH"])
 
 
 def select_config_directory(config_path_label):
@@ -565,7 +565,7 @@ def stop():
 
 # %%
 def main():
-    processed_path = CONFIG["PROCESSED_PATH"]
+    PROCESSING_PATH = CONFIG["PROCESSING_PATH"]
     # Create a tkinter window
     window = customtkinter.CTk()  # create CTk window like you do with the Tk window
     window.geometry("400x550")
@@ -584,12 +584,12 @@ def main():
     raw_path_label = customtkinter.CTkLabel(window, text=CONFIG["RAW_PATH"], font=CONFIG["LABEL_FONTS"])
     raw_path_label.pack(pady=(5, 25))
 
-    # processed directory button
-    processed_directory_button = customtkinter.CTkButton(
-        window, text="Select Processed Directory", font=CONFIG["LABEL_FONTS"], command=lambda: select_processed_directory(processed_path_label)
+    # processing directory button
+    processing_directory_button = customtkinter.CTkButton(
+        window, text="Select processing Directory", font=CONFIG["LABEL_FONTS"], command=lambda: select_processing_directory(PROCESSING_PATH_label)
     ).pack()
-    processed_path_label = customtkinter.CTkLabel(window, text=CONFIG["PROCESSED_PATH"], font=CONFIG["LABEL_FONTS"])
-    processed_path_label.pack(pady=(5, 25))
+    PROCESSING_PATH_label = customtkinter.CTkLabel(window, text=CONFIG["PROCESSING_PATH"], font=CONFIG["LABEL_FONTS"])
+    PROCESSING_PATH_label.pack(pady=(5, 25))
 
     # configuration directory button
     config_directory_button = customtkinter.CTkButton(

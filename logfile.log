@@ -1,0 +1,74 @@
+
+******************* Processing new file *******************
+
+******************* Processing new file *******************
+No database files found
+WARNING: No database found. Manual latitude input required.
+Temperature Serial Number = 7816
+Checking configuration directory for subdirectory relevant to 2022-10-29 00:00:00 cast date.
+Checking 2017-11-13 00:00:00 configuration directory.
+Checking 2019-10-30 00:00:00 configuration directory.
+Checking 2021-08-24 00:00:00 configuration directory.
+Latitude changed in PSA file Filter.psa
+Latitude changed in PSA file DeriveIMOS.psa
+Latitude changed in PSA file DeriveIMOS.psa
+trying to create folder
+folder created
+['AlignCTD.psa', 'BinAvgIMOS.psa', 'DatCnv.psa', 'DeriveIMOS.psa', 'Filter.psa', 'LoopEditIMOS.psa', 'SBE19plusV2_7816_240821.xmlcon']
+HEX file converted successfully!
+CNV file filtered successfully!
+CNV file aligned successfully!
+WARNING: No database found. Manual latitude input required.
+Temperature Serial Number = 4409
+Checking configuration directory for subdirectory relevant to 2022-12-06 00:00:00 cast date.
+Checking 2007-10-28 00:00:00 configuration directory.
+Checking 2012-09-05 00:00:00 configuration directory.
+Checking 2014-08-16 00:00:00 configuration directory.
+Checking 2015-12-31 00:00:00 configuration directory.
+Checking 2017-09-01 00:00:00 configuration directory.
+Checking 2019-06-19 00:00:00 configuration directory.
+Checking 2022-07-11 00:00:00 configuration directory.
+Latitude changed in PSA file DeriveIMOS.psa
+Latitude changed in PSA file DeriveIMOS.psa
+trying to create folder
+folder created
+['AlignCTD.psa', 'BinAvgIMOS.psa', 'DatCnv.psa', 'DeriveIMOS.psa', 'Filter.psa', 'LoopEditIMOS.psa', 'SBE19plusV2_4409_20220711.xmlcon']
+HEX file converted successfully!
+CNV file filtered successfully!
+CNV file aligned successfully!
+
+******************* Processing new file *******************
+No database files found
+WARNING: No database found. Manual latitude input required.
+Temperature Serial Number = 7816
+Checking configuration directory for subdirectory relevant to 2022-10-29 00:00:00 cast date.
+Checking 2017-11-13 00:00:00 configuration directory.
+Checking 2019-10-30 00:00:00 configuration directory.
+Checking 2021-08-24 00:00:00 configuration directory.
+Latitude changed in PSA file Filter.psa
+Latitude changed in PSA file DeriveIMOS.psa
+Latitude changed in PSA file DeriveIMOS.psa
+CNV file loop edited successfully!
+CNV file derived successfully!
+CNV file bin averaged successfully!
+Folder %s created!
+raw file copied
+['202210_7882_Fer_SBE19plusV2_7816C.cnv', '202210_7882_Fer_SBE19plusV2_7816CF.cnv', '202210_7882_Fer_SBE19plusV2_7816CFA.cnv', '202210_7882_Fer_SBE19plusV2_7816CFAL.cnv', '202210_7882_Fer_SBE19plusV2_7816CFALD.cnv', '202210_7882_Fer_SBE19plusV2_7816CFALDB.cnv', 'AlignCTD.psa', 'BinAvgIMOS.psa', 'DatCnv.psa', 'DeriveIMOS.psa', 'Filter.psa', 'LoopEditIMOS.psa', 'SBE19plusV2_7816_240821.xmlcon']
+WARNING: No database found. Manual latitude input required.
+Temperature Serial Number = 4409
+Checking configuration directory for subdirectory relevant to 2022-12-06 00:00:00 cast date.
+Checking 2007-10-28 00:00:00 configuration directory.
+Checking 2012-09-05 00:00:00 configuration directory.
+Checking 2014-08-16 00:00:00 configuration directory.
+Checking 2015-12-31 00:00:00 configuration directory.
+Checking 2017-09-01 00:00:00 configuration directory.
+Checking 2019-06-19 00:00:00 configuration directory.
+Checking 2022-07-11 00:00:00 configuration directory.
+Latitude changed in PSA file DeriveIMOS.psa
+Latitude changed in PSA file DeriveIMOS.psa
+CNV file loop edited successfully!
+CNV file derived successfully!
+CNV file bin averaged successfully!
+Folder %s created!
+raw file copied
+['202212_8031_Aqr_SBE19plusV2_4409C.cnv', '202212_8031_Aqr_SBE19plusV2_4409CF.cnv', '202212_8031_Aqr_SBE19plusV2_4409CFA.cnv', '202212_8031_Aqr_SBE19plusV2_4409CFAL.cnv', '202212_8031_Aqr_SBE19plusV2_4409CFALD.cnv', '202212_8031_Aqr_SBE19plusV2_4409CFALDB.cnv', 'AlignCTD.psa', 'BinAvgIMOS.psa', 'DatCnv.psa', 'DeriveIMOS.psa', 'Filter.psa', 'LoopEditIMOS.psa', 'SBE19plusV2_4409_20220711.xmlcon']

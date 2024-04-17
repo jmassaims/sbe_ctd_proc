@@ -7,14 +7,14 @@
   <InputDir value="C:\AIMS\Seabird\Data\Batch" />
   <InputFileArray size="0" GrowBy="-1" />
   <OutputDir value="C:\AIMS\Seabird\Data\Batch" />
-  <NameAppend value="D" />
+  <NameAppend value="" />
   <OutputFile value="" />
   <LastProcessed value="0" />
   <CalcArray Size="2" >
     <CalcArrayItem index="0" CalcID="17" >
       <Calc UnitID="31" Ordinal="0" >
         <FullName value="Depth [salt water, m]" />
-        <Latitude value="-19.000000" />
+    <Latitude value="-19" />
       </Calc>
     </CalcArrayItem>
     <CalcArrayItem index="1" CalcID="70" >
@@ -24,7 +24,7 @@
     </CalcArrayItem>
   </CalcArray>
   <MiscellaneousDataForCalculations >
-    <Latitude value="-19.000000" />
+    <Latitude value="-19" />
     <Longitude value="0.000000" />
     <DescentRateAndAcceleration >
       <WindowSize value="2.000000" />

@@ -2,6 +2,16 @@
 SBE CTD Data Processor
 Author: Thomas Armstrong
 Australian Institute of Marine Science
+
+Workflow adjusted by Jack Massuger
+
+- adding in full MMP SBE dataproc steps 
+- proposing adding a plotting step for alignment - fathom an option for visual here
+- changed folder structure, code to take raw into processing folder, bring in xmlcon + psa, run conversions, then move all files to "completed" folder, then
+- remove files from processing folder
+-proposed addition of a log
+
+
 """
 
 # TODO: Skip option for each cast
@@ -11,10 +21,12 @@ Australian Institute of Marine Science
 # Imports
 import SBE
 import os
+import shutil
 from datetime import datetime
 from tkinter import filedialog, Label
 import sqlalchemy as sa
 import pandas as pd
+
 
 import multiprocessing
 
@@ -33,7 +45,10 @@ except:
 from config import CONFIG
 
 
+
+
 def process_hex(file_name, sbe: SBE) -> None:
+ 
     """Import hex file and convert to first stage cnv file (dat_cnv step)
 
     :param file_name: _description_
@@ -49,7 +64,7 @@ def process_hex(file_name, sbe: SBE) -> None:
         cnvfile = sbe.dat_cnv(hex_file.read())
         try:
             with open(
-                os.path.join(CONFIG["PROCESSED_PATH"], file_name + "C" + ".cnv"), "w"
+                os.path.join(CONFIG["PROCESSED_PATH"] + "./" + file_name, file_name + "C" + ".cnv"), "w"
             ) as cnv_write_file:
                 cnv_write_file.write(cnvfile)
             print("HEX file converted successfully!")
@@ -65,7 +80,7 @@ def process_step(
     result_file_ext: str,
     output_msg: str,
     error_msg: str,
-) -> None:
+) -> None:   
     """Run a particular SBE processing step saving the intermediate result
 
     :param file_name: _description_
@@ -84,7 +99,7 @@ def process_step(
     # run processing
     print("file name: ", file_name)
     with open(
-        os.path.join(CONFIG["PROCESSED_PATH"], file_name + target_file_ext + ".cnv"),
+        os.path.join(CONFIG["PROCESSED_PATH"] + "./" + file_name, file_name + target_file_ext + ".cnv"),
         "r",
         encoding="utf-8",
     ) as read_file:
@@ -92,7 +107,7 @@ def process_step(
         try:
             with open(
                 os.path.join(
-                    CONFIG["PROCESSED_PATH"], file_name + result_file_ext + ".cnv"
+                    CONFIG["PROCESSED_PATH"] + "./" + file_name, file_name + result_file_ext + ".cnv"
                 ),
                 "w",
             ) as write_file:
@@ -126,31 +141,95 @@ def process_cnv(file_name, sbe: SBE) -> None:
         "CNV file aligned successfully!",
         "Error while aligning the CNV file!",
     )
+    #adjust file extensions below with C and W
     process_step(
         file_name,
-        sbe.loop_edit,
+        sbe.cell_thermal_mass,
         "CFA",
-        "CFAL",
+        "CFAC",
         "CNV file loop edited successfully!",
         "Error while loop editing the CNV file!",
     )
     process_step(
         file_name,
+        sbe.loop_edit,
+        "CFAC",
+        "CFACL",
+        "CNV file loop edited successfully!",
+        "Error while loop editing the CNV file!",
+    )
+    process_step(
+        file_name,
+        sbe.wild_edit,
+        "CFACL",
+        "CFACLW",
+        "CNV file loop edited successfully!",
+        "Error while loop editing the CNV file!",
+       )
+    process_step(
+        file_name,
         sbe.derive,
-        "CFAL",
-        "CFALD",
+        "CFACLW",
+        "CFACLWD",
         "CNV file derived successfully!",
         "Error while deriving the CNV file!",
     )
     process_step(
         file_name,
         sbe.bin_avg,
-        "CFALD",
-        "CFALDB",
+        "CFACLWD",
+        "CFACLWDB",
         "CNV file bin averaged successfully!",
         "Error while bin averaging the CNV file!",
     )
 
+
+
+def process_initsetup(file_name, config_folder)-> None:
+        print("trying to create folder"
+   )
+        os.mkdir(CONFIG["PROCESSED_PATH"] + "./" + file_name)
+
+        print("folder created")
+        
+    #JM carry xmlcon file and psa files with data
+        setupfiles=os.listdir(config_folder)
+        print(setupfiles)
+        for name in setupfiles:       
+            shutil.copy2(os.path.join(config_folder,name), CONFIG["PROCESSED_PATH"] + "./" + file_name)
+
+def process_folders(file_name)-> None:
+ #exception doesnt work. lay out correct file struct from here instead of raw and temp ect.
+    try:    
+        os.mkdir(CONFIG["DESTINATION_PATH"] + "./" + file_name)
+        cpath = (CONFIG["DESTINATION_PATH"] + "./" + file_name)
+        os.mkdir(cpath + "./raw")
+        os.mkdir(cpath + "./done")
+        os.mkdir(cpath + "./psa")
+        os.mkdir(cpath + "./config")
+        print("Folder %s created!" )
+    except FileExistsError:
+       print("Folder %s already exists")
+       
+def process_relocate(file_name) ->None:
+    try:    
+      
+         shutil.copy2(CONFIG["RAW_PATH"] + "./" + file_name + ".hex", CONFIG["DESTINATION_PATH"] + "./" + file_name + "./raw") 
+         print("raw file copied")
+         movingfiles=os.listdir(CONFIG["PROCESSED_PATH"] + "./" + file_name)
+         print(movingfiles)
+         for fname in movingfiles:
+             if fname.endswith(".cnv"):
+                 shutil.move(os.path.join(CONFIG["PROCESSED_PATH"] + "./" + file_name,fname), CONFIG["DESTINATION_PATH"] + "./" + file_name + "./done")    
+             elif fname.endswith(".psa"):
+                 shutil.move(os.path.join(CONFIG["PROCESSED_PATH"] + "./" + file_name,fname), CONFIG["DESTINATION_PATH"] + "./" + file_name + "./psa")  
+             elif fname.endswith(".xmlcon"):
+                 shutil.move(os.path.join(CONFIG["PROCESSED_PATH"] + "./" + file_name,fname), CONFIG["DESTINATION_PATH"] + "./" + file_name + "./config")  
+       
+    except FileNotFoundError:
+       print("Files not copied")
+       
+       
 
 def get_db_tables(db_file, mdw_file, db_user, db_password):
     # import ipdb; ipdb.set_trace()
@@ -193,6 +272,8 @@ def get_db_tables(db_file, mdw_file, db_user, db_password):
 
 
 def process() -> None:
+    
+
     """Main process loop"""
     print("\n******************* Processing new file *******************")
     #import ipdb; ipdb.set_trace()
@@ -289,6 +370,12 @@ def process() -> None:
                             cast_date = datetime.strptime(line[11:22], "%d %b %Y")
                         except ValueError:
                             pass
+                    if "SeacatPlus" in line:
+                        try:
+                            # If there are multiple casts, an unwanted 'cast' line will be present, so skip it
+                            cast_date = datetime.strptime(line[40:51], "%d %b %Y")
+                        except ValueError:
+                            pass
                     if "NMEA UTC (Time) =" in line:
                         cast_date = datetime.strptime(line[20:31], "%b %d %Y")
                         nmea_checker = True
@@ -299,11 +386,12 @@ def process() -> None:
                 if ctd_id == "":
                     print("No serial number found!")
             if ctd_id in CONFIG["CTD_LIST"]:
-                print("CTD Serial Number: ", ctd_id)
+                print("CTD Serial Number:", ctd_id)
             else:
                 break
             print("Cast date: ", cast_date)
             # get config subdirs for the relevant ctd by date
+            
             try:
                 subfolders = [
                     f.path
@@ -342,17 +430,22 @@ def process() -> None:
                 if config_file.endswith(".xmlcon"):
                     print("Configuration File: ", config_file)
                     xmlcon_file = config_file
+                   
             # print("config_file: ", config_file)
             cwd = os.path.dirname(__file__)
 
             # Remove name appends and enter latitude
+                        
             # psa files for AIMS modules
+            #add and adjust for cellTM and Wildedit
             psa_files = [
                 "Filter.psa",
                 "AlignCTD.psa",
-                "LoopEditIMOS.psa",
-                "DeriveIMOS.psa",
-                "BinAvgIMOS.psa",
+                "CellTM.psa",
+                "LoopEdit.psa",
+                "WildEdit.psa",
+                "Derive.psa",
+                "BinAvg.psa",
             ]
             for psa_file in psa_files:
                 # open psa file and store all lines
@@ -376,7 +469,8 @@ def process() -> None:
                     with open(os.path.join(cwd, config_folder, psa_file), "w") as f:
                         for i, line in enumerate(get_all, 0):
                             f.writelines(line)
-
+                       
+    
             # Create instance of SBE functions with config_path files
             sbe = SBE.SBE(
                 bin=os.path.join(cwd, "SBEDataProcessing-Win32"),  # default
@@ -386,21 +480,35 @@ def process() -> None:
                 psa_dat_cnv=os.path.join(cwd, config_folder, "DatCnv.psa"),
                 psa_filter=os.path.join(cwd, config_folder, "Filter.psa"),
                 psa_align_ctd=os.path.join(cwd, config_folder, "AlignCTD.psa"),
-                psa_loop_edit=os.path.join(cwd, config_folder, "LoopEditIMOS.psa"),
-                psa_derive=os.path.join(cwd, config_folder, "DeriveIMOS.psa"),
-                psa_bin_avg=os.path.join(cwd, config_folder, "BinAvgIMOS.psa"),
-                # unused for AIMS processing
-                # psa_cell_thermal_mass=os.path.join(cwd, 'psa', 'CellTM.psa'),
+                psa_cell_thermal_mass=os.path.join(cwd, config_folder, "CellTM.psa"),
+                psa_loop_edit=os.path.join(cwd, config_folder, "LoopEdit.psa"),
+                psa_wild_edit=os.path.join(cwd, config_folder, 'WildEdit.psa'),
+                psa_derive=os.path.join(cwd, config_folder, "Derive.psa"),
+                psa_bin_avg=os.path.join(cwd, config_folder, "BinAvg.psa"),
+               
+               # unused for AIMS processing 
                 # psa_dat_cnv=os.path.join(cwd, 'psa', 'DatCnv.psa'),
                 # psa_derive_teos10=os.path.join(cwd, 'psa', 'DeriveTEOS_10.psa'),
                 # psa_sea_plot=os.path.join(cwd, 'psa', 'SeaPlot.psa'),
                 # psa_section=os.path.join(cwd, 'psa', 'Section.psa'),
-                # psa_wild_edit=os.path.join(cwd, 'psa', 'WildEdit.psa')
+                
             )
+            
+        
+            # run initsetup
+            process_initsetup(base_file_name, config_folder)
+            print("initsetupcomplete")
             # run DatCnv
             process_hex(base_file_name, sbe)
+            print("processhexcomplete")
             # Run other AIMS modules
             process_cnv(base_file_name, sbe)
+
+            # Create file structure
+            process_folders(base_file_name)
+            
+            # Gathers and moves files
+            process_relocate(base_file_name)
 
 
 def select_raw_directory(raw_path_label):
@@ -408,15 +516,16 @@ def select_raw_directory(raw_path_label):
     print("Raw Directory Button clicked!")
     raw_directory_selected = filedialog.askdirectory()
     CONFIG["RAW_PATH"] = raw_directory_selected
-    raw_path_label.config(text=CONFIG["RAW_PATH"])
+    raw_path_label.configure(text=CONFIG["RAW_PATH"])
 
 
 def select_processed_directory(processed_path_label):
     """Get the processed directory with button click (default assigned to local directory)"""
     print("Processed Directory Button clicked!")
     processed_directory_selected = filedialog.askdirectory()
-    CONFIG["PROCESSED_PATH"] = processed_directory_selected
-    processed_path_label.config(text=CONFIG["PROCESSED_PATH"])
+    print(processed_directory_selected)
+    CONFIG["PROCESSED_PATH"] = (processed_directory_selected)
+    processed_path_label.configure(text=CONFIG["PROCESSED_PATH"])
 
 
 def select_config_directory(config_path_label):
@@ -424,7 +533,7 @@ def select_config_directory(config_path_label):
     print("Configuration Directory Button clicked!")
     config_directory_selected = filedialog.askdirectory()
     CONFIG["CTD_CONFIG_PATH"] = config_directory_selected
-    config_path_label.config(text=CONFIG["CTD_CONFIG_PATH"])
+    config_path_label.configure(text=CONFIG["CTD_CONFIG_PATH"])
 
 
 def select_database_directory(database_path_label):
@@ -433,11 +542,11 @@ def select_database_directory(database_path_label):
     database_directory_selected = filedialog.askdirectory()
     database_path = database_directory_selected
     CONFIG["CTD_DATABASE_PATH"] = database_directory_selected
-    database_path_label.config(text=CONFIG["CTD_DATABASE_PATH"])
+    database_path_label.configure(text=CONFIG["CTD_DATABASE_PATH"])
 
 
-# Start the process
-def start():
+# Start the process 1
+def startStg1():
     global multiprocessing_process
     multiprocessing_process = multiprocessing.Process(target=process, args=())
     multiprocessing_process.start()
@@ -459,7 +568,7 @@ def main():
     processed_path = CONFIG["PROCESSED_PATH"]
     # Create a tkinter window
     window = customtkinter.CTk()  # create CTk window like you do with the Tk window
-    window.geometry("400x500")
+    window.geometry("400x550")
     window.grid_columnconfigure(0, weight=1)
     customtkinter.set_appearance_mode("dark")  # Modes: system (default), light, dark
     customtkinter.set_default_color_theme(
@@ -471,7 +580,7 @@ def main():
     # raw directory button
     raw_directory_button = customtkinter.CTkButton(
         window, text="Select Raw Directory", font=CONFIG["LABEL_FONTS"], command=lambda: select_raw_directory(raw_path_label)
-    ).pack(pady=(25,0))
+    ).pack()
     raw_path_label = customtkinter.CTkLabel(window, text=CONFIG["RAW_PATH"], font=CONFIG["LABEL_FONTS"])
     raw_path_label.pack(pady=(5, 25))
 
@@ -479,7 +588,7 @@ def main():
     processed_directory_button = customtkinter.CTkButton(
         window, text="Select Processed Directory", font=CONFIG["LABEL_FONTS"], command=lambda: select_processed_directory(processed_path_label)
     ).pack()
-    processed_path_label = customtkinter.CTkLabel(window, text=processed_path, font=CONFIG["LABEL_FONTS"])
+    processed_path_label = customtkinter.CTkLabel(window, text=CONFIG["PROCESSED_PATH"], font=CONFIG["LABEL_FONTS"])
     processed_path_label.pack(pady=(5, 25))
 
     # configuration directory button
@@ -496,10 +605,13 @@ def main():
     database_path_label = customtkinter.CTkLabel(window, text=CONFIG["CTD_DATABASE_PATH"], font=CONFIG["LABEL_FONTS"])
     database_path_label.pack(pady=(5, 25))
 
-    # process button
+    # process stage 1 button
     process_button = customtkinter.CTkButton(
-        window, text="Process", font=("Arial", 30, 'bold'), fg_color="#5D892B", hover_color="#334B18", command=start
+        window, text="Process Data", font=("Arial", 30, 'bold'), fg_color="#5D892B", hover_color="#334B18", command=startStg1
     ).pack(pady=(10,10))
+    stage1_path_label = customtkinter.CTkLabel(window, text="Process data from .hex to BinDown stage", font=CONFIG["LABEL_FONTS"])
+    stage1_path_label.pack(pady=(5, 25))
+    
 
     # stop button
     stop_button = customtkinter.CTkButton(

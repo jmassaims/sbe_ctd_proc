@@ -20,6 +20,9 @@ import os
 import subprocess
 import glob
 
+# config
+from config import CONFIG
+
 raw_path = ''
 
 class SBE(object):
@@ -40,10 +43,10 @@ class SBE(object):
         """
         super(SBE, self).__init__()
         # Path to SBE installation
-        dflt_bin = '\SBEDataProcessing-Win32'
+        dflt_bin = r'\SBEDataProcessing-Win32'
         self._sbe_path = kwargs.get('bin', dflt_bin)
         # Temporary directory to store generated files
-        self._temp_dir = kwargs.get('temp_path', raw_path)
+        self._temp_dir = kwargs.get('temp_path', CONFIG["RAW_PATH"])
         # Default config files
         self._xmlcon = kwargs.get('xmlcon')
         self._psa_align_ctd = kwargs.get('psa_align_ctd')
@@ -63,7 +66,6 @@ class SBE(object):
         # Create temp file path use hash of file content
         # import ipdb; ipdb.set_trace()
         path = os.path.join(self._temp_dir, sha1(content.encode('utf-8')).hexdigest() + ext)
-        print("temp file path: ", path)
         # Create the temp file
         with open(path, 'w') as f:
             f.write(content)
@@ -101,7 +103,7 @@ class SBE(object):
         input_file = self._write_temp_file(data, '.cnv')
 
         # Execute the seabird command
-        cmd = '{}\AlignCTDW.exe'.format(self._sbe_path)
+        cmd = r'{}\AlignCTDW.exe'.format(self._sbe_path)
         self._sbe_cmd(cmd, input_file, os.path.dirname(input_file), xmlcon, psa)
 
         # Return file content
@@ -112,8 +114,6 @@ class SBE(object):
 
         # Cleanup - Remove temp files including if the psa files contain name appends
         for filename in glob.glob(os.path.splitext(out_file)[0] + "*"):
-            print(filename)
-            print(out_file)
             os.remove(filename)
 
         # Return content
@@ -129,7 +129,7 @@ class SBE(object):
         input_file = self._write_temp_file(data, '.cnv')
 
         # Execute the seabird command
-        cmd = '{}\BinAvgW.exe'.format(self._sbe_path)
+        cmd = r'{}\BinAvgW.exe'.format(self._sbe_path)
         self._sbe_cmd(cmd, input_file, os.path.dirname(input_file), xmlcon, psa)
 
         # Return file content
@@ -155,7 +155,7 @@ class SBE(object):
         input_file = self._write_temp_file(data, '.cnv')
 
         # Execute the seabird command
-        cmd = '{}\CellTMW.exe'.format(self._sbe_path)
+        cmd = r'{}\CellTMW.exe'.format(self._sbe_path)
         self._sbe_cmd(cmd, input_file, os.path.dirname(input_file), xmlcon, psa)
 
         # Return file content
@@ -181,7 +181,7 @@ class SBE(object):
         input_file = self._write_temp_file(data, '.hex')
 
         # Execute the seabird command
-        cmd = '{}\DatCnvW.exe'.format(self._sbe_path)
+        cmd = r'{}\DatCnvW.exe'.format(self._sbe_path)
         self._sbe_cmd(cmd, input_file, os.path.dirname(input_file), xmlcon, psa)
 
         # print("test1", os.path.splitext(input_file)[0] + '*.cnv')
@@ -211,7 +211,7 @@ class SBE(object):
         input_file = self._write_temp_file(data, '.cnv')
 
         # Execute the seabird command
-        cmd = '{}\DeriveW.exe'.format(self._sbe_path)
+        cmd = r'{}\DeriveW.exe'.format(self._sbe_path)
         self._sbe_cmd(cmd, input_file, os.path.dirname(input_file), xmlcon, psa)
         # Return file content
         out_file = input_file
@@ -236,7 +236,7 @@ class SBE(object):
         input_file = self._write_temp_file(data, '.cnv')
 
         # Execute the seabird command
-        cmd = '{}\DeriveTEOS_10W.exe'.format(self._sbe_path)
+        cmd = r'{}\DeriveTEOS_10W.exe'.format(self._sbe_path)
         self._sbe_cmd(cmd, input_file, os.path.dirname(input_file), xmlcon, psa)
 
         # Return file content
@@ -262,7 +262,7 @@ class SBE(object):
         input_file = self._write_temp_file(data, '.cnv')
 
         # Execute the seabird command
-        cmd = '{}\FilterW.exe'.format(self._sbe_path)
+        cmd = r'{}\FilterW.exe'.format(self._sbe_path)
         self._sbe_cmd(cmd, input_file, os.path.dirname(input_file), xmlcon, psa)
 
         # Return file content
@@ -288,7 +288,7 @@ class SBE(object):
         input_file = self._write_temp_file(data, '.cnv')
 
         # Execute the seabird command
-        cmd = '{}\LoopEditW.exe'.format(self._sbe_path)
+        cmd = r'{}\LoopEditW.exe'.format(self._sbe_path)
         self._sbe_cmd(cmd, input_file, os.path.dirname(input_file), xmlcon, psa)
 
         # Return file content
@@ -314,7 +314,7 @@ class SBE(object):
         input_file = self._write_temp_file(data, '.cnv')
 
         # Execute the seabird command
-        cmd = '{}\SeaPlotW.exe'.format(self._sbe_path)
+        cmd = r'{}\SeaPlotW.exe'.format(self._sbe_path)
         self._sbe_cmd(cmd, input_file, os.path.dirname(input_file), xmlcon, psa)
 
         # Return file content
@@ -340,7 +340,7 @@ class SBE(object):
         input_file = self._write_temp_file(data, '.cnv')
 
         # Execute the seabird command
-        cmd = '{}\SectionW.exe'.format(self._sbe_path)
+        cmd = r'{}\SectionW.exe'.format(self._sbe_path)
         self._sbe_cmd(cmd, input_file, os.path.dirname(input_file), xmlcon, psa)
 
         # Return file content
@@ -366,7 +366,7 @@ class SBE(object):
         input_file = self._write_temp_file(data, '.cnv')
 
         # Execute the seabird command
-        cmd = '{}\WildEditW.exe'.format(self._sbe_path)
+        cmd = r'{}\WildEditW.exe'.format(self._sbe_path)
         self._sbe_cmd(cmd, input_file, os.path.dirname(input_file), xmlcon, psa)
 
         # Return file content

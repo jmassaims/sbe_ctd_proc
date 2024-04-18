@@ -349,6 +349,8 @@ def process() -> None:
                     text="What is the latitude for: " + file + "?",
                     title="Derive Latitude Input",
                 ).get_input()
+                
+        if derive_latitude is not None:
 
             with open(
                 os.path.join(CONFIG["RAW_PATH"], base_file_name + ".hex"),

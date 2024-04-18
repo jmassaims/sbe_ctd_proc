@@ -5,13 +5,13 @@
   <InputDir value="C:\AIMS\Seabird\Data\Batch" />
   <InputFileArray size="0" GrowBy="-1" />
   <OutputDir value="C:\AIMS\Seabird\Data\Batch" />
-  <NameAppend value="" />
+  <NameAppend value="B" />
   <OutputFile value="" />
   <LastProcessed value="0" />
-  <BinType value="2" />
+  <BinType value="0" />
   <BinSize value="1.000000" />
-  <IncludeNumberScans value="1" />
-  <ExcludeMarkedBad value="1" />
+  <IncludeNumberScans value="0" />
+  <ExcludeMarkedBad value="0" />
   <ScansToSkip value="0" />
   <ScansToOmit value="0" />
   <MinScansPerBin value="1" />

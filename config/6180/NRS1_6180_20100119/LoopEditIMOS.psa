@@ -5,7 +5,7 @@
   <InputDir value="C:\AIMS\Seabird\Data\Batch" />
   <InputFileArray size="0" GrowBy="-1" />
   <OutputDir value="C:\AIMS\Seabird\Data\Batch" />
-  <NameAppend value="" />
+  <NameAppend value="L" />
   <OutputFile value="" />
   <LastProcessed value="0" />
   <MinVelocityType value="0" high="1" low="0" initialValue="0" />

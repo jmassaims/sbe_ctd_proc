@@ -141,7 +141,6 @@ def process_cnv(file_name, sbe: SBE) -> None:
         "CNV file aligned successfully!",
         "Error while aligning the CNV file!",
     )
-    #adjust file extensions below with C and W
     process_step(
         file_name,
         sbe.cell_thermal_mass,
@@ -561,6 +560,9 @@ def stop():
         multiprocessing_process.terminate()  # sends a SIGTERM   
         print("Stopped processing.")  
         print("Temporary files may remain in the raw directory due to cancelled processing.")
+      #  print(file_name)
+      #  print(base_file_name)
+        #thought process here to check if these two are equal and if not, delete file_name file
     except NameError:
         print("No processing started.")
         

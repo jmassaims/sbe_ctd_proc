@@ -185,17 +185,15 @@ def process_cnv(file_name, sbe: SBE) -> None:
 
 
 def process_initsetup(file_name, config_folder)-> None:
-        print("trying to create folder"
-   )
+        print("trying to create folder")
         os.mkdir(CONFIG["PROCESSING_PATH"] + "./" + file_name)
-
         print("folder created")
         
     #JM carry xmlcon file and psa files with data
         setupfiles=os.listdir(config_folder)
         print(setupfiles)
-        for name in setupfiles:       
-            shutil.copy2(os.path.join(config_folder,name), CONFIG["PROCESSING_PATH"] + "./" + file_name)
+        for confname in setupfiles:       
+            shutil.copy2(os.path.join(config_folder,confname), CONFIG["PROCESSING_PATH"] + "./" + file_name)
 
 def process_folders(file_name)-> None:
  #exception doesnt work. lay out correct file struct from here instead of raw and temp ect.
@@ -224,7 +222,10 @@ def process_relocate(file_name) ->None:
                  shutil.move(os.path.join(CONFIG["PROCESSING_PATH"] + "./" + file_name,fname), CONFIG["DESTINATION_PATH"] + "./" + file_name + "./psa")  
              elif fname.endswith(".xmlcon"):
                  shutil.move(os.path.join(CONFIG["PROCESSING_PATH"] + "./" + file_name,fname), CONFIG["DESTINATION_PATH"] + "./" + file_name + "./config")  
-       
+             pass    
+         leftoverfiles=os.listdir(CONFIG["PROCESSING_PATH"] + "./" + file_name) 
+         if len(leftoverfiles) == 0:
+            os.rmdir(CONFIG["PROCESSING_PATH"] + "./" + file_name) #folder cleanup
     except FileNotFoundError:
        print("Files not copied")
        
@@ -315,7 +316,16 @@ def process() -> None:
             # find ctd id for the cast
             # print("Processing file: ", file)
             base_file_name = os.path.splitext(file)[0]
-            
+            underway_processing = os.listdir(CONFIG["PROCESSING_PATH"])
+            completed_processing = os.listdir(CONFIG["DESTINATION_PATH"])
+            if base_file_name in underway_processing:
+                print(base_file_name, " already processing")
+                continue
+            #check if already being processed, skip if so
+            if base_file_name in completed_processing:
+                print(base_file_name, " already processed")
+                continue
+            #check if already completed, skip if so
             if database_found == True:
                 ctd_deployment = db_CTDData[
                     db_CTDData['FileName'].str.contains(f'^{base_file_name + ".hex"}', case=False, regex=True,
@@ -371,12 +381,12 @@ def process() -> None:
                             cast_date = datetime.strptime(line[11:22], "%d %b %Y")
                         except ValueError:
                             pass
-               #     if "SeacatPlus" in line:
-            #           try:
-               #             # If there are multiple casts, an unwanted 'cast' line will be present, so skip it
-               #             cast_date = datetime.strptime(line[40:51], "%d %b %Y")
-               #         except ValueError:
-               #             pass
+                    if "SeacatPlus" in line:
+                       try:
+                            # Date parsing for .hex files earlier earlier than 2015
+                            cast_date = datetime.strptime(line[40:51], "%d %b %Y")
+                       except ValueError:
+                            pass
                     if "NMEA UTC (Time) =" in line:
                         cast_date = datetime.strptime(line[20:31], "%b %d %Y")
                         nmea_checker = True
@@ -391,7 +401,7 @@ def process() -> None:
             else:
                 break
             print("Cast date: ", cast_date)
-            # get config subdirs for the relevant ctd by date
+            # get config subdirs for the relevant ctd by date    
             
             try:
                 subfolders = [
@@ -470,22 +480,25 @@ def process() -> None:
                     with open(os.path.join(cwd, config_folder, psa_file), "w") as f:
                         for i, line in enumerate(get_all, 0):
                             f.writelines(line)
-                       
-    
+               
+             # run initsetup
+            process_initsetup(base_file_name, config_folder)
+            print("initsetupcomplete")
+            
             # Create instance of SBE functions with config_path files
             sbe = SBE.SBE(
                 bin=os.path.join(cwd, "SBEDataProcessing-Win32"),  # default
                 temp_path=os.path.join(cwd, "raw"),  # default
-                xmlcon=os.path.join(cwd, config_folder, xmlcon_file),
+                xmlcon=os.path.join(cwd,"processing", base_file_name, xmlcon_file), 
                 # AIMS processing modules
-                psa_dat_cnv=os.path.join(cwd, config_folder, "DatCnv.psa"),
-                psa_filter=os.path.join(cwd, config_folder, "Filter.psa"),
-                psa_align_ctd=os.path.join(cwd, config_folder, "AlignCTD.psa"),
-                psa_cell_thermal_mass=os.path.join(cwd, config_folder, "CellTM.psa"),
-                psa_loop_edit=os.path.join(cwd, config_folder, "LoopEdit.psa"),
-                psa_wild_edit=os.path.join(cwd, config_folder, 'WildEdit.psa'),
-                psa_derive=os.path.join(cwd, config_folder, "Derive.psa"),
-                psa_bin_avg=os.path.join(cwd, config_folder, "BinAvg.psa"),
+                psa_dat_cnv=os.path.join(cwd, "processing", base_file_name, "DatCnv.psa"),
+                psa_filter=os.path.join(cwd, "processing", base_file_name, "Filter.psa"),
+                psa_align_ctd=os.path.join(cwd, "processing", base_file_name, "AlignCTD.psa"),
+                psa_cell_thermal_mass=os.path.join(cwd, "processing", base_file_name, "CellTM.psa"),
+                psa_loop_edit=os.path.join(cwd, "processing", base_file_name, "LoopEdit.psa"),
+                psa_wild_edit=os.path.join(cwd, "processing", base_file_name, 'WildEdit.psa'),
+                psa_derive=os.path.join(cwd, "processing", base_file_name, "Derive.psa"),
+                psa_bin_avg=os.path.join(cwd, "processing", base_file_name, "BinAvg.psa"),
                
                # unused for AIMS processing 
                 # psa_dat_cnv=os.path.join(cwd, 'psa', 'DatCnv.psa'),
@@ -494,11 +507,7 @@ def process() -> None:
                 # psa_section=os.path.join(cwd, 'psa', 'Section.psa'),
                 
             )
-            
-        
-            # run initsetup
-            process_initsetup(base_file_name, config_folder)
-            print("initsetupcomplete")
+            print("sbesetupcomplete")
             # run DatCnv
             process_hex(base_file_name, sbe)
             print("processhexcomplete")

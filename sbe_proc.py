@@ -371,12 +371,12 @@ def process() -> None:
                             cast_date = datetime.strptime(line[11:22], "%d %b %Y")
                         except ValueError:
                             pass
-                    if "SeacatPlus" in line:
-                        try:
-                            # If there are multiple casts, an unwanted 'cast' line will be present, so skip it
-                            cast_date = datetime.strptime(line[40:51], "%d %b %Y")
-                        except ValueError:
-                            pass
+               #     if "SeacatPlus" in line:
+            #           try:
+               #             # If there are multiple casts, an unwanted 'cast' line will be present, so skip it
+               #             cast_date = datetime.strptime(line[40:51], "%d %b %Y")
+               #         except ValueError:
+               #             pass
                     if "NMEA UTC (Time) =" in line:
                         cast_date = datetime.strptime(line[20:31], "%b %d %Y")
                         nmea_checker = True

@@ -136,16 +136,16 @@
           <PathLength>0.250</PathLength>
         </WET_LabsCStar>
       </Sensor>
-      <Sensor index="7" SensorID="42" >
-        <PAR_BiosphericalLicorChelseaSensor SensorID="42" >
+      <Sensor index="7" SensorID="76" >
+        <PARLog_SatlanticSensor SensorID="76" >
           <SerialNumber>0411</SerialNumber>
           <CalibrationDate>08-Apr-2016</CalibrationDate>
-          <M>0.88950000</M>
-          <B>1.35220000</B>
-          <CalibrationConstant>1000000000.00000000</CalibrationConstant>
-          <Multiplier>1.35890000</Multiplier>
-          <Offset>0.00000000</Offset>
-        </PAR_BiosphericalLicorChelseaSensor>
+          <a0>1.3522e+000</a0>
+          <a1>8.8950e-001</a1>
+          <Im>1.3589e+000</Im>
+          <ConversionUnits>1</ConversionUnits>
+          <Multiplier>1.0000e+000</Multiplier>
+        </PARLog_SatlanticSensor>
       </Sensor>
     </SensorArray>
   </Instrument>

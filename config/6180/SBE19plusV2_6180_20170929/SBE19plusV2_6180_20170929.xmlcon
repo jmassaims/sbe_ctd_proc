@@ -118,23 +118,23 @@
           <Free>1</Free>
         </NotInUse>
       </Sensor>
-      <Sensor index="5" SensorID="67" >
-        <TurbidityMeter SensorID="67" >
-          <SerialNumber>5027</SerialNumber>
-          <CalibrationDate>13-Mar-18</CalibrationDate>
-          <ScaleFactor>20.000000</ScaleFactor>
-          <!-- Dark output -->
-          <DarkVoltage>0.045000</DarkVoltage>
-        </TurbidityMeter>
-      </Sensor>
-      <Sensor index="6" SensorID="20" >
+      <Sensor index="5" SensorID="20" >
         <FluoroWetlabECO_AFL_FL_Sensor SensorID="20" >
           <SerialNumber>5027</SerialNumber>
-          <CalibrationDate>13-Mar-18</CalibrationDate>
+          <CalibrationDate>13 March 2013</CalibrationDate>
           <ScaleFactor>1.00000000e+001</ScaleFactor>
           <!-- Dark output -->
           <Vblank>0.0700</Vblank>
         </FluoroWetlabECO_AFL_FL_Sensor>
+      </Sensor>
+      <Sensor index="6" SensorID="67" >
+        <TurbidityMeter SensorID="67" >
+          <SerialNumber>5027</SerialNumber>
+          <CalibrationDate>13 March 2013</CalibrationDate>
+          <ScaleFactor>20.000000</ScaleFactor>
+          <!-- Dark output -->
+          <DarkVoltage>0.045000</DarkVoltage>
+        </TurbidityMeter>
       </Sensor>
     </SensorArray>
   </Instrument>

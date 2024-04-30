@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<SBE_InstrumentConfiguration SB_ConfigCTD_FileVersion="7.21.0.12" >
+<SBE_InstrumentConfiguration SB_ConfigCTD_FileVersion="7.26.4.0" >
   <Instrument Type="15" >
     <Name>SBE 25plus Sealogger CTD</Name>
     <!-- This XMLCON file is for processing .XML data files uploaded from the SBE 25plus storage card. -->
@@ -158,6 +158,7 @@
           <M>0.90640000</M>
           <B>1.28000000</B>
           <CalibrationConstant>1000000000.00000000</CalibrationConstant>
+          <ConversionUnits>1</ConversionUnits>
           <Multiplier>1.35890000</Multiplier>
           <Offset>0.00000000</Offset>
         </PAR_BiosphericalLicorChelseaSensor>

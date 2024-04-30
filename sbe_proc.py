@@ -445,8 +445,10 @@ def process() -> None:
             # print("config_file: ", config_file)
             cwd = os.path.dirname(__file__)
 
-            # Remove name appends and enter latitude
-                        
+            # run initsetup
+            process_initsetup(base_file_name, config_folder)
+            print("initsetupcomplete")     
+
             # psa files for AIMS modules
             #add and adjust for cellTM and Wildedit
             psa_files = [
@@ -458,37 +460,36 @@ def process() -> None:
                 "Derive.psa",
                 "BinAvg.psa",
             ]
+            # Remove name appends and enter latitude
             for psa_file in psa_files:
                 # open psa file and store all lines
-                with open(os.path.join(cwd, config_folder, psa_file), "r") as f:
+                with open(os.path.join(cwd, "processing", base_file_name, psa_file), "r") as f:
                     get_all = f.readlines()
                 try:
                     # open new psa file and rewrite, changing lines if NameAppend or Latitude are found
-                    with open(os.path.join(cwd, config_folder, psa_file), "w") as f:
+                    with open(os.path.join(cwd, "processing", base_file_name, psa_file), "w") as f:
                         # START THE NUMBERING FROM 1 (by default it begins with 0)
                         for i, line in enumerate(get_all, 0):
-                            if '  <NameAppend value="' in line:
+                            if '<NameAppend value="' in line:
                                 f.writelines('  <NameAppend value="" />\n')
-                            elif "    <Latitude value=" in line:
+                            elif "<Latitude value=" in line:
                                 f.writelines(
-                                    '    <Latitude value="' + derive_latitude + '" />\n'
+                                    '<Latitude value="' + derive_latitude + '" />\n'
                                 )
                                 print(f"Latitude changed in PSA file {psa_file}")
                             else:
                                 f.writelines(line)
                 except TypeError:
-                    with open(os.path.join(cwd, config_folder, psa_file), "w") as f:
+                    with open(os.path.join(cwd, "processing", base_file_name, psa_file), "w") as f:
                         for i, line in enumerate(get_all, 0):
                             f.writelines(line)
                
-             # run initsetup
-            process_initsetup(base_file_name, config_folder)
-            print("initsetupcomplete")
+             
             
             # Create instance of SBE functions with config_path files
             sbe = SBE.SBE(
                 bin=os.path.join(cwd, "SBEDataProcessing-Win32"),  # default
-                temp_path=os.path.join(cwd, "raw"),  # default
+                temp_path=os.path.join(cwd, "processing", base_file_name),  # default
                 xmlcon=os.path.join(cwd,"processing", base_file_name, xmlcon_file), 
                 # AIMS processing modules
                 psa_dat_cnv=os.path.join(cwd, "processing", base_file_name, "DatCnv.psa"),

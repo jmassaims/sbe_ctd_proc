@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<SBE_InstrumentConfiguration SB_ConfigCTD_FileVersion="7.21.0.12" >
+<SBE_InstrumentConfiguration SB_ConfigCTD_FileVersion="7.26.4.0" >
   <Instrument Type="3" >
     <Name>SBE 19plus Seacat CTD</Name>
     <PressureSensorType>1</PressureSensorType>
@@ -110,6 +110,7 @@
           <M>1.00000000</M>
           <B>0.00000000</B>
           <CalibrationConstant>269540000000.00000000</CalibrationConstant>
+          <ConversionUnits>1</ConversionUnits>
           <Multiplier>1.00000000</Multiplier>
           <Offset>-0.00575140</Offset>
         </PAR_BiosphericalLicorChelseaSensor>

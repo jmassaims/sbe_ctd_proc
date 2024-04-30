@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<SBE_InstrumentConfiguration SB_ConfigCTD_FileVersion="7.23.0.1" >
+<SBE_InstrumentConfiguration SB_ConfigCTD_FileVersion="7.26.4.0" >
   <Instrument Type="3" >
     <Name>SBE 19plus Seacat CTD</Name>
     <PressureSensorType>1</PressureSensorType>
@@ -17,7 +17,7 @@
       <Sensor index="0" SensorID="58" >
         <TemperatureSensor SensorID="58" >
           <SerialNumber>4525</SerialNumber>
-          <CalibrationDate>10-Jan-17</CalibrationDate>
+          <CalibrationDate>20170110</CalibrationDate>
           <A0>1.24749590e-003</A0>
           <A1>2.68886720e-004</A1>
           <A2>-6.44057570e-007</A2>
@@ -29,7 +29,7 @@
       <Sensor index="1" SensorID="3" >
         <ConductivitySensor SensorID="3" >
           <SerialNumber>4525</SerialNumber>
-          <CalibrationDate>10-Jan-17</CalibrationDate>
+          <CalibrationDate>20170110</CalibrationDate>
           <UseG_J>1</UseG_J>
           <!-- Cell const and series R are applicable only for wide range sensors. -->
           <SeriesR>0.0000</SeriesR>
@@ -60,7 +60,7 @@
       <Sensor index="2" SensorID="46" >
         <PressureSensor SensorID="46" >
           <SerialNumber>4525</SerialNumber>
-          <CalibrationDate>12-Jan-17</CalibrationDate>
+          <CalibrationDate>20170112</CalibrationDate>
           <PA0>-7.03638060e-001</PA0>
           <PA1>4.43215790e-003</PA1>
           <PA2>-1.67902760e-011</PA2>
@@ -79,7 +79,7 @@
       <Sensor index="3" SensorID="38" >
         <OxygenSensor SensorID="38" >
           <SerialNumber>0288</SerialNumber>
-          <CalibrationDate>05-Jan-17</CalibrationDate>
+          <CalibrationDate>20170105</CalibrationDate>
           <Use2007Equation>1</Use2007Equation>
           <CalibrationCoefficients equation="0" >
             <!-- Coefficients for Owens-Millard equation. -->
@@ -108,21 +108,21 @@
           </CalibrationCoefficients>
         </OxygenSensor>
       </Sensor>
-      <Sensor index="4" SensorID="42" >
-        <PAR_BiosphericalLicorChelseaSensor SensorID="42" >
+      <Sensor index="4" SensorID="76" >
+        <PARLog_SatlanticSensor SensorID="76" >
           <SerialNumber>0223</SerialNumber>
-          <CalibrationDate>18-Nov-2016</CalibrationDate>
-          <M>0.87940000</M>
-          <B>1.45140000</B>
-          <CalibrationConstant>1000000000.00000000</CalibrationConstant>
-          <Multiplier>1.35890000</Multiplier>
-          <Offset>0.00000000</Offset>
-        </PAR_BiosphericalLicorChelseaSensor>
+          <CalibrationDate>20161118</CalibrationDate>
+          <a0>1.4285e+000</a0>
+          <a1>8.8390e-001</a1>
+          <Im>1.3589e+000</Im>
+          <ConversionUnits>1</ConversionUnits>
+          <Multiplier>1.0000e+000</Multiplier>
+        </PARLog_SatlanticSensor>
       </Sensor>
       <Sensor index="5" SensorID="20" >
         <FluoroWetlabECO_AFL_FL_Sensor SensorID="20" >
           <SerialNumber>FLRT-108</SerialNumber>
-          <CalibrationDate>13-Dec-2016</CalibrationDate>
+          <CalibrationDate>20161213</CalibrationDate>
           <ScaleFactor>5.00000000e+000</ScaleFactor>
           <!-- Dark output -->
           <Vblank>0.0590</Vblank>
@@ -131,7 +131,7 @@
       <Sensor index="6" SensorID="71" >
         <WET_LabsCStar SensorID="71" >
           <SerialNumber>CST-711PR</SerialNumber>
-          <CalibrationDate>26-Dec-2016</CalibrationDate>
+          <CalibrationDate>20161226</CalibrationDate>
           <M>21.9796</M>
           <B>-1.2484</B>
           <PathLength>0.250</PathLength>

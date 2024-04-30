@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<SBE_InstrumentConfiguration SB_ConfigCTD_FileVersion="7.21.0.12" >
+<SBE_InstrumentConfiguration SB_ConfigCTD_FileVersion="7.21.0.5" >
   <Instrument Type="3" >
     <Name>SBE 19plus Seacat CTD</Name>
     <PressureSensorType>1</PressureSensorType>
@@ -120,9 +120,9 @@
         <FluoroWetlabECO_AFL_FL_Sensor SensorID="20" >
           <SerialNumber>FLRT-108</SerialNumber>
           <CalibrationDate>05-Dec-2011</CalibrationDate>
-          <ScaleFactor>1.20000000e+001</ScaleFactor>
+          <ScaleFactor>2.50000000e+001</ScaleFactor>
           <!-- Dark output -->
-          <Vblank>0.0320</Vblank>
+          <Vblank>0.0160</Vblank>
         </FluoroWetlabECO_AFL_FL_Sensor>
       </Sensor>
       <Sensor index="6" SensorID="71" >

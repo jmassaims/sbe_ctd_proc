@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<SBE_InstrumentConfiguration SB_ConfigCTD_FileVersion="7.21.0.12" >
+<SBE_InstrumentConfiguration SB_ConfigCTD_FileVersion="7.26.4.0" >
   <Instrument Type="3" >
     <Name>SBE 19plus Seacat CTD</Name>
     <PressureSensorType>1</PressureSensorType>
@@ -108,24 +108,24 @@
           </CalibrationCoefficients>
         </OxygenSensor>
       </Sensor>
-      <Sensor index="4" SensorID="42" >
-        <PAR_BiosphericalLicorChelseaSensor SensorID="42" >
+      <Sensor index="4" SensorID="76" >
+        <PARLog_SatlanticSensor SensorID="76" >
           <SerialNumber>PARS-223</SerialNumber>
           <CalibrationDate>16-Sep-11</CalibrationDate>
-          <M>0.90340000</M>
-          <B>1.25400000</B>
-          <CalibrationConstant>1000000000.00000000</CalibrationConstant>
-          <Multiplier>1.35890000</Multiplier>
-          <Offset>0.00000000</Offset>
-        </PAR_BiosphericalLicorChelseaSensor>
+          <a0>1.2540e+000</a0>
+          <a1>9.0340e-001</a1>
+          <Im>1.3589e+000</Im>
+          <ConversionUnits>1</ConversionUnits>
+          <Multiplier>1.0000e+000</Multiplier>
+        </PARLog_SatlanticSensor>
       </Sensor>
       <Sensor index="5" SensorID="20" >
         <FluoroWetlabECO_AFL_FL_Sensor SensorID="20" >
           <SerialNumber>FLRT-108</SerialNumber>
           <CalibrationDate>05-Dec-11</CalibrationDate>
-          <ScaleFactor>1.20000000e+001</ScaleFactor>
+          <ScaleFactor>2.50000000e+001</ScaleFactor>
           <!-- Dark output -->
-          <Vblank>0.0320</Vblank>
+          <Vblank>0.0160</Vblank>
         </FluoroWetlabECO_AFL_FL_Sensor>
       </Sensor>
       <Sensor index="6" SensorID="59" >

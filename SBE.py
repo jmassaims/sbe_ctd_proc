@@ -188,7 +188,8 @@ class SBE(object):
         # print("test2", glob.glob(os.path.splitext(input_file)[0] + '*.cnv'))
 
         # Return file content
-        out_file = os.path.splitext(input_file)[0] + 'C.cnv'
+      #  out_file = os.path.splitext(input_file)[0] + 'C.cnv'
+        out_file = os.path.splitext(input_file)[0] + '.cnv'
         # out_file = glob.glob(os.path.splitext(input_file)[0] + '*.cnv')[0]
         f = open(out_file, 'r')
         result = f.read()

@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SBE_InstrumentConfiguration SB_ConfigCTD_FileVersion="7.26.4.0" >
+  <Instrument Type="11" >
+    <Name>SBE 19plus V2 Seacat CTD</Name>
+    <PressureSensorType>1</PressureSensorType>
+    <ExternalVoltageChannels>4</ExternalVoltageChannels>
+    <Mode>0</Mode>
+    <!-- Serial RS-232 Sensor: 0 = None. -->
+    <SerialRS232C_Sensor>0</SerialRS232C_Sensor>
+    <SampleIntervalSeconds>10</SampleIntervalSeconds>
+    <ScansToAverage>1</ScansToAverage>
+    <SurfaceParVoltageAdded>0</SurfaceParVoltageAdded>
+    <ScanTimeAdded>0</ScanTimeAdded>
+    <NmeaPositionDataAdded>0</NmeaPositionDataAdded>
+    <NmeaDepthDataAdded>0</NmeaDepthDataAdded>
+    <NmeaTimeAdded>0</NmeaTimeAdded>
+    <NmeaDeviceConnectedToPC>0</NmeaDeviceConnectedToPC>
+    <SensorArray Size="7" >
+      <Sensor index="0" SensorID="58" >
+        <TemperatureSensor SensorID="58" >
+          <SerialNumber>4409</SerialNumber>
+          <CalibrationDate>19-Apr-22</CalibrationDate>
+          <A0>1.23579581e-003</A0>
+          <A1>2.60817851e-004</A1>
+          <A2>-7.08682906e-008</A2>
+          <A3>1.47505853e-007</A3>
+          <Slope>1.00000000</Slope>
+          <Offset>0.0000</Offset>
+        </TemperatureSensor>
+      </Sensor>
+      <Sensor index="1" SensorID="3" >
+        <ConductivitySensor SensorID="3" >
+          <SerialNumber>4409</SerialNumber>
+          <CalibrationDate>19-Apr-22</CalibrationDate>
+          <UseG_J>1</UseG_J>
+          <!-- Cell const and series R are applicable only for wide range sensors. -->
+          <SeriesR>0.0000</SeriesR>
+          <CellConst>2000.0000</CellConst>
+          <ConductivityType>0</ConductivityType>
+          <Coefficients equation="0" >
+            <A>0.00000000e+000</A>
+            <B>0.00000000e+000</B>
+            <C>0.00000000e+000</C>
+            <D>0.00000000e+000</D>
+            <M>0.0</M>
+            <CPcor>-9.57000000e-008</CPcor>
+          </Coefficients>
+          <Coefficients equation="1" >
+            <G>-1.01278679e+000</G>
+            <H>1.36272026e-001</H>
+            <I>-1.38060088e-004</I>
+            <J>2.97321219e-005</J>
+            <CPcor>-9.57000000e-008</CPcor>
+            <CTcor>3.2500e-006</CTcor>
+            <!-- WBOTC not applicable unless ConductivityType = 1. -->
+            <WBOTC>0.00000000e+000</WBOTC>
+          </Coefficients>
+          <Slope>1.00000000</Slope>
+          <Offset>0.00000</Offset>
+        </ConductivitySensor>
+      </Sensor>
+      <Sensor index="2" SensorID="46" >
+        <PressureSensor SensorID="46" >
+          <SerialNumber>4409</SerialNumber>
+          <CalibrationDate>14-Apr-22</CalibrationDate>
+          <PA0>-7.11593194e-002</PA0>
+          <PA1>4.41494713e-003</PA1>
+          <PA2>-9.68031394e-012</PA2>
+          <PTEMPA0>-5.16677345e+001</PTEMPA0>
+          <PTEMPA1>5.74756685e+001</PTEMPA1>
+          <PTEMPA2>-7.89785552e-001</PTEMPA2>
+          <PTCA0>5.21651352e+005</PTCA0>
+          <PTCA1>-9.31977795e+000</PTCA1>
+          <PTCA2>3.08339106e-001</PTCA2>
+          <PTCB0>2.49392500e+001</PTCB0>
+          <PTCB1>-2.75000000e-003</PTCB1>
+          <PTCB2>0.00000000e+000</PTCB2>
+          <Offset>0.000000</Offset>
+        </PressureSensor>
+      </Sensor>
+      <Sensor index="3" SensorID="63" >
+        <OBS_3plusSensor SensorID="63" >
+          <SerialNumber>2169</SerialNumber>
+          <CalibrationDate>20-Jun-2019</CalibrationDate>
+          <A0>-2.53560000e+000</A0>
+          <A1>3.52700000e-001</A1>
+          <A2>1.01350000e-005</A2>
+        </OBS_3plusSensor>
+      </Sensor>
+      <Sensor index="4" SensorID="42" >
+        <PAR_BiosphericalLicorChelseaSensor SensorID="42" >
+          <SerialNumber>4658</SerialNumber>
+          <CalibrationDate>31-May-2022</CalibrationDate>
+          <M>1.00000000</M>
+          <B>0.00000000</B>
+          <CalibrationConstant>325730000000.00000000</CalibrationConstant>
+          <ConversionUnits>1</ConversionUnits>
+          <Multiplier>1.00000000</Multiplier>
+          <Offset>-0.00474284</Offset>
+        </PAR_BiosphericalLicorChelseaSensor>
+      </Sensor>
+      <Sensor index="5" SensorID="71" >
+        <WET_LabsCStar SensorID="71" >
+          <SerialNumber>CST-653PR</SerialNumber>
+          <CalibrationDate>08-Jun-2022</CalibrationDate>
+          <M>22.1640</M>
+          <B>-1.1970</B>
+          <PathLength>0.250</PathLength>
+        </WET_LabsCStar>
+      </Sensor>
+      <Sensor index="6" SensorID="21" >
+        <FluoroWetlabWetstarSensor SensorID="21" >
+          <SerialNumber>WS3S-948P</SerialNumber>
+          <CalibrationDate>03-May-2022</CalibrationDate>
+          <ScaleFactor>5.100</ScaleFactor>
+          <!-- Blank output -->
+          <Vblank>0.065</Vblank>
+        </FluoroWetlabWetstarSensor>
+      </Sensor>
+    </SensorArray>
+  </Instrument>
+</SBE_InstrumentConfiguration>

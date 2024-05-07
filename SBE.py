@@ -91,7 +91,12 @@ class SBE(object):
         )
         # import ipdb; ipdb.set_trace()
         # Run command, throw error if failure occurs
-        subprocess.check_call(exec_str, shell=True)
+        try:
+            subprocess.check_call(exec_str)
+        except subprocess.CalledProcessError as e:
+            if e.returncode ==3221225781:
+                print("Error calling exe: probably due to DLL missing, you may need to install Visual C++ Redistributable. Try running the exe from File Explorer to see error.")
+            raise e
 
     def align_ctd(self, data, xmlcon=None, psa=None):
         """Execute the SBE Align CTD module."""
@@ -169,7 +174,7 @@ class SBE(object):
             os.remove(filename)
 
         # Return content
-        return result 
+        return result
 
     def dat_cnv(self, data, xmlcon=None, psa=None):
         """Execute the SBE Data Conversion module."""

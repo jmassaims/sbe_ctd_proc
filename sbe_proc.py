@@ -5,7 +5,7 @@ Australian Institute of Marine Science
 
 Workflow adjusted by Jack Massuger
 
-- adding in full MMP SBE dataproc steps 
+- adding in full MMP SBE dataproc steps
 - proposing adding a plotting step for alignment - fathom an option for visual here
 - changed folder structure, code to take raw into processing folder, bring in xmlcon + psa, run conversions, then move all files to "completed" folder, then
 - remove files from processing folder
@@ -39,7 +39,6 @@ from config import CONFIG
 
 
 def process_hex(file_name, sbe: SBE) -> None:
- 
     """Import hex file and convert to first stage cnv file (dat_cnv step)
 
     :param file_name: _description_
@@ -71,7 +70,7 @@ def process_step(
     result_file_ext: str,
     output_msg: str,
     error_msg: str,
-) -> None:   
+) -> None:
     """Run a particular SBE processing step saving the intermediate result
 
     :param file_name: _description_
@@ -106,7 +105,7 @@ def process_step(
                 print(output_msg)
         except IOError:
             print(error_msg)
-    
+
 
 def process_cnv(file_name, sbe: SBE) -> None:
     """Run SBE data processing steps
@@ -179,16 +178,16 @@ def process_initsetup(file_name, config_folder)-> None:
         print("trying to create folder")
         os.mkdir(CONFIG["PROCESSING_PATH"] + "./" + file_name)
         print("folder created")
-        
+
     #JM carry xmlcon file and psa files with data
         setupfiles=os.listdir(config_folder)
         print(setupfiles)
-        for confname in setupfiles:       
+        for confname in setupfiles:
             shutil.copy2(os.path.join(config_folder,confname), CONFIG["PROCESSING_PATH"] + "./" + file_name)
 
 def process_folders(file_name)-> None:
  #exception doesnt work. lay out correct file struct from here instead of raw and temp ect.
-    try:    
+    try:
         os.mkdir(CONFIG["DESTINATION_PATH"] + "./" + file_name)
         cpath = (CONFIG["DESTINATION_PATH"] + "./" + file_name)
         os.mkdir(cpath + "./raw")
@@ -198,29 +197,28 @@ def process_folders(file_name)-> None:
         print("Folder %s created!" )
     except FileExistsError:
        print("Folder %s already exists")
-       
+
 def process_relocate(file_name) ->None:
-    try:    
-      
-         shutil.copy2(CONFIG["RAW_PATH"] + "./" + file_name + ".hex", CONFIG["DESTINATION_PATH"] + "./" + file_name + "./raw") 
+    try:
+         shutil.copy2(CONFIG["RAW_PATH"] + "./" + file_name + ".hex", CONFIG["DESTINATION_PATH"] + "./" + file_name + "./raw")
          print("raw file copied")
          movingfiles=os.listdir(CONFIG["PROCESSING_PATH"] + "./" + file_name)
          print(movingfiles)
          for fname in movingfiles:
              if fname.endswith(".cnv"):
-                 shutil.move(os.path.join(CONFIG["PROCESSING_PATH"] + "./" + file_name,fname), CONFIG["DESTINATION_PATH"] + "./" + file_name + "./done")    
+                 shutil.move(os.path.join(CONFIG["PROCESSING_PATH"] + "./" + file_name,fname), CONFIG["DESTINATION_PATH"] + "./" + file_name + "./done")
              elif fname.endswith(".psa"):
-                 shutil.move(os.path.join(CONFIG["PROCESSING_PATH"] + "./" + file_name,fname), CONFIG["DESTINATION_PATH"] + "./" + file_name + "./psa")  
+                 shutil.move(os.path.join(CONFIG["PROCESSING_PATH"] + "./" + file_name,fname), CONFIG["DESTINATION_PATH"] + "./" + file_name + "./psa")
              elif fname.endswith(".xmlcon"):
-                 shutil.move(os.path.join(CONFIG["PROCESSING_PATH"] + "./" + file_name,fname), CONFIG["DESTINATION_PATH"] + "./" + file_name + "./config")  
-             pass    
-         leftoverfiles=os.listdir(CONFIG["PROCESSING_PATH"] + "./" + file_name) 
+                 shutil.move(os.path.join(CONFIG["PROCESSING_PATH"] + "./" + file_name,fname), CONFIG["DESTINATION_PATH"] + "./" + file_name + "./config")
+             pass
+         leftoverfiles=os.listdir(CONFIG["PROCESSING_PATH"] + "./" + file_name)
          if len(leftoverfiles) == 0:
             os.rmdir(CONFIG["PROCESSING_PATH"] + "./" + file_name) #folder cleanup
     except FileNotFoundError:
        print("Files not copied")
-       
-       
+
+
 
 def get_db_tables(db_file, mdw_file, db_user, db_password):
     # import ipdb; ipdb.set_trace()
@@ -263,7 +261,7 @@ def get_db_tables(db_file, mdw_file, db_user, db_password):
 
 
 def process() -> None:
-    
+
 
     """Main process loop"""
     print("\n******************* Processing new file *******************")
@@ -276,14 +274,16 @@ def process() -> None:
     mdw_file = CONFIG["CTD_DATABASE_PATH"] + r"\OceanDBSecurity.mdw"
     db_user = "readonly"
     db_password = "readonly"
-    # if CONFIG["USE_DATABASE"] == True:
-    
-    try:
-        db_FieldTrips, db_Sites, db_DeploymentData, db_Instruments, db_CTDData = get_db_tables(db_file, mdw_file, db_user, db_password)
-        database_found = True
-        print("Reading OceanDB")
-    except sa.exc.DBAPIError:
-        print("No database files found") 
+
+    if CONFIG["USE_DATABASE"] == True:
+        try:
+            db_FieldTrips, db_Sites, db_DeploymentData, db_Instruments, db_CTDData = get_db_tables(db_file, mdw_file, db_user, db_password)
+            database_found = True
+            print("Reading OceanDB")
+        except sa.exc.DBAPIError:
+            print("No database files found")-19
+            database_found = False
+    else:
         database_found = False
 
     for file in os.listdir(CONFIG["RAW_PATH"]):
@@ -349,7 +349,7 @@ def process() -> None:
                     text="What is the latitude for: " + file + "?",
                     title="Derive Latitude Input",
                 ).get_input()
-                
+
         if derive_latitude is not None:
 
             with open(
@@ -392,8 +392,8 @@ def process() -> None:
             else:
                 break
             print("Cast date: ", cast_date)
-            # get config subdirs for the relevant ctd by date    
-            
+            # get config subdirs for the relevant ctd by date
+
             try:
                 subfolders = [
                     f.path
@@ -414,7 +414,7 @@ def process() -> None:
             # subfolder_date_list.sort()
             #
             # print(subfolder_date_list)
-        
+
             for folder in subfolders:
                 folder_date = datetime.strptime(folder[-8:], "%Y%m%d")
                 # find date range our cast fits into
@@ -432,13 +432,13 @@ def process() -> None:
                 if config_file.endswith(".xmlcon"):
                     print("Configuration File: ", config_file)
                     xmlcon_file = config_file
-                   
+
             # print("config_file: ", config_file)
             cwd = os.path.dirname(__file__)
 
             # run initsetup
             process_initsetup(base_file_name, config_folder)
-            print("initsetupcomplete")     
+            print("initsetupcomplete")
 
             # psa files for AIMS modules
             #add and adjust for cellTM and Wildedit
@@ -453,12 +453,13 @@ def process() -> None:
             ]
             # Remove name appends and enter latitude
             for psa_file in psa_files:
+                psa_file_path = os.path.join(CONFIG["PROCESSING_PATH"], base_file_name, psa_file)
                 # open psa file and store all lines
-                with open(os.path.join(cwd, "processing", base_file_name, psa_file), "r") as f:
+                with open(psa_file_path, "r") as f:
                     get_all = f.readlines()
                 try:
                     # open new psa file and rewrite, changing lines if NameAppend or Latitude are found
-                    with open(os.path.join(cwd, "processing", base_file_name, psa_file), "w") as f:
+                    with open(psa_file_path, "w") as f:
                         # START THE NUMBERING FROM 1 (by default it begins with 0)
                         for i, line in enumerate(get_all, 0):
                             if '<NameAppend value="' in line:
@@ -471,33 +472,32 @@ def process() -> None:
                             else:
                                 f.writelines(line)
                 except TypeError:
-                    with open(os.path.join(cwd, "processing", base_file_name, psa_file), "w") as f:
+                    with open(psa_file_path, "w") as f:
                         for i, line in enumerate(get_all, 0):
                             f.writelines(line)
-               
-             
-            
+
+
             # Create instance of SBE functions with config_path files
             sbe = SBE.SBE(
                 bin=os.path.join(cwd, "SBEDataProcessing-Win32"),  # default
-                temp_path=os.path.join(cwd, "processing", base_file_name),  # default
-                xmlcon=os.path.join(cwd,"processing", base_file_name, xmlcon_file), 
+                temp_path=os.path.join(CONFIG["PROCESSING_PATH"], base_file_name),  # default
+                xmlcon=os.path.join(CONFIG["PROCESSING_PATH"], base_file_name, xmlcon_file),
                 # AIMS processing modules
-                psa_dat_cnv=os.path.join(cwd, "processing", base_file_name, "DatCnv.psa"),
-                psa_filter=os.path.join(cwd, "processing", base_file_name, "Filter.psa"),
-                psa_align_ctd=os.path.join(cwd, "processing", base_file_name, "AlignCTD.psa"),
-                psa_cell_thermal_mass=os.path.join(cwd, "processing", base_file_name, "CellTM.psa"),
-                psa_loop_edit=os.path.join(cwd, "processing", base_file_name, "LoopEdit.psa"),
-                psa_wild_edit=os.path.join(cwd, "processing", base_file_name, 'WildEdit.psa'),
-                psa_derive=os.path.join(cwd, "processing", base_file_name, "Derive.psa"),
-                psa_bin_avg=os.path.join(cwd, "processing", base_file_name, "BinAvg.psa"),
-               
-               # unused for AIMS processing 
+                psa_dat_cnv=os.path.join(CONFIG["PROCESSING_PATH"], base_file_name, "DatCnv.psa"),
+                psa_filter=os.path.join(CONFIG["PROCESSING_PATH"], base_file_name, "Filter.psa"),
+                psa_align_ctd=os.path.join(CONFIG["PROCESSING_PATH"], base_file_name, "AlignCTD.psa"),
+                psa_cell_thermal_mass=os.path.join(CONFIG["PROCESSING_PATH"], base_file_name, "CellTM.psa"),
+                psa_loop_edit=os.path.join(CONFIG["PROCESSING_PATH"], base_file_name, "LoopEdit.psa"),
+                psa_wild_edit=os.path.join(CONFIG["PROCESSING_PATH"], base_file_name, 'WildEdit.psa'),
+                psa_derive=os.path.join(CONFIG["PROCESSING_PATH"], base_file_name, "Derive.psa"),
+                psa_bin_avg=os.path.join(CONFIG["PROCESSING_PATH"], base_file_name, "BinAvg.psa"),
+
+               # unused for AIMS processing
                 # psa_dat_cnv=os.path.join(cwd, 'psa', 'DatCnv.psa'),
                 # psa_derive_teos10=os.path.join(cwd, 'psa', 'DeriveTEOS_10.psa'),
                 # psa_sea_plot=os.path.join(cwd, 'psa', 'SeaPlot.psa'),
                 # psa_section=os.path.join(cwd, 'psa', 'Section.psa'),
-                
+
             )
             print("sbesetupcomplete")
             # run DatCnv
@@ -508,7 +508,7 @@ def process() -> None:
 
             # Create file structure
             process_folders(base_file_name)
-            
+
             # Gathers and moves files
             process_relocate(base_file_name)
 
@@ -558,15 +558,15 @@ def startStg1():
 def stop():
     """Stop processing with a button click"""
     try:
-        multiprocessing_process.terminate()  # sends a SIGTERM   
-        print("Stopped processing.")  
+        multiprocessing_process.terminate()  # sends a SIGTERM
+        print("Stopped processing.")
         print("Temporary files may remain in the raw directory due to cancelled processing.")
       #  print(file_name)
       #  print(base_file_name)
         #thought process here to check if these two are equal and if not, delete file_name file
     except NameError:
         print("No processing started.")
-        
+
 
 # %%
 def main():
@@ -616,7 +616,7 @@ def main():
     ).pack(pady=(10,10))
     stage1_path_label = customtkinter.CTkLabel(window, text="Process data from .hex to BinDown stage", font=CONFIG["LABEL_FONTS"])
     stage1_path_label.pack(pady=(5, 25))
-    
+
 
     # stop button
     stop_button = customtkinter.CTkButton(

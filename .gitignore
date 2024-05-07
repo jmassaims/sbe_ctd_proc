@@ -2,5 +2,32 @@ processed/*
 raw/*.cnv
 *.hex
 *.cnv
-*.psa
-*.xmlcon
+
+# Microsoft Office, temporary files
+~*
+
+# Selection of ignore lines from
+# https://github.com/github/gitignore/blob/main/Python.gitignore
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+.Python
+build/
+dist/
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Environments
+.env
+.venv
+env/
+venv/
+
+# pytype static type analyzer
+.pytype/

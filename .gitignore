@@ -2,8 +2,6 @@ processed/*
 raw/*.cnv
 *.hex
 *.cnv
-*.psa
-*.xmlcon
 
 # Microsoft Office, temporary files
 ~*

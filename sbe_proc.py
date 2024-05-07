@@ -30,16 +30,7 @@ import pandas as pd
 
 import multiprocessing
 
-# package = customtkinter
-import pip
-
-try:
-    import customtkinter
-except:
-    # pip.main(['install', 'customtkinter'])
-    # !pip install customtkinter
-    import customtkinter
-# import customtkinter
+import customtkinter
 
 # config
 from config import CONFIG

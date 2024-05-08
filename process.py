@@ -26,6 +26,7 @@ import sqlalchemy as sa
 
 import SBE
 from db import get_db_tables
+from gui.dialog import request_latitude
 
 # config
 from config import CONFIG
@@ -213,7 +214,7 @@ def process_relocate(file_name) ->None:
 
 
 
-def process(app) -> None:
+def process() -> None:
     """Main process loop"""
     print("\n******************* Processing new file *******************")
     #import ipdb; ipdb.set_trace()
@@ -289,17 +290,12 @@ def process(app) -> None:
                     else:
                         # filename not in the db, request latitude input
                         print(f"WARNING: empty latitude for file : {base_file_name}. Manual latitude input required.")
-                        derive_latitude = customtkinter.CTkInputDialog(
-                            text="What is the latitude for: " + file + "?",
-                            title="Derive Latitude Input",
-                        ).get_input()
+                        derive_latitude = request_latitude(file)
+
             #If no database found, request latitude input
             else:
                 print("WARNING: No database found. Manual latitude input required.")
-                derive_latitude = customtkinter.CTkInputDialog(
-                    text="What is the latitude for: " + file + "?",
-                    title="Derive Latitude Input",
-                ).get_input()
+                derive_latitude = request_latitude(file)
 
         if derive_latitude is not None:
 

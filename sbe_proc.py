@@ -479,7 +479,7 @@ def process() -> None:
 
             # Create instance of SBE functions with config_path files
             sbe = SBE.SBE(
-                bin=os.path.join(cwd, "SBEDataProcessing-Win32"),  # default
+                bin=os.path.join(CONFIG["SBEDataProcessing_PATH"]),
                 temp_path=os.path.join(CONFIG["PROCESSING_PATH"], base_file_name),  # default
                 xmlcon=os.path.join(CONFIG["PROCESSING_PATH"], base_file_name, xmlcon_file),
                 # AIMS processing modules

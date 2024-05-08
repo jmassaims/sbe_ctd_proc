@@ -6,6 +6,9 @@ import customtkinter
 from config import CONFIG
 from process import process
 
+# FIXME not safe to change config while process is running.
+#   not sure how Python synchronizes changes to module objects like CONFIG betweens processes.
+
 def select_raw_directory(raw_path_label):
     """Get the raw directory with button click (default assigned to local directory)"""
     print("Raw Directory Button clicked!")
@@ -39,32 +42,32 @@ def select_database_directory(database_path_label):
     CONFIG["CTD_DATABASE_PATH"] = database_directory_selected
     database_path_label.configure(text=CONFIG["CTD_DATABASE_PATH"])
 
-
-# FIXME move to methods
-
-# Start the process 1
-def startStg1():
-    global multiprocessing_process
-    multiprocessing_process = multiprocessing.Process(target=process, args=())
-    multiprocessing_process.start()
-
-
-# Terminate the process
-def stop():
-    """Stop processing with a button click"""
-    try:
-        multiprocessing_process.terminate()  # sends a SIGTERM
-        print("Stopped processing.")
-        print("Temporary files may remain in the raw directory due to cancelled processing.")
-      #  print(file_name)
-      #  print(base_file_name)
-        #thought process here to check if these two are equal and if not, delete file_name file
-    except NameError:
-        print("No processing started.")
-
 class App:
     def __init__(self) -> None:
+         self.proc = None
          self.build()
+
+    def start_process(self):
+        self.proc = multiprocessing.Process(target=process, args=())
+        self.proc.start()
+
+
+    # Terminate the process
+    def stop_process(self):
+        """Stop processing with a button click"""
+        if self.proc is None:
+            print("No processing started.")
+            return
+
+        self.proc.terminate()  # sends a SIGTERM
+        self.proc = None
+        print("Stopped processing.")
+        print("Temporary files may remain in the raw directory due to cancelled processing.")
+
+        # TODO cleanup on terminate
+        #  print(file_name)
+        # print(base_file_name)
+        #thought process here to check if these two are equal and if not, delete file_name file
 
     def build(self):
         PROCESSING_PATH = CONFIG["PROCESSING_PATH"]
@@ -78,50 +81,57 @@ class App:
         customtkinter.set_default_color_theme(
             "blue"
         )  # Themes: blue (default), dark-blue, green
-        # Set the window title
+
         window.title("Seabird CTD Processor")
 
+        self.build_config(window)
+
+        # process stage 1 button
+        process_button = customtkinter.CTkButton(
+            window, text="Process Data", font=("Arial", 30, 'bold'), fg_color="#5D892B", hover_color="#334B18",
+            command=lambda: self.start_process()
+        ).pack(pady=(10,10))
+        stage1_path_label = customtkinter.CTkLabel(window, text="Process data from .hex to BinDown stage", font=CONFIG["LABEL_FONTS"])
+        stage1_path_label.pack(pady=(5, 25))
+
+        # Stop process button
+        stop_button = customtkinter.CTkButton(
+            window, text="Stop", font=("Arial", 20, 'bold'), fg_color="#AC3535", hover_color="#621E1E",
+            command=lambda: self.stop_process()
+        ).pack(pady=(0,20))
+
+    def build_config(self, window):
         # raw directory button
         raw_directory_button = customtkinter.CTkButton(
-            window, text="Select Raw Directory", font=CONFIG["LABEL_FONTS"], command=lambda: select_raw_directory(raw_path_label)
+            window, text="Select Raw Directory", font=CONFIG["LABEL_FONTS"],
+            command=lambda: select_raw_directory(raw_path_label)
         ).pack()
         raw_path_label = customtkinter.CTkLabel(window, text=CONFIG["RAW_PATH"], font=CONFIG["LABEL_FONTS"])
         raw_path_label.pack(pady=(5, 25))
 
         # processing directory button
         processing_directory_button = customtkinter.CTkButton(
-            window, text="Select processing Directory", font=CONFIG["LABEL_FONTS"], command=lambda: select_processing_directory(PROCESSING_PATH_label)
+            window, text="Select processing Directory", font=CONFIG["LABEL_FONTS"],
+            command=lambda: select_processing_directory(PROCESSING_PATH_label)
         ).pack()
         PROCESSING_PATH_label = customtkinter.CTkLabel(window, text=CONFIG["PROCESSING_PATH"], font=CONFIG["LABEL_FONTS"])
         PROCESSING_PATH_label.pack(pady=(5, 25))
 
         # configuration directory button
         config_directory_button = customtkinter.CTkButton(
-            window, text="Select Configuration Directory", font=CONFIG["LABEL_FONTS"], command=lambda: select_config_directory(config_path_label)
+            window, text="Select Configuration Directory", font=CONFIG["LABEL_FONTS"],
+            command=lambda: select_config_directory(config_path_label)
         ).pack()
         config_path_label = customtkinter.CTkLabel(window, text=CONFIG["CTD_CONFIG_PATH"], font=CONFIG["LABEL_FONTS"])
         config_path_label.pack(pady=(5, 25))
 
         # database directory button
         database_directory_button = customtkinter.CTkButton(
-            window, text="Select Database Directory", font=CONFIG["LABEL_FONTS"], command=lambda: select_database_directory(database_path_label)
+            window, text="Select Database Directory", font=CONFIG["LABEL_FONTS"],
+            command=lambda: select_database_directory(database_path_label)
         ).pack()
         database_path_label = customtkinter.CTkLabel(window, text=CONFIG["CTD_DATABASE_PATH"], font=CONFIG["LABEL_FONTS"])
         database_path_label.pack(pady=(5, 25))
-
-        # process stage 1 button
-        process_button = customtkinter.CTkButton(
-            window, text="Process Data", font=("Arial", 30, 'bold'), fg_color="#5D892B", hover_color="#334B18",
-            command=lambda: startStg1()
-        ).pack(pady=(10,10))
-        stage1_path_label = customtkinter.CTkLabel(window, text="Process data from .hex to BinDown stage", font=CONFIG["LABEL_FONTS"])
-        stage1_path_label.pack(pady=(5, 25))
-
-
-        # stop button
-        stop_button = customtkinter.CTkButton(
-            window, text="Stop", font=("Arial", 20, 'bold'), fg_color="#AC3535", hover_color="#621E1E", command=stop
-        ).pack(pady=(0,20))
 
     def start(self):
         "Start the tkinter event loop"

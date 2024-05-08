@@ -8,6 +8,9 @@ CONFIG["CTD_CONFIG_PATH"] = r"C:\AIMS\sbe_ctd_proc\config"
 CONFIG["CTD_DATABASE_PATH"] = r"R:\Instrumentation\MMPDB\MMP_OceanDB\Backend"
 CONFIG["DESTINATION_PATH"] = r"C:\AIMS\sbe_ctd_proc\PROCESSED"
 
+# Location where you installed SBE Data Processing
+CONFIG["SBEDataProcessing_PATH"] = r"C:\Program Files (x86)\Sea-Bird\SBEDataProcessing-Win32"
+
 # Set whether the program designates latitude for the Derive module (1 for yes, 0 for no)
 CONFIG["SET_DERIVE_LATITUDE"] = True
 CONFIG["USE_DATABASE"] = True

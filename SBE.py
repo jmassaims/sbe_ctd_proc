@@ -14,7 +14,6 @@ Copyright (c) 2016 Hakai Institute and Contributors All Rights Reserved.
 Adjusted by Thomas Armstrong, 2023
 """
 
-from __future__ import print_function
 from hashlib import sha1
 import os
 import subprocess

@@ -48,6 +48,9 @@ class App:
          self.build()
 
     def start_process(self):
+        if self.proc is not None and self.proc.is_alive():
+            raise Exception("existing process is running")
+
         self.proc = multiprocessing.Process(target=process, args=())
         self.proc.start()
 
@@ -130,7 +133,7 @@ class App:
             window, text="Select Database Directory", font=CONFIG["LABEL_FONTS"],
             command=lambda: select_database_directory(database_path_label)
         ).pack()
-        database_path_label = customtkinter.CTkLabel(window, text=CONFIG["CTD_DATABASE_PATH"], font=CONFIG["LABEL_FONTS"])
+        database_path_label = customtkinter.CTkLabel(window, text=CONFIG["DATABASE_MDB_FILE"], font=CONFIG["LABEL_FONTS"])
         database_path_label.pack(pady=(5, 25))
 
     def start(self):

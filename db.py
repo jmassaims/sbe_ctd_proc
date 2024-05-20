@@ -95,9 +95,8 @@ def init_db():
     except KeyError:
         mdw_file = None
 
-    # TODO should be in config file
-    db_user = "readonly"
-    db_password = "readonly"
+    db_user = CONFIG["DATABASE_USER"]
+    db_password = CONFIG["DATABASE_PASSWORD"]
 
     return OceanDB(mdb_file, mdw_file, db_user, db_password)
 

@@ -1,4 +1,4 @@
-config.py
+/config.py
 processed/*
 raw/*.cnv
 *.hex
@@ -32,3 +32,6 @@ venv/
 
 # pytype static type analyzer
 .pytype/
+
+# IDEs
+/.vscode

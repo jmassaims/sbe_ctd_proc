@@ -33,3 +33,6 @@ class CTDFile:
 
         self.base_file_name = hex_path.stem
         self.hex_path = hex_path
+
+        self.processing_dir = Path(CONFIG["PROCESSING_PATH"]) / self.base_file_name
+        self.destination_dir = Path(CONFIG["DESTINATION_PATH"]) / self.base_file_name

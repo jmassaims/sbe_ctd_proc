@@ -33,7 +33,7 @@ from gui.dialog import request_latitude
 from config import CONFIG
 
 
-def convert_hex_to_cnv(file_name, sbe: SBE) -> None:
+def convert_hex_to_cnv(ctdfile: CTDFile, sbe: SBE) -> None:
     """Import hex file and convert to first stage cnv file (dat_cnv step)
 
     :param file_name: _description_
@@ -42,24 +42,22 @@ def convert_hex_to_cnv(file_name, sbe: SBE) -> None:
     :type sbe: _type_
     """
     # run the data conversion processing
-    with open(
-        os.path.join(CONFIG["RAW_PATH"], file_name + ".hex"), "r", encoding="utf-8"
-    ) as hex_file:
-        print("Processing file: ", file_name)
+    with open(ctdfile.hex_path, "r", encoding="utf-8") as hex_file:
+        print("Processing file: ", ctdfile.hex_path)
         cnvfile = sbe.dat_cnv(hex_file.read())
         try:
-            with open(
-                os.path.join(CONFIG["PROCESSING_PATH"] + "./" + file_name, file_name + "C" + ".cnv"), "w"
-            ) as cnv_write_file:
+            dest_file = ctdfile.processing_dir / f"{ctdfile.base_file_name}C.cnv"
+            with open(dest_file, "w") as cnv_write_file:
                 cnv_write_file.write(cnvfile)
-            print("HEX file converted successfully!")
-        except IOError:
-            print("Error while converting the CNV file!")
+            print("HEX file converted: ", dest_file)
+        except IOError as e:
+            print("Error while converting the CNV file! ", ctdfile.hex_path)
+            raise e
 
 
 # All other processing steps
 def process_step(
-    file_name,
+    ctdfile: CTDFile,
     processing_step,
     target_file_ext: str,
     result_file_ext: str,
@@ -81,28 +79,29 @@ def process_step(
     :param error_msg: _description_
     :type error_msg: str
     """
+
+    file_name = ctdfile.base_file_name
     # run processing
     print("file name: ", file_name)
     with open(
-        os.path.join(CONFIG["PROCESSING_PATH"] + "./" + file_name, file_name + target_file_ext + ".cnv"),
+        ctdfile.processing_dir / f"{file_name}{target_file_ext}.cnv",
         "r",
         encoding="utf-8",
     ) as read_file:
         cnvfile = processing_step(read_file.read())
         try:
             with open(
-                os.path.join(
-                    CONFIG["PROCESSING_PATH"] + "./" + file_name, file_name + result_file_ext + ".cnv"
-                ),
+                ctdfile.processing_dir / f"{file_name}{result_file_ext}.cnv",
                 "w",
             ) as write_file:
                 write_file.write(cnvfile)
                 print(output_msg)
-        except IOError:
+        except IOError as e:
             print(error_msg)
+            raise e
 
 
-def process_cnv(file_name, sbe: SBE) -> None:
+def process_cnv(ctdfile: CTDFile, sbe: SBE) -> None:
     """Run SBE data processing steps
 
     :param file_name: _description_
@@ -111,7 +110,7 @@ def process_cnv(file_name, sbe: SBE) -> None:
     :type sbe: SBE
     """
     process_step(
-        file_name,
+        ctdfile,
         sbe.filter,
         "C",
         "CF",
@@ -119,7 +118,7 @@ def process_cnv(file_name, sbe: SBE) -> None:
         "Error while filtering the CNV file!",
     )
     process_step(
-        file_name,
+        ctdfile,
         sbe.align_ctd,
         "CF",
         "CFA",
@@ -127,7 +126,7 @@ def process_cnv(file_name, sbe: SBE) -> None:
         "Error while aligning the CNV file!",
     )
     process_step(
-        file_name,
+        ctdfile,
         sbe.cell_thermal_mass,
         "CFA",
         "CFAC",
@@ -135,7 +134,7 @@ def process_cnv(file_name, sbe: SBE) -> None:
         "Error while loop editing the CNV file!",
     )
     process_step(
-        file_name,
+        ctdfile,
         sbe.loop_edit,
         "CFAC",
         "CFACL",
@@ -143,7 +142,7 @@ def process_cnv(file_name, sbe: SBE) -> None:
         "Error while loop editing the CNV file!",
     )
     process_step(
-        file_name,
+        ctdfile,
         sbe.wild_edit,
         "CFACL",
         "CFACLW",
@@ -151,7 +150,7 @@ def process_cnv(file_name, sbe: SBE) -> None:
         "Error while loop editing the CNV file!",
        )
     process_step(
-        file_name,
+        ctdfile,
         sbe.derive,
         "CFACLW",
         "CFACLWD",
@@ -159,7 +158,7 @@ def process_cnv(file_name, sbe: SBE) -> None:
         "Error while deriving the CNV file!",
     )
     process_step(
-        file_name,
+        ctdfile,
         sbe.bin_avg,
         "CFACLWD",
         "CFACLWDB",
@@ -180,36 +179,46 @@ def process_initsetup(file_name, config_folder)-> None:
     for confname in setupfiles:
         shutil.copy2(os.path.join(config_folder,confname), CONFIG["PROCESSING_PATH"] + "./" + file_name)
 
-def process_folders(file_name)-> None:
- #exception doesnt work. lay out correct file struct from here instead of raw and temp ect.
-    try:
-        os.mkdir(CONFIG["DESTINATION_PATH"] + "./" + file_name)
-        cpath = (CONFIG["DESTINATION_PATH"] + "./" + file_name)
-        os.mkdir(cpath + "./raw")
-        os.mkdir(cpath + "./done")
-        os.mkdir(cpath + "./psa")
-        os.mkdir(cpath + "./config")
-        print("Folder %s created!" )
-    except FileExistsError:
-       print("Folder %s already exists")
+def move_to_destination_dir(ctdfile: CTDFile)-> None:
+    """Create the destination direcotry and sub-directories"""
+    #exception doesnt work. lay out correct file struct from here instead of raw and temp ect.
+    destination_dir = ctdfile.destination_dir
+    dest_raw = destination_dir / "raw"
+    dest_done = destination_dir / "done"
+    dest_psa = destination_dir / "psa"
+    dest_config = destination_dir / "config"
 
-def process_relocate(file_name) ->None:
     try:
-         shutil.copy2(CONFIG["RAW_PATH"] + "./" + file_name + ".hex", CONFIG["DESTINATION_PATH"] + "./" + file_name + "./raw")
-         print("raw file copied")
-         movingfiles=os.listdir(CONFIG["PROCESSING_PATH"] + "./" + file_name)
-         print(movingfiles)
-         for fname in movingfiles:
-             if fname.endswith(".cnv"):
-                 shutil.move(os.path.join(CONFIG["PROCESSING_PATH"] + "./" + file_name,fname), CONFIG["DESTINATION_PATH"] + "./" + file_name + "./done")
-             elif fname.endswith(".psa"):
-                 shutil.move(os.path.join(CONFIG["PROCESSING_PATH"] + "./" + file_name,fname), CONFIG["DESTINATION_PATH"] + "./" + file_name + "./psa")
-             elif fname.endswith(".xmlcon"):
-                 shutil.move(os.path.join(CONFIG["PROCESSING_PATH"] + "./" + file_name,fname), CONFIG["DESTINATION_PATH"] + "./" + file_name + "./config")
-             pass
-         leftoverfiles=os.listdir(CONFIG["PROCESSING_PATH"] + "./" + file_name)
+        destination_dir.mkdir()
+        print(f"Setup destination directory: {destination_dir}")
+    except FileExistsError:
+       print(f"Destination directory already exists: {destination_dir}")
+
+    # Ensure all sub directories are created
+    for subdir in (dest_raw, dest_done, dest_psa, dest_config):
+        try:
+            subdir.mkdir()
+        except FileExistsError:
+            pass
+
+    file_name = ctdfile.base_file_name
+    try:
+         shutil.copy2(ctdfile.hex_path, dest_raw)
+
+         for file in ctdfile.processing_dir.iterdir():
+             if file.suffix == ".cnv":
+                 shutil.move(file, dest_done)
+             elif file.suffix == ".psa":
+                 shutil.move(file, dest_psa)
+             elif file.suffix == ".xmlcon":
+                 shutil.move(file, dest_config)
+             else:
+                 print(f"unexpected file in processing dir: {file}")
+
+         leftoverfiles = os.listdir(ctdfile.processing_dir)
          if len(leftoverfiles) == 0:
-            os.rmdir(CONFIG["PROCESSING_PATH"] + "./" + file_name) #folder cleanup
+            ctdfile.processing_dir.rmdir()
+
     except FileNotFoundError:
        print("Files not copied")
 
@@ -423,15 +432,12 @@ def process_hex_file(ctdfile: CTDFile):
         # psa_section=os.path.join(cwd, 'psa', 'Section.psa'),
 
     )
-    print("sbesetupcomplete")
+
     # run DatCnv
-    convert_hex_to_cnv(base_file_name, sbe)
-    print("processhexcomplete")
+    convert_hex_to_cnv(ctdfile, sbe)
+
     # Run other AIMS modules
-    process_cnv(base_file_name, sbe)
+    process_cnv(ctdfile, sbe)
 
-    # Create file structure
-    process_folders(base_file_name)
-
-    # Gathers and moves files
-    process_relocate(base_file_name)
+    # Create destination file structure and move files.
+    move_to_destination_dir(ctdfile)

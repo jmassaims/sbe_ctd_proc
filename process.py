@@ -259,7 +259,6 @@ def process() -> None:
 
 
 def process_hex_file(ctdfile: CTDFile):
-    ctd_id = ""
     base_file_name = ctdfile.base_file_name
 
     # find ctd id for the cast
@@ -279,45 +278,16 @@ def process_hex_file(ctdfile: CTDFile):
     if derive_latitude is None:
         raise Exception("latitude missing!")
 
-    with open(ctdfile.hex_path, "r", encoding="utf-8") as hex_file:
-        print("File Name: ", hex_file.name)
-        nmea_checker = False
-        for line in hex_file:
-            if "Temperature SN =" in line:
-                ctd_id = line[-5:].strip()
-                print(f"Temperature Serial Number = {ctd_id}")
-            # Livewire ctds have different temperature IDs - Adjust them here
-            # use CONFIG stored mapping
-            if ctd_id in CONFIG["LIVEWIRE_MAPPING"]:
-                ctd_id = CONFIG["LIVEWIRE_MAPPING"][ctd_id]
-            if "cast" in line:
-                try:
-                    # If there are multiple casts, an unwanted 'cast' line will be present, so skip it
-                    cast_date = datetime.strptime(line[11:22], "%d %b %Y")
-                except ValueError:
-                    pass
-            if "SeacatPlus" in line:
-                try:
-                    # Date parsing for .hex files earlier earlier than 2015
-                    cast_date = datetime.strptime(line[40:51], "%d %b %Y")
-                except ValueError:
-                    pass
-            if "NMEA UTC (Time) =" in line:
-                cast_date = datetime.strptime(line[20:31], "%b %d %Y")
-                nmea_checker = True
+    ctdfile.parse_hex()
 
-            elif "System UTC" in line and nmea_checker != True:
-                print(nmea_checker)
-                cast_date = datetime.strptime(line[15:26], "%b %d %Y")
-        if ctd_id == "":
-            print("No serial number found!")
-
+    ctd_id = ctdfile.serial_number
+    print("CTD Serial Number:", ctd_id)
     if ctd_id not in CONFIG["CTD_LIST"]:
         raise Exception("CTD serial number {ctd_id} not in config CTD_LIST")
 
-    print("CTD Serial Number:", ctd_id)
+    cast_date = ctdfile.cast_date
+    print("Cast date:", cast_date)
 
-    print("Cast date: ", cast_date)
     # get config subdirs for the relevant ctd by date
 
     try:

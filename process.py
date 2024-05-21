@@ -25,7 +25,7 @@ import shutil
 from datetime import datetime
 import sqlalchemy as sa
 
-import SBE
+from SBE import SBE
 from ctd_file import CTDFile
 from db import get_db
 from gui.dialog import request_latitude
@@ -81,23 +81,23 @@ def process_step(
     """
 
     file_name = ctdfile.base_file_name
-    # run processing
-    print("file name: ", file_name)
+
     with open(
         ctdfile.processing_dir / f"{file_name}{target_file_ext}.cnv",
         "r",
         encoding="utf-8",
     ) as read_file:
         cnvfile = processing_step(read_file.read())
+        dest_file = ctdfile.processing_dir / f"{file_name}{result_file_ext}.cnv"
         try:
-            with open(
-                ctdfile.processing_dir / f"{file_name}{result_file_ext}.cnv",
-                "w",
-            ) as write_file:
+            with open(dest_file, "w") as write_file:
                 write_file.write(cnvfile)
-                print(output_msg)
+                print(output_msg, dest_file.name)
         except IOError as e:
             print(error_msg)
+            if dest_file.exists():
+                print("WARNING: file could be corrupted ", dest_file)
+
             raise e
 
 
@@ -167,20 +167,20 @@ def process_cnv(ctdfile: CTDFile, sbe: SBE) -> None:
     )
 
 
-
-def process_initsetup(file_name, config_folder)-> None:
-    print("trying to create folder")
-    os.mkdir(CONFIG["PROCESSING_PATH"] + "./" + file_name)
-    print("folder created")
+def setup_processing_dir(ctdfile: CTDFile, config_folder)-> None:
+    """Create the processing directory and copy files to it"""
+    ctdfile.processing_dir.mkdir()
 
     #JM carry xmlcon file and psa files with data
     setupfiles=os.listdir(config_folder)
-    print(setupfiles)
+    print("Copying config files to", ctdfile.processing_dir)
+    print(", ".join(setupfiles))
+
     for confname in setupfiles:
-        shutil.copy2(os.path.join(config_folder,confname), CONFIG["PROCESSING_PATH"] + "./" + file_name)
+        shutil.copy2(os.path.join(config_folder, confname), ctdfile.processing_dir)
 
 def move_to_destination_dir(ctdfile: CTDFile)-> None:
-    """Create the destination direcotry and sub-directories"""
+    """Create the destination directory and sub-directories"""
     #exception doesnt work. lay out correct file struct from here instead of raw and temp ect.
     destination_dir = ctdfile.destination_dir
     dest_raw = destination_dir / "raw"
@@ -263,7 +263,6 @@ def process_hex_file(ctdfile: CTDFile):
     base_file_name = ctdfile.base_file_name
 
     # find ctd id for the cast
-    # print("Processing file: ", file)
 
     derive_latitude = None
 
@@ -280,11 +279,7 @@ def process_hex_file(ctdfile: CTDFile):
     if derive_latitude is None:
         raise Exception("latitude missing!")
 
-    with open(
-        os.path.join(ctdfile.hex_path),
-        "r",
-        encoding="utf-8",
-    ) as hex_file:
+    with open(ctdfile.hex_path, "r", encoding="utf-8") as hex_file:
         print("File Name: ", hex_file.name)
         nmea_checker = False
         for line in hex_file:
@@ -359,19 +354,18 @@ def process_hex_file(ctdfile: CTDFile):
             break
         if found_config == 0:
             config_folder = folder
-    print("Configuration Folder Selected: ", config_folder)
-    # print("Configuration Folder: ", config_folder)
-    for config_file in os.listdir(config_folder):
-        if config_file.endswith(".xmlcon"):
-            print("Configuration File: ", config_file)
-            xmlcon_file = config_file
 
-    # print("config_file: ", config_file)
+    print("Configuration Folder Selected: ", config_folder)
+    xmlcon_files = list(Path(config_folder).glob("*.xmlcon"))
+    if len(xmlcon_files) != 1:
+        raise Exception(f"Expected one .xmlcon file in: {config_folder}")
+
+    xmlcon_file = xmlcon_files[0]
+    print("Configuration File: ", xmlcon_file)
+
     cwd = os.path.dirname(__file__)
 
-    # run initsetup
-    process_initsetup(base_file_name, config_folder)
-    print("initsetupcomplete")
+    setup_processing_dir(ctdfile, config_folder)
 
     # psa files for AIMS modules
     #add and adjust for cellTM and Wildedit
@@ -386,7 +380,7 @@ def process_hex_file(ctdfile: CTDFile):
     ]
     # Remove name appends and enter latitude
     for psa_file in psa_files:
-        psa_file_path = os.path.join(CONFIG["PROCESSING_PATH"], base_file_name, psa_file)
+        psa_file_path = ctdfile.processing_dir / psa_file
         # open psa file and store all lines
         with open(psa_file_path, "r") as f:
             get_all = f.readlines()
@@ -405,25 +399,27 @@ def process_hex_file(ctdfile: CTDFile):
                     else:
                         f.writelines(line)
         except TypeError:
+            # FIXME brittle, shouldn't this copy the original?
+            print("WARNING: TypeError rewriting", psa_file_path)
             with open(psa_file_path, "w") as f:
                 for i, line in enumerate(get_all, 0):
                     f.writelines(line)
 
 
     # Create instance of SBE functions with config_path files
-    sbe = SBE.SBE(
-        bin=os.path.join(CONFIG["SBEDataProcessing_PATH"]),
-        temp_path=os.path.join(CONFIG["PROCESSING_PATH"], base_file_name),  # default
-        xmlcon=os.path.join(CONFIG["PROCESSING_PATH"], base_file_name, xmlcon_file),
+    sbe = SBE(
+        bin=CONFIG["SBEDataProcessing_PATH"],
+        temp_path=ctdfile.processing_dir,  # default
+        xmlcon=ctdfile.processing_dir / xmlcon_file.name,
         # AIMS processing modules
-        psa_dat_cnv=os.path.join(CONFIG["PROCESSING_PATH"], base_file_name, "DatCnv.psa"),
-        psa_filter=os.path.join(CONFIG["PROCESSING_PATH"], base_file_name, "Filter.psa"),
-        psa_align_ctd=os.path.join(CONFIG["PROCESSING_PATH"], base_file_name, "AlignCTD.psa"),
-        psa_cell_thermal_mass=os.path.join(CONFIG["PROCESSING_PATH"], base_file_name, "CellTM.psa"),
-        psa_loop_edit=os.path.join(CONFIG["PROCESSING_PATH"], base_file_name, "LoopEdit.psa"),
-        psa_wild_edit=os.path.join(CONFIG["PROCESSING_PATH"], base_file_name, 'WildEdit.psa'),
-        psa_derive=os.path.join(CONFIG["PROCESSING_PATH"], base_file_name, "Derive.psa"),
-        psa_bin_avg=os.path.join(CONFIG["PROCESSING_PATH"], base_file_name, "BinAvg.psa"),
+        psa_dat_cnv=ctdfile.processing_dir / "DatCnv.psa",
+        psa_filter=ctdfile.processing_dir / "Filter.psa",
+        psa_align_ctd=ctdfile.processing_dir / "AlignCTD.psa",
+        psa_cell_thermal_mass=ctdfile.processing_dir / "CellTM.psa",
+        psa_loop_edit=ctdfile.processing_dir / "LoopEdit.psa",
+        psa_wild_edit=ctdfile.processing_dir / 'WildEdit.psa',
+        psa_derive=ctdfile.processing_dir / "Derive.psa",
+        psa_bin_avg=ctdfile.processing_dir / "BinAvg.psa",
 
         # unused for AIMS processing
         # psa_dat_cnv=os.path.join(cwd, 'psa', 'DatCnv.psa'),

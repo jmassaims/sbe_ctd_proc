@@ -20,11 +20,13 @@ Workflow adjusted by Jack Massuger
 
 # Imports
 import os
+from pathlib import Path
 import shutil
 from datetime import datetime
 import sqlalchemy as sa
 
 import SBE
+from ctd_file import CTDFile
 from db import get_db
 from gui.dialog import request_latitude
 
@@ -168,15 +170,15 @@ def process_cnv(file_name, sbe: SBE) -> None:
 
 
 def process_initsetup(file_name, config_folder)-> None:
-        print("trying to create folder")
-        os.mkdir(CONFIG["PROCESSING_PATH"] + "./" + file_name)
-        print("folder created")
+    print("trying to create folder")
+    os.mkdir(CONFIG["PROCESSING_PATH"] + "./" + file_name)
+    print("folder created")
 
     #JM carry xmlcon file and psa files with data
-        setupfiles=os.listdir(config_folder)
-        print(setupfiles)
-        for confname in setupfiles:
-            shutil.copy2(os.path.join(config_folder,confname), CONFIG["PROCESSING_PATH"] + "./" + file_name)
+    setupfiles=os.listdir(config_folder)
+    print(setupfiles)
+    for confname in setupfiles:
+        shutil.copy2(os.path.join(config_folder,confname), CONFIG["PROCESSING_PATH"] + "./" + file_name)
 
 def process_folders(file_name)-> None:
  #exception doesnt work. lay out correct file struct from here instead of raw and temp ect.
@@ -212,22 +214,26 @@ def process_relocate(file_name) ->None:
        print("Files not copied")
 
 
-
+# old Process entrypoint, using Manager now.
 def process() -> None:
     """Main process loop"""
-    print("\n******************* Processing new file *******************")
 
-    for file in os.listdir(CONFIG["RAW_PATH"]):
-        nmea_checker = False
+    raw_path = Path(CONFIG["RAW_PATH"])
+    if not raw_path.is_dir():
+        raise Exception(f"RAW_PATH is not a directory: {CONFIG["RAW_PATH"]}")
 
+    # convert generator to list so we can get count.
+    hex_files = list(raw_path.glob("*.hex"))
+    print(f"Processing {len(hex_files)} in {raw_path}")
+
+    for file in hex_files:
         underway_processing = os.listdir(CONFIG["PROCESSING_PATH"])
         completed_processing = os.listdir(CONFIG["DESTINATION_PATH"])
 
-        base_file_name, ext = os.path.splitext(file)
+        file_path = raw_path / file
 
-        if not file.endswith(".hex"):
-            print("File not .hex, skipping: ", file)
-            continue
+        ctdfile = CTDFile(file_path)
+        base_file_name = ctdfile.base_file_name
 
         if base_file_name in underway_processing:
             print(base_file_name, " already processing")
@@ -238,17 +244,17 @@ def process() -> None:
             print(base_file_name, " already processed")
             continue
 
-        process_hex_file(file)
+        print("\n******************* Processing new file *******************")
+
+        process_hex_file(ctdfile)
 
 
-def process_hex_file(file):
+def process_hex_file(ctdfile: CTDFile):
     ctd_id = ""
+    base_file_name = ctdfile.base_file_name
 
     # find ctd id for the cast
     # print("Processing file: ", file)
-    base_file_name = os.path.splitext(file)[0]
-
-    # TODO? check if already completed, skip if so
 
     derive_latitude = None
 
@@ -259,19 +265,20 @@ def process_hex_file(file):
     if derive_latitude is None:
         # database disabled or latitude missing for this file, request latitude input
         print(f"WARNING: database missing latitude for file {base_file_name}. Manual latitude input required.")
-        derive_latitude = request_latitude(file)
+        derive_latitude = request_latitude(base_file_name)
 
     # TODO proper validation of latitude text
     if derive_latitude is None:
         raise Exception("latitude missing!")
 
     with open(
-        os.path.join(CONFIG["RAW_PATH"], base_file_name + ".hex"),
+        os.path.join(ctdfile.hex_path),
         "r",
         encoding="utf-8",
-    ) as file_name:
-        print("File Name: ", file_name.name)
-        for line in file_name:
+    ) as hex_file:
+        print("File Name: ", hex_file.name)
+        nmea_checker = False
+        for line in hex_file:
             if "Temperature SN =" in line:
                 ctd_id = line[-5:].strip()
                 print(f"Temperature Serial Number = {ctd_id}")

@@ -4,7 +4,7 @@ from tkinter import filedialog, Label
 import customtkinter
 
 from config import CONFIG
-from process import process
+from manager import start_manager
 
 # FIXME not safe to change config while process is running.
 #   not sure how Python synchronizes changes to module objects like CONFIG betweens processes.
@@ -51,7 +51,7 @@ class App:
         if self.proc is not None and self.proc.is_alive():
             raise Exception("existing process is running")
 
-        self.proc = multiprocessing.Process(target=process, args=())
+        self.proc = multiprocessing.Process(target=start_manager, args=())
         self.proc.start()
 
 

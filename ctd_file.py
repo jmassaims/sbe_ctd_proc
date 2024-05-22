@@ -2,7 +2,8 @@ from datetime import datetime
 from pathlib import Path
 from config import CONFIG
 
-# TODO better to use Seabird lib or regex (exact indicies brittle)
+# TODO better to use regex (exact indicies brittle)
+# Seabird python lib doesn't seem to support extracting hex info.
 def parse_hex(file):
     """Parse searial number and cast date from Hex file"""
     serial_number = None
@@ -47,7 +48,7 @@ def parse_hex(file):
                 cast_date = datetime.strptime(line[15:26], "%b %d %Y")
                 cast_date_line = line
 
-            # TODO break once have all values?
+            # TODO break once have all values? or at "*END*"
 
         if serial_number == None:
             raise Exception(f"No serial number found in: {file}")

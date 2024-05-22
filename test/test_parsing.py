@@ -9,7 +9,7 @@ if __package__ is None:
     project_root = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
     sys.path.append(project_root)
 
-from ctd_file import parse_hex
+from ctd_file import parse_hex, CTDFile
 
 from config_util import get_config_dir
 from config import CONFIG
@@ -35,6 +35,17 @@ class TestParsing(unittest.TestCase):
         # should use the cast line
         # * cast  11 22 Sep 2015 17:55:29 samples ...
         self.assertEqual(cast_date, datetime(2015, 9, 22))
+
+    def test_mapping(self):
+        hex_file = self.raw / "19plus1_4409_20030312_test.hex"
+        sn, cast_date = parse_hex(hex_file)
+        self.assertEqual(sn, "4409")
+
+        CONFIG["LIVEWIRE_MAPPING"]["4409"] = "123"
+        ctdfile = CTDFile(hex_file)
+        ctdfile.parse_hex()
+        self.assertEqual(ctdfile.serial_number, "123")
+        self.assertEqual(cast_date, datetime(2005, 8, 23))
 
 
 if __name__ == '__main__':

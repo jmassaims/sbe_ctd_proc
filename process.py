@@ -289,6 +289,8 @@ def process_hex_file(ctdfile: CTDFile):
     print(f"CTD Serial Number: {serial_number}, Cast date: {cast_date}")
 
     config_folder = get_config_dir(serial_number, cast_date)
+    print("Configuration Folder Selected: ", config_folder)
+
     xmlcon_file = get_xmlcon(config_folder)
     print("Configuration File:", xmlcon_file)
 

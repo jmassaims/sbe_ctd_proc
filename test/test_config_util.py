@@ -30,10 +30,8 @@ class TestConfigUtil(unittest.TestCase):
 
     def test_before_date(self):
         cast_date = datetime(2009, 1, 1)
-        dir = get_config_dir("6180", cast_date)
-        self.assertEqual('6180', dir.relative_to(self.config_dir).parts[0])
-        # assert error
-        self.assertEqual('NRS1_6180_20121009', dir.name)
+        with self.assertRaises(Exception):
+            dir = get_config_dir("6180", cast_date)
 
     def test_afterlast_date(self):
         cast_date = datetime(2025, 1, 1)

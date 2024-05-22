@@ -5,7 +5,7 @@ from config import CONFIG
 # TODO better to use regex (exact indicies brittle)
 # Seabird python lib doesn't seem to support extracting hex info.
 def parse_hex(file):
-    """Parse searial number and cast date from Hex file"""
+    """Parse serial number and cast date from Hex file"""
     serial_number = None
     with open(file, "r", encoding="utf-8") as hex_file:
         nmea_checker = False

@@ -27,6 +27,7 @@ import sqlalchemy as sa
 
 from SBE import SBE
 from ctd_file import CTDFile
+from psa_file import rewrite_psa_file
 from db import get_db
 from gui.dialog import request_latitude
 from config_util import *
@@ -263,19 +264,19 @@ def process_hex_file(ctdfile: CTDFile):
 
     # find ctd id for the cast
 
-    derive_latitude = None
+    latitude = None
 
     oceandb = get_db()
     if oceandb is not None:
-        derive_latitude = oceandb.get_latitude(base_file_name)
+        latitude = oceandb.get_latitude(base_file_name)
 
-    if derive_latitude is None:
+    if latitude is None:
         # database disabled or latitude missing for this file, request latitude input
         print(f"WARNING: database missing latitude for file {base_file_name}. Manual latitude input required.")
-        derive_latitude = request_latitude(base_file_name)
+        latitude = request_latitude(base_file_name)
 
     # TODO proper validation of latitude text
-    if derive_latitude is None:
+    if latitude is None:
         raise Exception("latitude missing!")
 
     ctdfile.parse_hex()
@@ -308,29 +309,7 @@ def process_hex_file(ctdfile: CTDFile):
     # Remove name appends and enter latitude
     for psa_file in psa_files:
         psa_file_path = ctdfile.processing_dir / psa_file
-        # open psa file and store all lines
-        with open(psa_file_path, "r") as f:
-            get_all = f.readlines()
-        try:
-            # open new psa file and rewrite, changing lines if NameAppend or Latitude are found
-            with open(psa_file_path, "w") as f:
-                # START THE NUMBERING FROM 1 (by default it begins with 0)
-                for i, line in enumerate(get_all, 0):
-                    if '<NameAppend value="' in line:
-                        f.writelines('  <NameAppend value="" />\n')
-                    elif "<Latitude value=" in line:
-                        f.writelines(
-                            '<Latitude value="' + derive_latitude + '" />\n'
-                        )
-                        print(f"Latitude changed in PSA file {psa_file}")
-                    else:
-                        f.writelines(line)
-        except TypeError:
-            # FIXME brittle, shouldn't this copy the original?
-            print("WARNING: TypeError rewriting", psa_file_path)
-            with open(psa_file_path, "w") as f:
-                for i, line in enumerate(get_all, 0):
-                    f.writelines(line)
+        rewrite_psa_file(psa_file_path, latitude)
 
 
     # Create instance of SBE functions with config_path files

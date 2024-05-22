@@ -14,7 +14,7 @@ def get_config_dir_path(name: str) -> Path:
 
     return path
 
-def get_config_dir(serial_number: str, cast_date: datetime):
+def get_config_dir(serial_number: str, cast_date: datetime) -> Path:
     """get the config folder for the given serial number and cast date"""
 
     # try
@@ -56,7 +56,7 @@ def get_config_dir(serial_number: str, cast_date: datetime):
             config_folder = folder
 
     print("Configuration Folder Selected: ", config_folder)
-    return config_folder
+    return Path(config_folder)
 
 def get_xmlcon(config_folder: str) -> Path:
     """get the .xmlcon file Path from the folder.

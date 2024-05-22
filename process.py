@@ -167,7 +167,7 @@ def process_cnv(ctdfile: CTDFile, sbe: SBE) -> None:
     )
 
 
-def setup_processing_dir(ctdfile: CTDFile, config_folder)-> None:
+def setup_processing_dir(ctdfile: CTDFile, config_folder: Path)-> None:
     """Create the processing directory and copy files to it"""
     ctdfile.processing_dir.mkdir()
 

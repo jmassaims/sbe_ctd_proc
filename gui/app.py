@@ -67,7 +67,7 @@ class App:
         print("Stopped processing.")
         print("Temporary files may remain in the raw directory due to cancelled processing.")
 
-        # TODO cleanup on terminate
+        # TODO cleanup files on terminate
         #  print(file_name)
         # print(base_file_name)
         #thought process here to check if these two are equal and if not, delete file_name file

@@ -2,9 +2,10 @@ from datetime import datetime
 from pathlib import Path
 from config import CONFIG
 
-# TODO better to use Seabird lib or regex (exact indicies brittle)
+# TODO better to use regex (exact indicies brittle)
+# Seabird python lib doesn't seem to support extracting hex info.
 def parse_hex(file):
-    """Parse searial number and cast date from Hex file"""
+    """Parse serial number and cast date from Hex file"""
     serial_number = None
     with open(file, "r", encoding="utf-8") as hex_file:
         nmea_checker = False
@@ -12,14 +13,6 @@ def parse_hex(file):
             if serial_number is None and "Temperature SN =" in line:
                 serial_number = line[-5:].strip()
                 print("serial number from:", line.rstrip())
-                # Livewire ctds have different temperature IDs - Adjust them here
-                # use CONFIG stored mapping
-                try:
-                    new_id = CONFIG["LIVEWIRE_MAPPING"][serial_number]
-                    print(f"LIVEWIRE_MAPPING mapped {serial_number} to {new_id}")
-                    serial_number = new_id
-                except KeyError:
-                    pass
 
             if "cast" in line:
                 try:
@@ -47,7 +40,7 @@ def parse_hex(file):
                 cast_date = datetime.strptime(line[15:26], "%b %d %Y")
                 cast_date_line = line
 
-            # TODO break once have all values?
+            # TODO break once have all values? or at "*END*"
 
         if serial_number == None:
             raise Exception(f"No serial number found in: {file}")
@@ -97,6 +90,19 @@ class CTDFile:
         self.destination_dir = Path(CONFIG["DESTINATION_PATH"]) / self.base_file_name
 
     def parse_hex(self):
-        sn, cast_date = parse_hex(self.hex_path)
-        self.serial_number = sn
+        """Parse serial number and cast date from hex file.
+        Applies the LIVEWIRE_MAPPING if it has an entry for the serial number.
+        """
+        serial_number, cast_date = parse_hex(self.hex_path)
+
+        # Livewire ctds have different temperature IDs - Adjust them here
+        # use CONFIG stored mapping
+        try:
+            new_id = CONFIG["LIVEWIRE_MAPPING"][serial_number]
+            print(f"LIVEWIRE_MAPPING mapped {serial_number} to {new_id}")
+            serial_number = new_id
+        except KeyError:
+            pass
+
+        self.serial_number = serial_number
         self.cast_date = cast_date

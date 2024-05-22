@@ -32,10 +32,9 @@ class OceanDB():
 # TODO private
     def get_db_tables(self):
         """load and store the tables needed for OceanDB methods"""
-        # import ipdb; ipdb.set_trace()
 
         engine = sa.engine.create_engine(self.connection_url)
-        #print(engine)
+
         with engine.connect() as conn:
             self.field_trip = pd.read_sql('SELECT * FROM FieldTrip', engine, parse_dates=['DateStart', 'DateEnd'])
             self.sites = pd.read_sql('SELECT * FROM Sites', engine)

@@ -63,7 +63,6 @@ class SBE(object):
     def _write_temp_file(self, content, ext='.txt'):
         """Save in memory file content to temp dir and return path."""
         # Create temp file path use hash of file content
-        # import ipdb; ipdb.set_trace()
         path = os.path.join(self._temp_dir, sha1(content.encode('utf-8')).hexdigest() + ext)
         # Create the temp file
         with open(path, 'w') as f:
@@ -79,7 +78,7 @@ class SBE(object):
 
         # see pp 136
         # seabird.com/sites/default/files/documents/SBEDataProcessing_7.26.0.pdf
-        # import ipdb; ipdb.set_trace()
+
         #/a"" in exec_str is to ignore all name appends as they are manually input with sbe_proc
         exec_str = '"{cmd}" /c"{c}" /i"{i}" /o"{o}" /p"{p}" /a"" /s'.format(
             cmd=cmd,
@@ -88,7 +87,7 @@ class SBE(object):
             o=out_dir,
             p=psa
         )
-        # import ipdb; ipdb.set_trace()
+
         # Run command, throw error if failure occurs
         try:
             subprocess.check_call(exec_str)

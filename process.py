@@ -29,7 +29,7 @@ from SBE import SBE
 from ctd_file import CTDFile
 from db import get_db
 from gui.dialog import request_latitude
-
+from config_util import *
 from config import CONFIG
 
 
@@ -280,60 +280,17 @@ def process_hex_file(ctdfile: CTDFile):
 
     ctdfile.parse_hex()
 
-    ctd_id = ctdfile.serial_number
-    print("CTD Serial Number:", ctd_id)
-    if ctd_id not in CONFIG["CTD_LIST"]:
+    serial_number = ctdfile.serial_number
+    if serial_number not in CONFIG["CTD_LIST"]:
         raise Exception("CTD serial number {ctd_id} not in config CTD_LIST")
 
     cast_date = ctdfile.cast_date
-    print("Cast date:", cast_date)
 
-    # get config subdirs for the relevant ctd by date
+    print(f"CTD Serial Number: {serial_number}, Cast date: {cast_date}")
 
-    try:
-        subfolders = [
-            f.path
-            for f in os.scandir(os.path.join(CONFIG["CTD_CONFIG_PATH"], ctd_id))
-            if f.is_dir()
-        ]
-    # Exception handling for incompatible config file
-    except FileNotFoundError as e:
-        print("WARNING: Config file path incompatible.")
-        # TODO review, isn't this fatal?
-        raise e
-
-    found_config = 0
-    print(f"Checking configuration directory for subdirectory relevant to {cast_date} cast date.")
-    subfolder_date_list = []
-    # for folder in subfolders:
-    #
-    #     folder_date = datetime.strptime(folder[-8:], "%Y%m%d")
-    #     subfolder_date_list.append(folder_date)
-    # subfolder_date_list.sort()
-    #
-    # print(subfolder_date_list)
-
-    for folder in subfolders:
-        folder_date = datetime.strptime(folder[-8:], "%Y%m%d")
-        # find date range our cast fits into
-        print(f"Checking {folder_date} configuration directory.")
-        if folder_date < cast_date:
-            temp_folder = folder
-        else:
-            config_folder = temp_folder
-            break
-        if found_config == 0:
-            config_folder = folder
-
-    print("Configuration Folder Selected: ", config_folder)
-    xmlcon_files = list(Path(config_folder).glob("*.xmlcon"))
-    if len(xmlcon_files) != 1:
-        raise Exception(f"Expected one .xmlcon file in: {config_folder}")
-
-    xmlcon_file = xmlcon_files[0]
-    print("Configuration File: ", xmlcon_file)
-
-    cwd = os.path.dirname(__file__)
+    config_folder = get_config_dir(serial_number, cast_date)
+    xmlcon_file = get_xmlcon(config_folder)
+    print("Configuration File:", xmlcon_file)
 
     setup_processing_dir(ctdfile, config_folder)
 

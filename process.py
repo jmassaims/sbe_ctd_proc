@@ -168,7 +168,7 @@ def process_cnv(ctdfile: CTDFile, sbe: SBE) -> None:
     )
 
 
-def setup_processing_dir(ctdfile: CTDFile, config_folder)-> None:
+def setup_processing_dir(ctdfile: CTDFile, config_folder: Path)-> None:
     """Create the processing directory and copy files to it"""
     ctdfile.processing_dir.mkdir()
 
@@ -290,6 +290,8 @@ def process_hex_file(ctdfile: CTDFile):
     print(f"CTD Serial Number: {serial_number}, Cast date: {cast_date}")
 
     config_folder = get_config_dir(serial_number, cast_date)
+    print("Configuration Folder Selected: ", config_folder)
+
     xmlcon_file = get_xmlcon(config_folder)
     print("Configuration File:", xmlcon_file)
 

@@ -38,3 +38,9 @@ You can use your IDE (e.g. VSCode) to do this, or run:
 3. Install [SBE Data Processing](https://software.seabird.com/)
 
 4. Copy `config.example.py` to `config.py` and edit for your setup.
+
+## Tests
+
+Tests are located in the `test` directory.
+Files can be executed individually.
+To run all tests: `python -m unittest`

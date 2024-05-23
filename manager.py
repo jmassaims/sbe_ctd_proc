@@ -81,12 +81,19 @@ class Manager:
 
     def start(self):
         i = 1
-        for base_name in self.pending:
+        # copy pending set since we mutate it
+        for base_name in list(self.pending):
             ctdfile = self.ctdfile[base_name]
-            # TODO update manager set() state here
-            self.send.put(("start", base_name, i))
+
+            self.pending.remove(ctdfile.base_file_name)
+            self.processing.add(ctdfile.base_file_name)
+
+            self.send.put(("start", base_name, i, len(self.pending)))
             process_hex_file(ctdfile)
-            self.send.put(("finish", base_name, i))
+
+            self.processed.add(ctdfile.base_file_name)
+            self.send.put(("finish", base_name, i, len(self.processed)))
+
             i += 1
 
 

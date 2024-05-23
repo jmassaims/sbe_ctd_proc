@@ -26,6 +26,8 @@ class App:
         self.proc = Process(target=start_manager, args=(recv,))
         self.proc.start()
 
+        self.processing_panel.set_processing_state(True)
+
         self._after_id = self.window.after_idle(self.process_events)
 
     # Terminate the process
@@ -46,6 +48,9 @@ class App:
             self.proc.terminate()  # sends a SIGTERM
 
         self.proc = None
+
+        self.processing_panel.set_processing_state(False)
+
         print("Stopped processing.")
         print("Temporary files may remain in the raw directory due to cancelled processing.")
 
@@ -55,6 +60,7 @@ class App:
         #thought process here to check if these two are equal and if not, delete file_name file
 
     def process_events(self):
+        """Process events from subprocess and monitor if it's alive"""
         try:
             while True:
                 msg = self.recv.get(block=False)
@@ -63,19 +69,26 @@ class App:
         except queue.Empty:
             pass
 
-        self._after_id = self.window.after_idle(self.process_events)
+        if self.proc is not None:
+            if self.proc.is_alive():
+                # schedule next process_events in 100ms
+                self._after_id = self.window.after(100, self.process_events)
+            else:
+                # cleanup process state
+                self.stop_process()
 
     def process_msg(self, msg):
-        print("got msg", msg)
+        print("msg:", msg)
         label = msg[0]
 
         if label == "begin":
             self.processing_panel.reset_progress(msg[1])
         elif label == "start":
-            # TODO display name
-            name = msg[1]
+            _, name, i, num_pending = msg
+            self.processing_panel.start_file(name, i, num_pending)
         elif label == "finish":
-            self.processing_panel.finished_file(msg[1], msg[2])
+            _, name, i, num_processed = msg
+            self.processing_panel.finished_file(name, i, num_processed)
         elif label == "done":
             self.stop_process(2_000)
         elif label == "usermsg":

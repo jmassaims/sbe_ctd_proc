@@ -25,7 +25,7 @@ class Manager:
     processing: set[str]
     processed: set[str]
 
-    def __init__(self, send: Queue) -> None:
+    def __init__(self, send: Queue = None) -> None:
         self.send = send
 
         self.raw_path = get_config_dir_path("RAW_PATH")
@@ -39,6 +39,7 @@ class Manager:
         """scan directories, set file lists"""
         self.hex_files = list(self.raw_path.glob("*.hex"))
         total_count = len(self.hex_files)
+        self.hex_count = total_count
         print(f"{total_count} hex files in {self.raw_path}")
 
         self.ctdfiles = [CTDFile(f) for f in self.hex_files]

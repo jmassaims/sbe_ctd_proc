@@ -1,6 +1,7 @@
-import multiprocessing
+from multiprocessing import Process, Queue, JoinableQueue
+import queue
 
-from tkinter import filedialog, Label
+from tkinter import filedialog, Label, messagebox
 import customtkinter
 
 from config import CONFIG
@@ -51,18 +52,32 @@ class App:
         if self.proc is not None and self.proc.is_alive():
             raise Exception("existing process is running")
 
-        self.proc = multiprocessing.Process(target=start_manager, args=())
+        # for messages sent by worker processes.
+        self.recv = recv = Queue()
+
+        # our recv is the other process' send
+        self.proc = Process(target=start_manager, args=(recv,))
         self.proc.start()
 
+        self._after_id = self.window.after_idle(self.process_events)
 
     # Terminate the process
-    def stop_process(self):
+    def stop_process(self, join_timeout=None):
         """Stop processing with a button click"""
+
+        self.window.after_cancel(self._after_id)
+
         if self.proc is None:
             print("No processing started.")
             return
 
-        self.proc.terminate()  # sends a SIGTERM
+        if join_timeout is not None:
+            self.proc.join(join_timeout)
+
+        if self.proc.is_alive():
+            print("Terminating process")
+            self.proc.terminate()  # sends a SIGTERM
+
         self.proc = None
         print("Stopped processing.")
         print("Temporary files may remain in the raw directory due to cancelled processing.")
@@ -71,6 +86,39 @@ class App:
         #  print(file_name)
         # print(base_file_name)
         #thought process here to check if these two are equal and if not, delete file_name file
+
+    def process_events(self):
+        try:
+            while True:
+                msg = self.recv.get(block=False)
+                self.process_msg(msg)
+
+        except queue.Empty:
+            pass
+
+        self._after_id = self.window.after_idle(self.process_events)
+
+    def process_msg(self, msg):
+        print("got msg", msg)
+        label = msg[0]
+
+        if label == "begin":
+            self.progressbar.set(0)
+            self.num_to_process = msg[1]
+        elif label == "start":
+            # TODO display name
+            name = msg[1]
+        elif label == "finish":
+            name = msg[1]
+            i = msg[2]
+            self.progressbar.set(i / self.num_to_process)
+        elif label == "done":
+            self.stop_process(2_000)
+        elif label == "usermsg":
+            messagebox.showinfo("CTD Processing Message", msg[1])
+        elif label == "error":
+            messagebox.showerror("CTD Processing Error", msg[1])
+
 
     def build(self):
         PROCESSING_PATH = CONFIG["PROCESSING_PATH"]
@@ -102,6 +150,10 @@ class App:
             window, text="Stop", font=("Arial", 20, 'bold'), fg_color="#AC3535", hover_color="#621E1E",
             command=lambda: self.stop_process()
         ).pack(pady=(0,20))
+
+        self.progressbar = customtkinter.CTkProgressBar(window)
+        self.progressbar.pack()
+        self.progressbar.set(0)
 
     def build_config(self, window):
         # raw directory button

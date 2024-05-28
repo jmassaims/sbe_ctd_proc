@@ -82,7 +82,7 @@ class App:
         label = msg[0]
 
         if label == "process_step":
-            self.processing_panel.set_step(msg[1])
+            self.processing_panel.set_step(msg[1], msg[2], msg[3])
         elif label == "begin":
             self.processing_panel.reset_progress(msg[1])
         elif label == "start":

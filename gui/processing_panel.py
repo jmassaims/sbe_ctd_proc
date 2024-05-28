@@ -125,17 +125,26 @@ class ProcessingPanel():
         self.info_label.configure(text="")
         self.step_label.configure(text="")
 
-    def start_file(self, name, num, num_pending):
+    def start_file(self, name: str, num: int, num_pending: int):
         self.file_label.configure(text=name)
         self.pending_button.configure(text=f"{num_pending} Pending")
+        # minus 1 since num is 1-based index
+        self.file_progress_init = (num - 1) / self.num_to_process
+        self.progressbar.set(self.file_progress_init)
 
-    def finished_file(self, name, num, num_processed):
+    def finished_file(self, name: str, num: int, num_processed: int):
         self.progressbar.set(num / self.num_to_process)
         self.processed_button.configure(text=f"{num_processed} Processed")
         self.step_label.configure(text="")
 
-    def set_step(self, name: str):
+    def set_step(self, name: str, step_num: int, num_steps: int):
         self.step_label.configure(text=name)
+
+        # width of progressbar allocated to a file
+        file_width = 1 / self.num_to_process
+
+        progress = self.file_progress_init + (step_num / num_steps) * file_width
+        self.progressbar.set(progress)
 
     def set_file_info(self, serial_number: str, cast_date: datetime):
         self.info_label.configure(text=f"Serial Number: {serial_number}  Cast Date: {cast_date}")

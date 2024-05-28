@@ -111,11 +111,13 @@ def process_cnv(ctdfile: CTDFile, sbe: SBE, send: Queue = None) -> None:
     :param sbe: _description_
     :type sbe: SBE
     """
-    def send_step(name):
-        if send:
-            send.put(("process_step", name))
 
-    send_step("Filter")
+    num_steps = 7
+    def send_step(name, num):
+        if send:
+            send.put(("process_step", name, num, num_steps))
+
+    send_step("Filter", 1)
     process_step(
         ctdfile,
         sbe.filter,
@@ -125,7 +127,7 @@ def process_cnv(ctdfile: CTDFile, sbe: SBE, send: Queue = None) -> None:
         "Error while filtering the CNV file!",
     )
 
-    send_step("Align")
+    send_step("Align", 2)
     process_step(
         ctdfile,
         sbe.align_ctd,
@@ -135,7 +137,7 @@ def process_cnv(ctdfile: CTDFile, sbe: SBE, send: Queue = None) -> None:
         "Error while aligning the CNV file!",
     )
 
-    send_step("Cell Thermal Mass")
+    send_step("Cell Thermal Mass", 3)
     process_step(
         ctdfile,
         sbe.cell_thermal_mass,
@@ -145,7 +147,7 @@ def process_cnv(ctdfile: CTDFile, sbe: SBE, send: Queue = None) -> None:
         "Error while loop editing the CNV file!",
     )
 
-    send_step("Loop Edit")
+    send_step("Loop Edit", 4)
     process_step(
         ctdfile,
         sbe.loop_edit,
@@ -155,7 +157,7 @@ def process_cnv(ctdfile: CTDFile, sbe: SBE, send: Queue = None) -> None:
         "Error while loop editing the CNV file!",
     )
 
-    send_step("Wild Edit")
+    send_step("Wild Edit", 5)
     process_step(
         ctdfile,
         sbe.wild_edit,
@@ -165,7 +167,7 @@ def process_cnv(ctdfile: CTDFile, sbe: SBE, send: Queue = None) -> None:
         "Error while loop editing the CNV file!",
        )
 
-    send_step("Derive")
+    send_step("Derive", 6)
     process_step(
         ctdfile,
         sbe.derive,
@@ -175,7 +177,7 @@ def process_cnv(ctdfile: CTDFile, sbe: SBE, send: Queue = None) -> None:
         "Error while deriving the CNV file!",
     )
 
-    send_step("Bin Average")
+    send_step("Bin Average", 7)
     process_step(
         ctdfile,
         sbe.bin_avg,

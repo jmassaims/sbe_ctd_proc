@@ -21,6 +21,7 @@ Workflow adjusted by Jack Massuger
 # Imports
 import os
 from pathlib import Path
+from queue import Queue
 import shutil
 from datetime import datetime
 import sqlalchemy as sa
@@ -102,7 +103,7 @@ def process_step(
             raise e
 
 
-def process_cnv(ctdfile: CTDFile, sbe: SBE) -> None:
+def process_cnv(ctdfile: CTDFile, sbe: SBE, send: Queue = None) -> None:
     """Run SBE data processing steps
 
     :param file_name: _description_
@@ -110,6 +111,13 @@ def process_cnv(ctdfile: CTDFile, sbe: SBE) -> None:
     :param sbe: _description_
     :type sbe: SBE
     """
+
+    num_steps = 7
+    def send_step(name, num):
+        if send:
+            send.put(("process_step", name, num, num_steps))
+
+    send_step("Filter", 1)
     process_step(
         ctdfile,
         sbe.filter,
@@ -118,6 +126,8 @@ def process_cnv(ctdfile: CTDFile, sbe: SBE) -> None:
         "CNV file filtered successfully!",
         "Error while filtering the CNV file!",
     )
+
+    send_step("Align", 2)
     process_step(
         ctdfile,
         sbe.align_ctd,
@@ -126,6 +136,8 @@ def process_cnv(ctdfile: CTDFile, sbe: SBE) -> None:
         "CNV file aligned successfully!",
         "Error while aligning the CNV file!",
     )
+
+    send_step("Cell Thermal Mass", 3)
     process_step(
         ctdfile,
         sbe.cell_thermal_mass,
@@ -134,6 +146,8 @@ def process_cnv(ctdfile: CTDFile, sbe: SBE) -> None:
         "CNV file loop edited successfully!",
         "Error while loop editing the CNV file!",
     )
+
+    send_step("Loop Edit", 4)
     process_step(
         ctdfile,
         sbe.loop_edit,
@@ -142,6 +156,8 @@ def process_cnv(ctdfile: CTDFile, sbe: SBE) -> None:
         "CNV file loop edited successfully!",
         "Error while loop editing the CNV file!",
     )
+
+    send_step("Wild Edit", 5)
     process_step(
         ctdfile,
         sbe.wild_edit,
@@ -150,6 +166,8 @@ def process_cnv(ctdfile: CTDFile, sbe: SBE) -> None:
         "CNV file loop edited successfully!",
         "Error while loop editing the CNV file!",
        )
+
+    send_step("Derive", 6)
     process_step(
         ctdfile,
         sbe.derive,
@@ -158,6 +176,8 @@ def process_cnv(ctdfile: CTDFile, sbe: SBE) -> None:
         "CNV file derived successfully!",
         "Error while deriving the CNV file!",
     )
+
+    send_step("Bin Average", 7)
     process_step(
         ctdfile,
         sbe.bin_avg,
@@ -259,7 +279,7 @@ def process() -> None:
         process_hex_file(ctdfile)
 
 
-def process_hex_file(ctdfile: CTDFile):
+def process_hex_file(ctdfile: CTDFile, send: Queue = None):
     base_file_name = ctdfile.base_file_name
 
     # find ctd id for the cast
@@ -288,6 +308,8 @@ def process_hex_file(ctdfile: CTDFile):
     cast_date = ctdfile.cast_date
 
     print(f"CTD Serial Number: {serial_number}, Cast date: {cast_date}")
+    if send:
+        send.put(("hex_info", serial_number, cast_date))
 
     config_folder = get_config_dir(serial_number, cast_date)
     print("Configuration Folder Selected: ", config_folder)
@@ -341,7 +363,7 @@ def process_hex_file(ctdfile: CTDFile):
     convert_hex_to_cnv(ctdfile, sbe)
 
     # Run other AIMS modules
-    process_cnv(ctdfile, sbe)
+    process_cnv(ctdfile, sbe, send)
 
     # Create destination file structure and move files.
     move_to_destination_dir(ctdfile)

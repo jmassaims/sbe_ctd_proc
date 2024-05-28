@@ -1,6 +1,7 @@
 from pathlib import Path
 import os
 from collections.abc import Mapping
+from multiprocessing import Queue
 
 from ctd_file import CTDFile
 from process import process_hex_file
@@ -11,6 +12,7 @@ class Manager:
     """Manages the state of CTDFiles and tracks events.
     Processes each file that needs processing based on current configuration.
     """
+    send: Queue
 
     processing_dir: Path
     destination_dir: Path
@@ -23,7 +25,9 @@ class Manager:
     processing: set[str]
     processed: set[str]
 
-    def __init__(self) -> None:
+    def __init__(self, send: Queue = None) -> None:
+        self.send = send
+
         self.raw_path = get_config_dir_path("RAW_PATH")
 
         # TODO prompt to create if missing?
@@ -35,6 +39,7 @@ class Manager:
         """scan directories, set file lists"""
         self.hex_files = list(self.raw_path.glob("*.hex"))
         total_count = len(self.hex_files)
+        self.hex_count = total_count
         print(f"{total_count} hex files in {self.raw_path}")
 
         self.ctdfiles = [CTDFile(f) for f in self.hex_files]
@@ -75,19 +80,38 @@ class Manager:
         self.pending = base_names - processed - processing
 
     def start(self):
-        for base_name in self.pending:
+        i = 1
+        # copy pending set since we mutate it
+        for base_name in list(self.pending):
             ctdfile = self.ctdfile[base_name]
-            # TODO update manager state here
-            process_hex_file(ctdfile)
+
+            self.pending.remove(ctdfile.base_file_name)
+            self.processing.add(ctdfile.base_file_name)
+
+            self.send.put(("start", base_name, i, len(self.pending)))
+            process_hex_file(ctdfile, self.send)
+
+            self.processed.add(ctdfile.base_file_name)
+            self.send.put(("finish", base_name, i, len(self.processed)))
+
+            i += 1
 
 
-def start_manager():
+def start_manager(send: Queue):
     """Create new instance of Manager and start processing"""
-    manager = Manager()
-    manager.scan_dirs()
+    try:
+        manager = Manager(send)
+        manager.scan_dirs()
 
-    if manager.pending:
-        print(f"Starting to process {len(manager.pending)} files")
-        manager.start()
-    else:
-        print("No files need to be processed.")
+        if manager.pending:
+            print(f"Starting to process {len(manager.pending)} files")
+            send.put(("begin", len(manager.pending)))
+            manager.start()
+            send.put(("done",))
+        else:
+            print("No files need to be processed.")
+            send.put(("usermsg", "No files need to be processed."))
+
+    except Exception as e:
+        send.put(("error", str(e)))
+        raise e

@@ -81,11 +81,15 @@ class App:
         print("msg:", msg)
         label = msg[0]
 
-        if label == "begin":
+        if label == "process_step":
+            self.processing_panel.set_step(msg[1])
+        elif label == "begin":
             self.processing_panel.reset_progress(msg[1])
         elif label == "start":
             _, name, i, num_pending = msg
             self.processing_panel.start_file(name, i, num_pending)
+        elif label == "hex_info":
+            self.processing_panel.set_file_info(msg[1], msg[2])
         elif label == "finish":
             _, name, i, num_processed = msg
             self.processing_panel.finished_file(name, i, num_processed)
@@ -95,6 +99,8 @@ class App:
             messagebox.showinfo("CTD Processing Message", msg[1])
         elif label == "error":
             messagebox.showerror("CTD Processing Error", msg[1])
+        else:
+            print("WARNING: unknown message", msg)
 
 
     def build(self):

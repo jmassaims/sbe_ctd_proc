@@ -89,7 +89,7 @@ class Manager:
             self.processing.add(ctdfile.base_file_name)
 
             self.send.put(("start", base_name, i, len(self.pending)))
-            process_hex_file(ctdfile)
+            process_hex_file(ctdfile, self.send)
 
             self.processed.add(ctdfile.base_file_name)
             self.send.put(("finish", base_name, i, len(self.processed)))

@@ -1,3 +1,4 @@
+from datetime import datetime
 import os
 import tkinter as tk
 import customtkinter
@@ -49,14 +50,6 @@ class ProcessingPanel():
         self.progressbar.pack(side=tk.LEFT)
         self.progressbar.set(0)
 
-        file_row = customtkinter.CTkFrame(parent)
-        file_row.pack()
-
-        self.file_label = file_label = customtkinter.CTkLabel(file_row, text="")
-        file_label.pack(side=tk.LEFT)
-
-        # TODO step
-
         # Stop process button
         self.stop_button = stop_button = customtkinter.CTkButton(
             progress_row, text="🟥", font=("Arial", 20, 'bold'), fg_color="transparent", text_color="#AC3535", hover_color="#621E1E", border_spacing=8,
@@ -77,15 +70,30 @@ class ProcessingPanel():
         stage1_path_label = customtkinter.CTkLabel(start_frame, text="Process data from .hex to BinDown stage", font=CONFIG["LABEL_FONTS"])
         stage1_path_label.pack(pady=(5, 25))
 
+        self.info_frame = info_frame = customtkinter.CTkFrame(parent)
+        info_frame.pack()
+
+        self.file_label = file_label = customtkinter.CTkLabel(info_frame, text="")
+        file_label.pack()
+
+        self.info_label = customtkinter.CTkLabel(info_frame, text="")
+        self.info_label.pack()
+
+        self.step_label = customtkinter.CTkLabel(info_frame, text="")
+        self.step_label.pack()
+
     def set_processing_state(self, processing: bool):
+        """Change to or from the processing UI mode"""
         print("set_processing_state", processing)
         if processing:
             self.stop_button.configure(state=tk.NORMAL)
             # hide start UI
             self.start_frame.pack_forget()
+            self.info_frame.pack()
         else:
             self.stop_button.configure(state=tk.DISABLED)
             self.prepare()
+            self.info_frame.pack_forget()
             self.start_frame.pack()
 
     def prepare(self):
@@ -110,8 +118,12 @@ class ProcessingPanel():
         self.file_label.configure(text="")
 
     def reset_progress(self, num_to_process: int):
+        """reset the progress bar"""
         self.num_to_process = num_to_process
         self.progressbar.set(0)
+        self.file_label.configure(text="")
+        self.info_label.configure(text="")
+        self.step_label.configure(text="")
 
     def start_file(self, name, num, num_pending):
         self.file_label.configure(text=name)
@@ -119,5 +131,11 @@ class ProcessingPanel():
 
     def finished_file(self, name, num, num_processed):
         self.progressbar.set(num / self.num_to_process)
-        # TODO step text DONE
         self.processed_button.configure(text=f"{num_processed} Processed")
+        self.step_label.configure(text="")
+
+    def set_step(self, name: str):
+        self.step_label.configure(text=name)
+
+    def set_file_info(self, serial_number: str, cast_date: datetime):
+        self.info_label.configure(text=f"Serial Number: {serial_number}  Cast Date: {cast_date}")

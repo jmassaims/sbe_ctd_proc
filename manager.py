@@ -13,6 +13,7 @@ class Manager:
     Processes each file that needs processing based on current configuration.
     """
     send: Queue
+    recv: Queue
 
     processing_dir: Path
     destination_dir: Path
@@ -25,8 +26,9 @@ class Manager:
     processing: set[str]
     processed: set[str]
 
-    def __init__(self, send: Queue = None) -> None:
+    def __init__(self, send: Queue = None, recv: Queue = None) -> None:
         self.send = send
+        self.recv = recv
 
         self.raw_path = get_config_dir_path("RAW_PATH")
 
@@ -80,27 +82,62 @@ class Manager:
         self.pending = base_names - processed - processing
 
     def start(self):
-        i = 1
         # copy pending set since we mutate it
-        for base_name in list(self.pending):
+        pending = list(self.pending)
+
+        i = 0
+        file_num = 1 # 1-based index
+        while i < len(pending):
+            base_name = pending[i]
             ctdfile = self.ctdfile[base_name]
 
-            self.pending.remove(ctdfile.base_file_name)
-            self.processing.add(ctdfile.base_file_name)
+            response = None
+            try:
+                self.process_file(ctdfile, file_num)
+            except Exception as e:
+                self.send.put(("file_error", base_name, str(e)))
+                # expecting App to respond with abort, retry, ignore
+                msg = self.recv.get()
+                response, app_base_name = msg
 
-            self.send.put(("start", base_name, i, len(self.pending)))
-            process_hex_file(ctdfile, self.send)
+                # sanity check that we're talking about the same file
+                if app_base_name != base_name:
+                    raise Exception("App response refers to a different file!")
 
-            self.processed.add(ctdfile.base_file_name)
-            self.send.put(("finish", base_name, i, len(self.processed)))
+                if response == "abort":
+                    raise e
+
+            if response is None or response == "ignore":
+                file_num += 1
+            elif response == "retry":
+                continue
+            else:
+                raise Exception(f"Unknown response '{response}'")
 
             i += 1
 
+    def process_file(self, ctdfile: CTDFile, file_num: int):
+        base_name = ctdfile.base_file_name
 
-def start_manager(send: Queue):
+        try:
+            self.pending.remove(base_name)
+        except KeyError:
+            # may happen when retrying a file
+            pass
+
+        self.processing.add(base_name)
+
+        self.send.put(("start", base_name, file_num, len(self.pending)))
+        process_hex_file(ctdfile, self.send)
+
+        self.processed.add(base_name)
+        self.send.put(("finish", base_name, file_num, len(self.processed)))
+
+
+def start_manager(send: Queue, recv: Queue):
     """Create new instance of Manager and start processing"""
     try:
-        manager = Manager(send)
+        manager = Manager(send, recv)
         manager.scan_dirs()
 
         if manager.pending:

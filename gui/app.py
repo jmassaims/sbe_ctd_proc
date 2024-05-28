@@ -20,10 +20,11 @@ class App:
             raise Exception("existing process is running")
 
         # for messages sent by worker processes.
-        self.recv = recv = Queue()
+        self.recv = Queue()
+        self.send = Queue()
 
         # our recv is the other process' send
-        self.proc = Process(target=start_manager, args=(recv,))
+        self.proc = Process(target=start_manager, args=(self.recv, self.send))
         self.proc.start()
 
         self.processing_panel.set_processing_state(True)
@@ -97,8 +98,14 @@ class App:
             self.stop_process(2_000)
         elif label == "usermsg":
             messagebox.showinfo("CTD Processing Message", msg[1])
+        elif label == "file_error":
+            self.show_file_error(msg[1], msg[2])
         elif label == "error":
-            messagebox.showerror("CTD Processing Error", msg[1])
+            messagebox.showerror(
+                parent=self.window,
+                title="CTD Processing Error",
+                message="Processing stopped by error.",
+                detail=msg[1])
         else:
             print("WARNING: unknown message", msg)
 
@@ -135,3 +142,13 @@ class App:
     def start(self):
         "Start the tkinter event loop"
         self.window.mainloop()
+
+    def show_file_error(self, file_name: str, error: str):
+        response = messagebox.showerror(
+            parent=self.window,
+            title="CTD Processing Error",
+            message=f"Error processing {file_name}",
+            detail=error,
+            type=messagebox.ABORTRETRYIGNORE)
+
+        self.send.put((response, file_name))

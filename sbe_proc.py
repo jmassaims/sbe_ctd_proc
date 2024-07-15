@@ -1,9 +1,5 @@
-from gui.app import App
+from sbe_ctd_proc import start_gui
 
-
-def main():
-    app = App()
-    app.start()
 
 if __name__ == "__main__":
-    main()
+    start_gui()

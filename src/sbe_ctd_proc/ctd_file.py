@@ -1,6 +1,7 @@
 from datetime import datetime
 from pathlib import Path
-from config import CONFIG
+
+from .config import CONFIG
 
 # TODO better to use regex (exact indicies brittle)
 # Seabird python lib doesn't seem to support extracting hex info.

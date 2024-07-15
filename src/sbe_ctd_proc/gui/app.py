@@ -4,8 +4,8 @@ import queue
 from tkinter import filedialog, Label, messagebox
 import customtkinter
 
-from config import CONFIG
-from manager import start_manager
+from ..config import CONFIG
+from ..manager import start_manager
 
 from .processing_panel import ProcessingPanel
 from .config_panel import ConfigPanel

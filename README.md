@@ -39,6 +39,11 @@ You can use your IDE (e.g. VSCode) to do this, or run:
 
 4. Copy `config.example.py` to `config.py` and edit for your setup.
 
+## Run
+
+The above install command should have created `sbe-ctd-proc` in the venv.
+If that doesn't work, use `sbe_proc.py`
+
 ## Tests
 
 Tests are located in the `test` directory.

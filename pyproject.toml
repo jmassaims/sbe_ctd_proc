@@ -14,7 +14,8 @@ requires-python = ">= 3.8"
 dependencies = [
     "customtkinter",
     "pandas",
-    "SQLAlchemy"
+    "SQLAlchemy",
+    "sqlalchemy-access"
 ]
 
 [project.scripts]

@@ -20,7 +20,7 @@ import subprocess
 import glob
 
 # config
-from config import CONFIG
+from .config import CONFIG
 
 raw_path = ''
 

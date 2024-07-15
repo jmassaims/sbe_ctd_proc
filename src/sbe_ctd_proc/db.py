@@ -2,7 +2,7 @@ import os.path as P
 import pandas as pd
 import sqlalchemy as sa
 
-from config import CONFIG
+from .config import CONFIG
 
 class OceanDB():
     def __init__(self, db_file, mdw_file, db_user, db_password) -> None:

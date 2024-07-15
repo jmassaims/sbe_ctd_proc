@@ -32,8 +32,8 @@ You can use your IDE (e.g. VSCode) to do this, or run:
 `python3 -m venv .venv`
 `.venv\Scripts\activate`
 
-2. Install requirements
-`pip install -r requirements.txt`
+2. Install dependencies
+`pip install -e .`
 
 3. Install [SBE Data Processing](https://software.seabird.com/)
 

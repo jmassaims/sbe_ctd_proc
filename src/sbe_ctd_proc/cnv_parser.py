@@ -1,7 +1,33 @@
 import re
 from io import TextIOWrapper
+from typing import TypedDict
 from xml.etree import ElementTree
 
+class SensorInfo(TypedDict):
+    type: str
+    channel: int
+    id: int
+    sn: str
+    calib_date: str
+
+def sensorinfo_from_element(sensor: ElementTree.Element) -> SensorInfo:
+    subelements = [x for x in sensor]
+
+    if len(subelements) != 1:
+        raise Exception("expected 1 subelement of <sensor>")
+
+    # Note: there can be a comment with useful info above this element.
+    subelement = subelements[0]
+
+    calib_date = subelement.findtext("CalibrationDate")
+
+    return {
+        'channel': int(sensor.attrib['Channel']),
+        'type': subelement.tag,
+        'id': int(subelement.attrib["SensorID"]),
+        'sn': subelement.findtext("SerialNumber"),
+        'calib_date': calib_date
+    }
 
 class CnvInfoRaw:
     """Extract information from .cnv file with minimal parsing.
@@ -78,27 +104,10 @@ class CnvInfoRaw:
 
         self.unknown_text.append(line)
 
+    def get_sensors_info(self) -> list[SensorInfo]:
+        """get simplified sensor information"""
+        xml = self.get_sensors_xml()
 
-# TEST
-path = r"c:\Users\awhite\data\CTD\processed\19plus2_4525_20120905_test\done\19plus2_4525_20120905_testCFACLWDB.cnv"
-ci = CnvInfoRaw(path)
+        #num_sensors = xml.attrib["count"]
 
-xml = ci.get_sensors_xml()
-num_sensors = xml.attrib["count"]
-print(f"{num_sensors} sensors")
-
-for sensor in xml.iterfind("sensor"):
-    subelements = [x for x in sensor]
-    if len(subelements) != 1:
-        raise Exception("expected 1 subelement of <sensor>")
-
-    subelement = subelements[0]
-
-    channel = sensor.attrib['Channel']
-    type = subelement.tag
-    id = subelement.attrib["SensorID"]
-
-    sn = subelement.findtext("SerialNumber")
-    calib_date = subelement.findtext("CalibrationDate")
-
-    print(type, channel, id, sn, calib_date)
+        return [sensorinfo_from_element(sensor) for sensor in xml.iterfind("sensor")]

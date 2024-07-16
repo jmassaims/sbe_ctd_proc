@@ -104,6 +104,25 @@ class CnvInfoRaw:
 
         self.unknown_text.append(line)
 
+    def get(self, name: str) -> str:
+        """Get the value of the variable name from any section.
+        @throws Exception if name is in multiple sections
+        @throws KeyError if name does not exist in any section
+        """
+        val = None
+        for s in self.sections:
+            if val is None:
+                # get() returns None instead of raising KeyError
+                val = s.get(name)
+            elif name in s:
+                raise Exception(f'multiple sections have "{name}"')
+
+        if val is None:
+            raise KeyError(f'"{name}" does not exist in any section')
+
+        return val
+
+
     def get_sensors_info(self) -> list[SensorInfo]:
         """get simplified sensor information"""
         xml = self.get_sensors_xml()

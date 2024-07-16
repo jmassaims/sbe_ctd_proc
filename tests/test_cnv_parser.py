@@ -54,6 +54,14 @@ class TestParsing(unittest.TestCase):
         self.assertEqual(cnv.sections[1]["volt 0"], "offset = -4.684667e-02, slope = 1.248835e+00")
         self.assertEqual(cnv.sections[3]["loopedit_surfaceSoak"], "minDepth = 1.0, maxDepth = 2, useDeckPress = 1")
 
+    def test_get(self):
+        cnv = self.cnv_info
+        self.assertEqual(cnv.get("System UpLoad Time"), "Jun 22 2014 14:14:08")
+        self.assertEqual(cnv.get("file_type"), "ascii")
+
+        with self.assertRaises(KeyError):
+            cnv.get("foobar")
+
 
 if __name__ == '__main__':
     unittest.main()

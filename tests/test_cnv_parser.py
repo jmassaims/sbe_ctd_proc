@@ -48,6 +48,12 @@ class TestParsing(unittest.TestCase):
             'calib_date': '17-may-13'
         })
 
+    def test_colon_separated(self):
+        cnv = self.cnv_info
+        # loopedit_surfaceSoak: minDepth = 2.0, maxDepth = 5, useDeckPress = 1
+        self.assertEqual(cnv.sections[1]["volt 0"], "offset = -4.684667e-02, slope = 1.248835e+00")
+        self.assertEqual(cnv.sections[3]["loopedit_surfaceSoak"], "minDepth = 1.0, maxDepth = 2, useDeckPress = 1")
+
 
 if __name__ == '__main__':
     unittest.main()

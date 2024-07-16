@@ -51,7 +51,7 @@ class CnvInfoRaw:
 
     def __init__(self, file: str):
         # separate name = value
-        name_val_re = re.compile(r"[*#]\s+([^=]+)\s*=\s*(.+)\s*")
+        name_val_re = re.compile(r"[*#]\s+([^=:]+)\s*[=:]\s*(.+)\s*")
 
         info = {}
         self.sections = [info]

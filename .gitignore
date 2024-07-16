@@ -33,5 +33,8 @@ venv/
 # pytype static type analyzer
 .pytype/
 
+# Tests
+/.coverage
+
 # IDEs
 /.vscode

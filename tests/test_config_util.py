@@ -8,7 +8,7 @@ if __package__ is None:
     project_root = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
     sys.path.append(project_root)
 
-from config_util import get_config_dir
+from sbe_ctd_proc.config_util import get_config_dir
 
 class TestConfigUtil(unittest.TestCase):
 

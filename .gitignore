@@ -1,8 +1,12 @@
 /config.py
+
+# ignore processing directories
+raw/*
+processing/*
 processed/*
-raw/*.cnv
-*.hex
-*.cnv
+
+/*.hex
+/*.cnv
 
 # Microsoft Office, temporary files
 ~*

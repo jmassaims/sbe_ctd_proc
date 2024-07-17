@@ -220,7 +220,7 @@ class AuditLog:
         with open(self.filepath, 'r', newline='') as f:
             # need to use DictReader for fieldname attr to exist
             r = DictReader(f, dialect='excel')
-            if self.columns != r.fiednames:
+            if self.columns != r.fieldnames:
                 # for now user should move old file.
                 # Idea: auto-rename *_2.csv, *_3.csv, ...
                 raise Exception(f"Cannot append to audit log '{self.filepath.resolve()}'; columns have changed since audit log written")

@@ -1,3 +1,4 @@
+from contextlib import AbstractContextManager
 from pathlib import Path
 import os
 from collections.abc import Mapping
@@ -10,7 +11,7 @@ from .process import process_hex_file
 from .config import CONFIG
 from .config_util import get_config_dir_path
 
-class Manager:
+class Manager(AbstractContextManager):
     """Manages the state of CTDFiles and tracks events.
     Processes each file that needs processing based on current configuration.
     """
@@ -42,6 +43,9 @@ class Manager:
 
         if auditlog_path:
             self.audit_log = AuditLog(auditlog_path)
+
+    def __exit__(self, *exc_details):
+        self.cleanup()
 
     def cleanup(self):
         if self.audit_log:
@@ -148,21 +152,18 @@ def start_manager(send: Queue, recv: Queue):
     """Create new instance of Manager and start processing"""
     try:
         # TODO auditlog_path from config
-        manager = Manager(send, recv, auditlog_path="sbe_ctd_auditlog.csv")
-        manager.scan_dirs()
+        with Manager(send, recv, auditlog_path="sbe_ctd_auditlog.csv") as manager:
+            manager.scan_dirs()
 
-        if manager.pending:
-            print(f"Starting to process {len(manager.pending)} files")
-            send.put(("begin", len(manager.pending)))
-            manager.start()
-            send.put(("done",))
-        else:
-            print("No files need to be processed.")
-            send.put(("usermsg", "No files need to be processed."))
+            if manager.pending:
+                print(f"Starting to process {len(manager.pending)} files")
+                send.put(("begin", len(manager.pending)))
+                manager.start()
+                send.put(("done",))
+            else:
+                print("No files need to be processed.")
+                send.put(("usermsg", "No files need to be processed."))
 
     except Exception as e:
         send.put(("error", str(e)))
         raise e
-
-    finally:
-        manager.cleanup()

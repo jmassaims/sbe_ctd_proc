@@ -1,7 +1,7 @@
 from io import TextIOWrapper
 from pathlib import Path
 from typing import TypedDict
-from csv import DictWriter
+from csv import DictReader, DictWriter
 
 from .ctd_file import CTDFile
 from .cnv_parser import CnvInfoRaw, SensorInfo
@@ -217,9 +217,14 @@ class AuditLog:
         self.file.close()
 
     def check_existing_file(self):
-        # TODO check header matches columns
-        # either start a new file *_2.csv, or raise
-        pass
+        with open(self.filepath, 'r', newline='') as f:
+            # need to use DictReader for fieldname attr to exist
+            r = DictReader(f, dialect='excel')
+            if self.columns != r.fiednames:
+                # for now user should move old file.
+                # Idea: auto-rename *_2.csv, *_3.csv, ...
+                raise Exception(f"Cannot append to audit log '{self.filepath.resolve()}'; columns have changed since audit log written")
+
 
     def log(self, ctd_file: CTDFile, cnv_file: str, mixin_info: AuditInfo):
         cnv = CnvInfoRaw(cnv_file)

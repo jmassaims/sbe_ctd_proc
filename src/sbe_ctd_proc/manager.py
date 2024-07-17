@@ -2,6 +2,7 @@ from pathlib import Path
 import os
 from collections.abc import Mapping
 from multiprocessing import Queue
+from typing import Optional
 
 from .audit_log import AuditLog
 from .ctd_file import CTDFile
@@ -27,9 +28,9 @@ class Manager:
     processing: set[str]
     processed: set[str]
 
-    audit_log: AuditLog
+    audit_log: Optional[AuditLog]
 
-    def __init__(self, send: Queue = None, recv: Queue = None) -> None:
+    def __init__(self, send: Queue = None, recv: Queue = None, auditlog_path = None) -> None:
         self.send = send
         self.recv = recv
 
@@ -39,10 +40,12 @@ class Manager:
         self.processing_dir = get_config_dir_path("PROCESSING_PATH")
         self.destination_dir = get_config_dir_path("DESTINATION_PATH")
 
-        self.audit_log = AuditLog("audit.csv")
+        if auditlog_path:
+            self.audit_log = AuditLog(auditlog_path)
 
     def cleanup(self):
-        self.audit_log.close()
+        if self.audit_log:
+            self.audit_log.close()
 
     def scan_dirs(self):
         """scan directories, set file lists"""
@@ -144,7 +147,8 @@ class Manager:
 def start_manager(send: Queue, recv: Queue):
     """Create new instance of Manager and start processing"""
     try:
-        manager = Manager(send, recv)
+        # TODO auditlog_path from config
+        manager = Manager(send, recv, auditlog_path="sbe_ctd_auditlog.csv")
         manager.scan_dirs()
 
         if manager.pending:

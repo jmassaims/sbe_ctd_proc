@@ -294,7 +294,7 @@ def process() -> None:
         process_hex_file(ctdfile)
 
 
-def process_hex_file(ctdfile: CTDFile, audit: AuditLog, send: Queue = None):
+def process_hex_file(ctdfile: CTDFile, audit: AuditLog = None, send: Queue = None):
     base_file_name = ctdfile.base_file_name
 
     # find ctd id for the cast
@@ -374,14 +374,17 @@ def process_hex_file(ctdfile: CTDFile, audit: AuditLog, send: Queue = None):
 
     )
 
-    # audit log function that adds information in this context.
-    def log(ctdfile, cnvpath, last_command: str):
-        mixin_info: AuditInfo = {
-            'con_filename': xmlcon_file,
-            'latitude': latitude,
-            'last_command': last_command
-        }
-        audit.log(ctdfile, cnvpath, mixin_info)
+    if audit:
+        # audit log function that adds information in this context.
+        def log(ctdfile, cnvpath, last_command: str):
+            mixin_info: AuditInfo = {
+                'con_filename': xmlcon_file,
+                'latitude': latitude,
+                'last_command': last_command
+            }
+            audit.log(ctdfile, cnvpath, mixin_info)
+    else:
+        log = None
 
     # run DatCnv
     convert_hex_to_cnv(ctdfile, sbe)

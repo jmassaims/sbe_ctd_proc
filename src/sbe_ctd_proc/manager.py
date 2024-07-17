@@ -3,6 +3,7 @@ import os
 from collections.abc import Mapping
 from multiprocessing import Queue
 
+from .audit_log import AuditLog
 from .ctd_file import CTDFile
 from .process import process_hex_file
 from .config import CONFIG
@@ -26,6 +27,8 @@ class Manager:
     processing: set[str]
     processed: set[str]
 
+    audit_log: AuditLog
+
     def __init__(self, send: Queue = None, recv: Queue = None) -> None:
         self.send = send
         self.recv = recv
@@ -36,6 +39,10 @@ class Manager:
         self.processing_dir = get_config_dir_path("PROCESSING_PATH")
         self.destination_dir = get_config_dir_path("DESTINATION_PATH")
 
+        self.audit_log = AuditLog("audit.csv")
+
+    def cleanup(self):
+        self.audit_log.close()
 
     def scan_dirs(self):
         """scan directories, set file lists"""
@@ -128,7 +135,7 @@ class Manager:
         self.processing.add(base_name)
 
         self.send.put(("start", base_name, file_num, len(self.pending)))
-        process_hex_file(ctdfile, self.send)
+        process_hex_file(ctdfile, audit=self.audit_log, send=self.send)
 
         self.processed.add(base_name)
         self.send.put(("finish", base_name, file_num, len(self.processed)))
@@ -152,3 +159,6 @@ def start_manager(send: Queue, recv: Queue):
     except Exception as e:
         send.put(("error", str(e)))
         raise e
+
+    finally:
+        manager.cleanup()

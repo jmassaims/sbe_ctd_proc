@@ -13,8 +13,16 @@ class SensorInfo(TypedDict):
 def sensorinfo_from_element(sensor: ElementTree.Element) -> SensorInfo:
     subelements = [x for x in sensor]
 
-    if len(subelements) != 1:
-        raise Exception("expected 1 subelement of <sensor>")
+    # All sensors seem to have a comment like:
+    # <!-- Count, Pressure, Strain Gauge -->
+
+    # can have an empty sensor element (comment only):
+    #   <sensor Channel="5" >
+    #     <!-- A/D voltage 1, Free -->
+    #   </sensor>
+    if len(subelements) == 0:
+        channel = int(sensor.attrib['Channel'])
+        raise Exception(f'<sensor> channel="{channel}" has no subelements!')
 
     # Note: there can be a comment with useful info above this element.
     subelement = subelements[0]
@@ -94,6 +102,8 @@ class CnvInfoRaw:
 
     def get_sensors_xml(self) -> ElementTree.Element:
         if not hasattr(self, 'sensors_xml'):
+            # this parser does not include Comments
+            # may need to use XMLPullParser, or another XML module.
             self.sensors_xml = ElementTree.fromstringlist(self.sensors_xml_lines)
 
         return self.sensors_xml
@@ -127,6 +137,13 @@ class CnvInfoRaw:
         """get simplified sensor information"""
         xml = self.get_sensors_xml()
 
-        #num_sensors = xml.attrib["count"]
+        # actually number of channels, some <sensor> can be empty
+        # num_sensors = int(xml.attrib["count"])
 
-        return [sensorinfo_from_element(sensor) for sensor in xml.iterfind("sensor")]
+        infos = [
+            sensorinfo_from_element(sensor)
+            for sensor in xml.iterfind("sensor")
+            if len(sensor) > 0
+        ]
+
+        return infos

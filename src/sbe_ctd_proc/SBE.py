@@ -30,6 +30,10 @@ class SBE(object):
     Allows for the defining of global variables at instantiation so that
     environment defaults may be used across different machine installations.
     """
+
+    # last executed command (success or error)
+    last_command: str
+
     def __init__(self, *args, **kwargs):
         """constructor kwargs available:
             bin: The bin directory containing all SBE functions
@@ -87,6 +91,8 @@ class SBE(object):
             o=out_dir,
             p=psa
         )
+
+        self.last_command = exec_str
 
         # Run command, throw error if failure occurs
         try:

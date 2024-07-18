@@ -25,22 +25,47 @@ Dates must be at the end of the calibration_files_##### directory names.
 ## Setup
 
 If needed, [install Python](https://www.python.org/downloads/).
-For Windows users, this is easiest to install from the [Windows Store](https://apps.microsoft.com/detail/9ncvdn91xzqp).
+For Windows users, it's easiest to install [Python 3 from Windows Store](https://apps.microsoft.com/detail/9ncvdn91xzqp).
 
-1. Create a virtual environment.
-You can use your IDE (e.g. VSCode) to do this, or run:
-`python3 -m venv .venv`
-`.venv\Scripts\activate`
+[Install hatch](https://hatch.pypa.io/1.12/install/#gui-installer_1)
+In Windows, this requires admin privlidges. If the GUI Installer is blocked, try the
+[hatch command line installer](https://hatch.pypa.io/1.12/install/#command-line-installer_1).
 
-2. Install requirements
-`pip install -r requirements.txt`
+Unfortunately, VSCode does not discover hatch installed other ways.
+(see [Issue #23819](https://github.com/microsoft/vscode-python/issues/23819))
 
-3. Install [SBE Data Processing](https://software.seabird.com/)
+If the hatch installer doesn't work for you, install it with one of the other methods.
 
-4. Copy `config.example.py` to `config.py` and edit for your setup.
+## Python Virtual Environment
+
+`hatch` manages the environment for you and creates it automatically with certain
+commands. Manage the environment with `hatch env`
+
+VSCode [should find the Hatch environment](https://hatch.pypa.io/1.12/how-to/integrate/vscode/)
+
+## Seabird Dependencies
+
+Install [SBE Data Processing](https://software.seabird.com/)
+
+### Config
+
+Copy `config.example.toml` to `config.toml` and edit for your setup.
+
+# Run
+
+`sbe-ctd-proc` if you are within the environment (`hatch shell`).
+
+Outside the environment: `hatch run sbe-ctd-proc`
+
+If that doesn't work, use `sbe_proc.py`
 
 ## Tests
 
-Tests are located in the `test` directory.
+Tests are located in the `tests` directory. Run all tests with:
+`hatch test`
+
+Explicitly run a test env script like: `hatch run test:run`
+
 Files can be executed individually.
-To run all tests: `python -m unittest`
+Alternatively, run all tests with: `python -m unittest`
+(*not ideal because this doesn't use the hatch test env*)

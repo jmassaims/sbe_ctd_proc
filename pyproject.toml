@@ -1,0 +1,39 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sbe-ctd-proc"
+version = "0.1"
+authors = [
+    {name = "Arlo White", email = "a.white@aims.gov.au"}
+]
+readme = "README.md"
+
+requires-python = ">= 3.8"
+dependencies = [
+    "customtkinter",
+    "pandas",
+    "SQLAlchemy",
+    "sqlalchemy-access",
+    "tomlkit",
+    "seabirdscientific",
+]
+
+[project.scripts]
+sbe-ctd-proc-cli = "sbe_ctd_proc:start_gui"
+
+[project.gui-scripts]
+sbe-ctd-proc = "sbe_ctd_proc:start_gui"
+
+[tool.hatch.envs.test]
+dependencies = [
+  "coverage[toml]",
+  "pytest",
+  "pytest-cov",
+  "pytest-mock",
+]
+
+[tool.hatch.envs.test.scripts]
+run-coverage = "pytest --cov-config=pyproject.toml --cov=pkg --cov=tests"
+run = "run-coverage --no-cov"

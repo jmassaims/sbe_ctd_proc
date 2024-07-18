@@ -3,8 +3,8 @@ import os
 import tkinter as tk
 import customtkinter
 
-from config import CONFIG
-from manager import Manager
+from ..config import CONFIG
+from ..manager import Manager
 
 def open_dir(path):
     os.startfile(path)

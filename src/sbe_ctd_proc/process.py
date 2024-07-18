@@ -26,13 +26,14 @@ import shutil
 from datetime import datetime
 import sqlalchemy as sa
 
-from SBE import SBE
-from ctd_file import CTDFile
-from psa_file import rewrite_psa_file
-from db import get_db
-from gui.dialog import request_latitude
-from config_util import *
-from config import CONFIG
+from .audit_log import AuditInfo, AuditLog
+from .SBE import SBE
+from .ctd_file import CTDFile
+from .psa_file import rewrite_psa_file
+from .db import get_db
+from .gui.dialog import request_latitude
+from .config_util import *
+from .config import CONFIG
 
 
 def convert_hex_to_cnv(ctdfile: CTDFile, sbe: SBE) -> None:
@@ -65,7 +66,7 @@ def process_step(
     result_file_ext: str,
     output_msg: str,
     error_msg: str,
-) -> None:
+) -> Path:
     """Run a particular SBE processing step saving the intermediate result
 
     :param file_name: _description_
@@ -80,6 +81,7 @@ def process_step(
     :type output_msg: str
     :param error_msg: _description_
     :type error_msg: str
+    :returns path to outpt cnv file
     """
 
     file_name = ctdfile.base_file_name
@@ -95,6 +97,7 @@ def process_step(
             with open(dest_file, "w") as write_file:
                 write_file.write(cnvfile)
                 print(output_msg, dest_file.name)
+                return dest_file
         except IOError as e:
             print(error_msg)
             if dest_file.exists():
@@ -103,7 +106,7 @@ def process_step(
             raise e
 
 
-def process_cnv(ctdfile: CTDFile, sbe: SBE, send: Queue = None) -> None:
+def process_cnv(ctdfile: CTDFile, sbe: SBE, send: Queue = None, log = None) -> None:
     """Run SBE data processing steps
 
     :param file_name: _description_
@@ -112,13 +115,18 @@ def process_cnv(ctdfile: CTDFile, sbe: SBE, send: Queue = None) -> None:
     :type sbe: SBE
     """
 
+    # ensure log is always a function (avoids a bunch of if statements below)
+    noop = lambda *args, **kwargs: None
+    log = log or noop
+
     num_steps = 7
     def send_step(name, num):
         if send:
             send.put(("process_step", name, num, num_steps))
 
+
     send_step("Filter", 1)
-    process_step(
+    cnvpath = process_step(
         ctdfile,
         sbe.filter,
         "C",
@@ -126,9 +134,10 @@ def process_cnv(ctdfile: CTDFile, sbe: SBE, send: Queue = None) -> None:
         "CNV file filtered successfully!",
         "Error while filtering the CNV file!",
     )
+    log(ctdfile, cnvpath, sbe.last_command)
 
     send_step("Align", 2)
-    process_step(
+    cnvpath = process_step(
         ctdfile,
         sbe.align_ctd,
         "CF",
@@ -136,9 +145,10 @@ def process_cnv(ctdfile: CTDFile, sbe: SBE, send: Queue = None) -> None:
         "CNV file aligned successfully!",
         "Error while aligning the CNV file!",
     )
+    log(ctdfile, cnvpath, sbe.last_command)
 
     send_step("Cell Thermal Mass", 3)
-    process_step(
+    cnvpath = process_step(
         ctdfile,
         sbe.cell_thermal_mass,
         "CFA",
@@ -146,9 +156,10 @@ def process_cnv(ctdfile: CTDFile, sbe: SBE, send: Queue = None) -> None:
         "CNV file loop edited successfully!",
         "Error while loop editing the CNV file!",
     )
+    log(ctdfile, cnvpath, sbe.last_command)
 
     send_step("Loop Edit", 4)
-    process_step(
+    cnvpath = process_step(
         ctdfile,
         sbe.loop_edit,
         "CFAC",
@@ -156,9 +167,10 @@ def process_cnv(ctdfile: CTDFile, sbe: SBE, send: Queue = None) -> None:
         "CNV file loop edited successfully!",
         "Error while loop editing the CNV file!",
     )
+    log(ctdfile, cnvpath, sbe.last_command)
 
     send_step("Wild Edit", 5)
-    process_step(
+    cnvpath = process_step(
         ctdfile,
         sbe.wild_edit,
         "CFACL",
@@ -166,9 +178,10 @@ def process_cnv(ctdfile: CTDFile, sbe: SBE, send: Queue = None) -> None:
         "CNV file loop edited successfully!",
         "Error while loop editing the CNV file!",
        )
+    log(ctdfile, cnvpath, sbe.last_command)
 
     send_step("Derive", 6)
-    process_step(
+    cnvpath = process_step(
         ctdfile,
         sbe.derive,
         "CFACLW",
@@ -176,9 +189,10 @@ def process_cnv(ctdfile: CTDFile, sbe: SBE, send: Queue = None) -> None:
         "CNV file derived successfully!",
         "Error while deriving the CNV file!",
     )
+    log(ctdfile, cnvpath, sbe.last_command)
 
     send_step("Bin Average", 7)
-    process_step(
+    cnvpath = process_step(
         ctdfile,
         sbe.bin_avg,
         "CFACLWD",
@@ -186,6 +200,7 @@ def process_cnv(ctdfile: CTDFile, sbe: SBE, send: Queue = None) -> None:
         "CNV file bin averaged successfully!",
         "Error while bin averaging the CNV file!",
     )
+    log(ctdfile, cnvpath, sbe.last_command)
 
 
 def setup_processing_dir(ctdfile: CTDFile, config_folder: Path)-> None:
@@ -279,7 +294,7 @@ def process() -> None:
         process_hex_file(ctdfile)
 
 
-def process_hex_file(ctdfile: CTDFile, send: Queue = None):
+def process_hex_file(ctdfile: CTDFile, audit: AuditLog = None, send: Queue = None):
     base_file_name = ctdfile.base_file_name
 
     # find ctd id for the cast
@@ -359,11 +374,23 @@ def process_hex_file(ctdfile: CTDFile, send: Queue = None):
 
     )
 
+    if audit:
+        # audit log function that adds information in this context.
+        def log(ctdfile, cnvpath, last_command: str):
+            mixin_info: AuditInfo = {
+                'con_filename': xmlcon_file,
+                'latitude': latitude,
+                'last_command': last_command
+            }
+            audit.log(ctdfile, cnvpath, mixin_info)
+    else:
+        log = None
+
     # run DatCnv
     convert_hex_to_cnv(ctdfile, sbe)
 
     # Run other AIMS modules
-    process_cnv(ctdfile, sbe, send)
+    process_cnv(ctdfile, sbe, send, log)
 
     # Create destination file structure and move files.
     move_to_destination_dir(ctdfile)

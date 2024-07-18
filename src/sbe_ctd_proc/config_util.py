@@ -1,7 +1,8 @@
 import os
 from pathlib import Path
 from datetime import datetime
-from config import CONFIG
+
+from .config import CONFIG
 
 def get_config_dir_path(name: str) -> Path:
     val = CONFIG[name]

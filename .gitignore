@@ -1,8 +1,16 @@
+/config.toml
+# old config file
 /config.py
+
+# ignore processing directories
+raw/*
+processing/*
 processed/*
-raw/*.cnv
-*.hex
-*.cnv
+
+/*.hex
+/*.cnv
+# AuditLog
+/*.csv
 
 # Microsoft Office, temporary files
 ~*
@@ -32,6 +40,9 @@ venv/
 
 # pytype static type analyzer
 .pytype/
+
+# Tests
+/.coverage
 
 # IDEs
 /.vscode

@@ -1,0 +1,46 @@
+[paths]
+# .hex files
+raw = 'C:\Users\awhite\data\CTD\raw'
+# temporary processing directory
+processing = 'C:\Users\awhite\data\CTD\processing'
+# final destination for approved
+destination = 'C:\Users\awhite\data\CTD\processed'
+# Location where you installed SBE Data Processing
+SBEDataProcessing = 'C:\Program Files (x86)\Sea-Bird\SBEDataProcessing-Win32'
+
+[options]
+# Set whether the program designates latitude for the Derive module (1 for yes, 0 for no)
+derive_latitude = true
+
+[database]
+enabled = false
+mdb_file = 'C:\Users\<USER>\pathto\OceanDBMMP_be.mdb'
+mdw_file = 'C:\Users\<USER>\pathto\OceanDBMMPSecurity.mdw'
+user = 'readonly'
+password = 'readonly'
+
+[ctd]
+config_path = 'C:\Users\awhite\code\sbe_ctd_proc\config'
+list = [
+    '597',
+    '0597',
+    '0890',
+    '1009',
+    '1233',
+    '4409',
+    '4525',
+    '6180',
+    '6383',
+    '6390',
+    '7053',
+    '7360',
+    '7816',
+]
+
+[livewire_mapping]
+# Livewire ctds have different temperature IDs - Adjust them here
+# this is equivalent to:
+# if ctd_id == '5165':
+#     ctd_id = '1233'
+5165 = "1233"
+4851 = "0890"

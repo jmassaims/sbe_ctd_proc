@@ -1,14 +1,17 @@
+from contextlib import AbstractContextManager
 from pathlib import Path
 import os
 from collections.abc import Mapping
 from multiprocessing import Queue
+from typing import Optional
 
-from ctd_file import CTDFile
-from process import process_hex_file
-from config import CONFIG
-from config_util import get_config_dir_path
+from .audit_log import AuditLog
+from .ctd_file import CTDFile
+from .process import process_hex_file
+from .config import CONFIG
+from .config_util import get_config_dir_path
 
-class Manager:
+class Manager(AbstractContextManager):
     """Manages the state of CTDFiles and tracks events.
     Processes each file that needs processing based on current configuration.
     """
@@ -26,7 +29,9 @@ class Manager:
     processing: set[str]
     processed: set[str]
 
-    def __init__(self, send: Queue = None, recv: Queue = None) -> None:
+    audit_log: Optional[AuditLog]
+
+    def __init__(self, send: Queue = None, recv: Queue = None, auditlog_path = None) -> None:
         self.send = send
         self.recv = recv
 
@@ -36,6 +41,15 @@ class Manager:
         self.processing_dir = get_config_dir_path("PROCESSING_PATH")
         self.destination_dir = get_config_dir_path("DESTINATION_PATH")
 
+        if auditlog_path:
+            self.audit_log = AuditLog(auditlog_path)
+
+    def __exit__(self, *exc_details):
+        self.cleanup()
+
+    def cleanup(self):
+        if self.audit_log:
+            self.audit_log.close()
 
     def scan_dirs(self):
         """scan directories, set file lists"""
@@ -128,7 +142,7 @@ class Manager:
         self.processing.add(base_name)
 
         self.send.put(("start", base_name, file_num, len(self.pending)))
-        process_hex_file(ctdfile, self.send)
+        process_hex_file(ctdfile, audit=self.audit_log, send=self.send)
 
         self.processed.add(base_name)
         self.send.put(("finish", base_name, file_num, len(self.processed)))
@@ -137,17 +151,18 @@ class Manager:
 def start_manager(send: Queue, recv: Queue):
     """Create new instance of Manager and start processing"""
     try:
-        manager = Manager(send, recv)
-        manager.scan_dirs()
+        # TODO auditlog_path from config
+        with Manager(send, recv, auditlog_path="sbe_ctd_auditlog.csv") as manager:
+            manager.scan_dirs()
 
-        if manager.pending:
-            print(f"Starting to process {len(manager.pending)} files")
-            send.put(("begin", len(manager.pending)))
-            manager.start()
-            send.put(("done",))
-        else:
-            print("No files need to be processed.")
-            send.put(("usermsg", "No files need to be processed."))
+            if manager.pending:
+                print(f"Starting to process {len(manager.pending)} files")
+                send.put(("begin", len(manager.pending)))
+                manager.start()
+                send.put(("done",))
+            else:
+                print("No files need to be processed.")
+                send.put(("usermsg", "No files need to be processed."))
 
     except Exception as e:
         send.put(("error", str(e)))

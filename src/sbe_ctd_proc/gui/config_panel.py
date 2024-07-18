@@ -1,7 +1,7 @@
 from tkinter import filedialog
 import customtkinter
 
-from config import CONFIG
+from ..config import CONFIG
 
 
 def select_raw_directory(raw_path_label):

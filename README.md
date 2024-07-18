@@ -49,7 +49,7 @@ Install [SBE Data Processing](https://software.seabird.com/)
 
 ### Config
 
-Copy `config.example.py` to `config.py` and edit for your setup.
+Copy `config.example.toml` to `config.toml` and edit for your setup.
 
 # Run
 

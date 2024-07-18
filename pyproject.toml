@@ -15,7 +15,9 @@ dependencies = [
     "customtkinter",
     "pandas",
     "SQLAlchemy",
-    "sqlalchemy-access"
+    "sqlalchemy-access",
+    "tomlkit",
+    "seabirdscientific",
 ]
 
 [project.scripts]

@@ -59,6 +59,15 @@ Outside the environment: `hatch run sbe-ctd-proc`
 
 If that doesn't work, use `sbe_proc.py`
 
+To see the console, run `sbe-ctd-proc-cli`
+
+## Development
+
+To develop the nicegui app, run `gui_dev.py`, which will launch in reload mode.
+This will reload the page whenever you modify python code.
+
+See [ui.run docs](https://nicegui.io/documentation/run) to change configuration.
+
 ## Tests
 
 Tests are located in the `tests` directory. Run all tests with:

@@ -72,6 +72,10 @@ class CTDFile:
     serial_number: str
     """Temperature serial number from hex file"""
 
+    processing_cnvs: list[Path]
+
+    destination_cnvs: list[Path]
+
     cast_date: datetime
 
     def __init__(self, hex_path: Path) -> None:
@@ -107,3 +111,15 @@ class CTDFile:
 
         self.serial_number = serial_number
         self.cast_date = cast_date
+
+    def refresh_dirs(self):
+        if self.destination_dir.exists():
+            self.destination_cnvs = list(self.destination_dir.joinpath('done').glob('*.cnv'))
+        else:
+            self.destination_cnvs = []
+
+        if self.processing_dir.exists():
+            # TODO 'done' subdir?
+            self.processing_cnvs = list(self.processing_dir.glob('*.cnv'))
+        else:
+            self.processing_cnvs = []

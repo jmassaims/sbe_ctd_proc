@@ -1,24 +1,14 @@
-# Native imports
 import os.path
 
-# Third-party imports
-import gsw
-import numpy as np
-import pandas as pd
-import plotly.io as pio
-import plotly.express as px
 import plotly.graph_objects as go
-from plotly import subplots
 
 # Sea-Bird imports
-import sbs.process.cal_coefficients as cal
-import sbs.process.conversion as conv
-import sbs.process.processing as proc
-from sbs.process.instrument_data import cnv_to_instrument_data
+from sbs.process.instrument_data import cnv_to_instrument_data, InstrumentData
 import sbs.visualize.visualization as viz
 
 #print("renderers", pio.renderers)
 
+# SBE example plot, though we're not using their viz.ChartConfig system.
 def sbs_plot(
     data, title, x_names, x_bounds={0: [17, 24], 1: [-1, 6], 2: [-1, 6], 3: [-1, 6]}
 ):
@@ -42,7 +32,8 @@ def sbs_plot(
     fig.show()
 
 # TODO support mode with fewer axis sharing metrics of similar range.
-def plot_for_cnv_file(cnv_file: str,
+def plot_for_cnv_file(cnv_file: str = None,
+                      instr_data: InstrumentData = None,
                       axis_offset: float = 0.05,
                       include: set[str] = None,
                       exclude: set[str] = {'flag', 'nbin'}
@@ -55,10 +46,11 @@ def plot_for_cnv_file(cnv_file: str,
     exclude.add('depSM')
     exclude.add('prdM')
 
-    cnv_data = cnv_to_instrument_data(cnv_file)
+    if instr_data is None:
+        instr_data = cnv_to_instrument_data(cnv_file)
 
     # MeasurementSeries(label='tv290C', description='Temperature', units='ITS-90, deg C', start_time=datetime.datetime(2013, 2, 15, 8, 2, 22), values=array([29.5942, ...])
-    measurements = cnv_data.measurements
+    measurements = instr_data.measurements
     # However, MeasurementSeries already has: description, label, units, values: np.ndarray
     # vars = [(x, viz.interpret_sbs_variable(x)) for x in measurements]
 
@@ -141,6 +133,7 @@ def plot_for_cnv_file(cnv_file: str,
     return fig
 
 
+# run this file to do plot development
 if __name__ == '__main__':
     cnv_file = r'c:\Users\awhite\data\CTD\processed\19plus2_4525_20120905_test\done\19plus2_4525_20120905_testCFACLWDB.cnv'
     fig = plot_for_cnv_file(cnv_file)

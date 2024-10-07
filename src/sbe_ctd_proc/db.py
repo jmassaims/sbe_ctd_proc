@@ -4,7 +4,7 @@ import sqlalchemy as sa
 
 from .config import CONFIG
 
-class OceanDB():
+class OceanDB:
     def __init__(self, db_file, mdw_file, db_user, db_password) -> None:
         db_driver = r"{Microsoft Access Driver (*.mdb, *.accdb)}"
         if mdw_file is None:

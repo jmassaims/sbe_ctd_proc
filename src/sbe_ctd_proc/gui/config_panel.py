@@ -38,7 +38,7 @@ def select_database_directory(database_path_label):
     database_path_label.configure(text=CONFIG["CTD_DATABASE_PATH"])
 
 
-class ConfigPanel():
+class ConfigPanel:
     """UI to change configuration.
     Note that it's not safe to mutate CONFIG while process is running.
     """

@@ -43,6 +43,11 @@ commands. Manage the environment with `hatch env`
 
 VSCode [should find the Hatch environment](https://hatch.pypa.io/1.12/how-to/integrate/vscode/)
 
+For other IDEs, you may need to configure the Python interpreter with the hatch environment.  
+Get the path with: `hatch env find`  
+For example, in PyCharm add a new Python **System Interpreter** with that path
+plus _/Scripts/python.exe_
+
 ## Seabird Dependencies
 
 Install [SBE Data Processing](https://software.seabird.com/)

@@ -123,3 +123,17 @@ class CTDFile:
             self.processing_cnvs = list(self.processing_dir.glob('*.cnv'))
         else:
             self.processing_cnvs = []
+
+    def status(self):
+        """Determine if pending, processing, done
+        unknown if both processing and done.
+        """
+        if self.destination_dir.exists():
+            if self.processing_dir.exists():
+                return 'unknown'
+            else:
+                return 'done'
+        elif self.processing_dir.exists():
+            return 'processing'
+        else:
+            return 'pending'

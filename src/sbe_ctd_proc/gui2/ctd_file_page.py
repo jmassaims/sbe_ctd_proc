@@ -47,16 +47,16 @@ class PlotSection:
         self.plot_container.clear()
 
         cnv_path = self.cnv_dir / filename
-        self.instrument_data = cnv_to_instrument_data(cnv_path)
+        instrument_data = cnv_to_instrument_data(cnv_path)
 
-        self.measurements_dialog.update(self.instrument_data)
+        self.measurements_dialog.update(instrument_data)
 
         if include is None:
             include = self.measurements_dialog.get_selected()
             if len(include) == 0:
                 include = {'tv290C'}
 
-        fig = plot_for_cnv_file(instr_data=self.instrument_data, include=include)
+        fig = plot_for_cnv_file(instr_data=instrument_data, include=include)
 
         with self.plot_container:
             ui.plotly(fig).classes('w-full h-full')

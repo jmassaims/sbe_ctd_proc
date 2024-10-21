@@ -1,4 +1,4 @@
-from nicegui import ui
+from nicegui import app, ui
 
 from ..manager import Manager
 from ..ctd_file import CTDFile
@@ -9,6 +9,9 @@ def select_row(*args, **kwargs):
 def build_ui():
     mgr = Manager()
     mgr.scan_dirs()
+
+    # re-scan directories on client connect (triggered by reload)
+    app.on_connect(lambda: mgr.scan_dirs())
 
     with ui.row().classes('items-center'):
         # this could work if want multi-toggle, but more work

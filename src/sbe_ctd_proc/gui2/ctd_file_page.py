@@ -1,8 +1,11 @@
 import os
+from typing import Optional
+
 from nicegui import ui
 
 from sbs.process.instrument_data import cnv_to_instrument_data, InstrumentData
 
+from .processing_state import PROC_STATE
 from ..config import CONFIG
 from ..ctd_file import CTDFile
 from ..viz_cnv import plot_for_cnv_file
@@ -23,7 +26,7 @@ class PlotSection:
                           on_change=lambda e: self.show_cnv(e.value)
                           ).bind_value(self, 'selected_cnv')
 
-            ui.badge(f'{len(ctdfile.destination_cnvs)} steps')
+            ui.chip(f'{len(ctdfile.destination_cnvs)} steps')
             with ui.button(icon='folder_open', color='white',
                            on_click=lambda: os.startfile(ctdfile.destination_dir)):
                 ui.tooltip('Open destination directory')
@@ -43,7 +46,7 @@ class PlotSection:
          @param include: measurements to display
         """
 
-        # completly recreate the plot, could consider plotly update in future.
+        # completely recreate the plot, could consider plotly update in future.
         self.plot_container.clear()
 
         cnv_path = self.cnv_dir / filename
@@ -119,6 +122,18 @@ class MeasurementsDialog:
 
 @ui.page('/ctd_file/{base_file_name}')
 def sbe_plot(base_file_name: str):
+    hex_path = CONFIG.raw_path / f'{base_file_name}.hex'
+    if not hex_path.exists():
+        error_message(f'HEX file does not exist: {hex_path}')
+        return
+
+    ctdfile = CTDFile(hex_path)
+    ctdfile.parse_hex()
+    ctdfile.refresh_dirs()
+    file_status = ctdfile.status()
+
+    prev_file, next_file = get_prev_next_files(base_file_name)
+
     # change flex column to fill height of window
     ui.add_css('''
         .nicegui-content {
@@ -133,24 +148,51 @@ def sbe_plot(base_file_name: str):
         with ui.button_group().props('rounded'):
             # TODO tooltip with file name
             # TODO implement. are we in processing or processed mode?
-            ui.button(icon='navigate_before')
-            ui.button(icon='navigate_next')
+            prev_btn = ui.button(icon='navigate_before')
+            if prev_file is None:
+                prev_btn.disable()
+            else:
+                prev_btn.tooltip(prev_file.base_file_name)
+                prev_btn.on_click(lambda: ui.navigate.to(f'./{prev_file.base_file_name}'))
 
-        ui.label(base_file_name).classes('text-h5').style('flex: auto;')
+            next_btn = ui.button(icon='navigate_next')
+            if next_file is None:
+                next_btn.disable()
+            else:
+                next_btn.tooltip(next_file.base_file_name)
+                next_btn.on_click(lambda: ui.navigate.to(f'./{next_file.base_file_name}'))
+
+        ui.label(base_file_name).classes('text-h5')
+
+        ui.chip(ctdfile.serial_number, color='gray', text_color='white')
+        ui.chip(ctdfile.cast_date.strftime('%Y %b %d'), color='gray', text_color='white')
+
+        ui.label().style('flex: auto;')
 
         ui.button('Approve', icon='thumb_up', color='green')
 
-    hex_path = CONFIG.raw_path / f'{base_file_name}.hex'
-    if not hex_path.exists():
-        error_message(f'HEX file does not exist: {hex_path}')
-        return
-
-    ctdfile = CTDFile(hex_path)
-    ctdfile.refresh_dirs()
-
     # TODO better abstraction over processing/dest mode.
+    if file_status == 'pending':
+        ui.label('Not processed')
+
     if ctdfile.processing_cnvs:
         ui.badge(f'{len(ctdfile.processing_cnvs)} processing')
 
     if ctdfile.destination_cnvs:
         PlotSection(ctdfile)
+
+def get_prev_next_files(current_name: str) -> tuple[Optional[CTDFile], Optional[CTDFile]]:
+    ctdfiles = PROC_STATE.mgr.ctdfiles
+
+    index = None
+    for i, ctdfile in enumerate(ctdfiles):
+        if ctdfile.base_file_name == current_name:
+            index = i
+            break
+
+    if index is None:
+        return None, None
+
+    prev_file = ctdfiles[index - 1] if index > 0 else None
+    next_file = ctdfiles[index + 1] if index < len(ctdfiles) - 1 else None
+    return prev_file, next_file

@@ -9,7 +9,6 @@ from typing import Optional
 from .audit_log import AuditLog
 from .ctd_file import CTDFile
 from .process import process_hex_file
-from .config import CONFIG
 from .config_util import get_config_dir_path
 
 class Manager(AbstractContextManager):

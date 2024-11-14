@@ -109,7 +109,7 @@ class CTDFilesTable:
 
         table.add_slot('body-cell-status', '''
             <q-td key="status" :props="props">
-                <q-badge :color="{pending:'blue',processing:'orange',done:'green',unknown:'red'}[props.value]">
+                <q-badge :color="{pending:'grey',processing:'orange',processed:'blue',done:'green',unknown:'red'}[props.value]">
                     {{ props.value }}
                 </q-badge>
             </q-td>

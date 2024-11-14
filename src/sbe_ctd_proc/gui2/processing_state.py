@@ -6,7 +6,10 @@ from typing import Optional
 
 from nicegui import app, run, ui
 
+from ..ctd_file import CTDFile
 from ..manager import Manager, start_manager
+from ..process import move_to_destination_dir
+
 
 class ProcessingState:
     """
@@ -64,6 +67,10 @@ class ProcessingState:
 
     def stop_processing(self):
         self.send.put_nowait('stop')
+
+    async def approve(self, ctdfile: CTDFile):
+        await run.io_bound(move_to_destination_dir, ctdfile)
+        self.mgr.scan_dirs()
 
     def respond_file_error(self, command: str):
         """Respond to a file error holding processing with: retry, abort, ignore"""

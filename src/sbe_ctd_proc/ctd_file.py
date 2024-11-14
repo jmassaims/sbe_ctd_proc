@@ -124,8 +124,25 @@ class CTDFile:
         else:
             self.processing_cnvs = []
 
+    def get_step_count(self) -> tuple[int, int]:
+        """get the number of steps completed and the total steps.
+        depends on refresh_dirs"""
+        total = 8
+
+        if self.destination_dir.exists():
+            if self.processing_dir.exists():
+                raise Exception('processing and done!?')
+
+            return len(self.destination_cnvs), total
+
+        elif self.processing_dir.exists():
+            return len(self.processing_cnvs), total
+
+        else:
+            return 0, total
+
     def status(self):
-        """Determine if pending, processing, done
+        """Determine if pending, processing, processed, done
         unknown if both processing and done.
         """
         if self.destination_dir.exists():
@@ -134,6 +151,10 @@ class CTDFile:
             else:
                 return 'done'
         elif self.processing_dir.exists():
-            return 'processing'
+            steps, total = self.get_step_count()
+            if steps == total:
+                return 'processed'
+            else:
+                return 'processing'
         else:
             return 'pending'

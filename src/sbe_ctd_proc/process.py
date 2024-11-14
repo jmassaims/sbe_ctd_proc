@@ -391,6 +391,3 @@ def process_hex_file(ctdfile: CTDFile, audit: AuditLog = None, send: Queue = Non
 
     # Run other AIMS modules
     process_cnv(ctdfile, sbe, send, log)
-
-    # Create destination file structure and move files.
-    move_to_destination_dir(ctdfile)

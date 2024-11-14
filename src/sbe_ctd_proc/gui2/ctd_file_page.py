@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from typing import Optional
 
 from nicegui import ui
@@ -16,19 +17,24 @@ class PlotSection:
 
     selected_cnv: str
 
-    def __init__(self, ctdfile: CTDFile) -> None:
-        cnv_names = [x.name for x in ctdfile.destination_cnvs]
+    def __init__(self, ctdfile: CTDFile, cnv_paths: list[Path]) -> None:
+        cnv_names = [x.name for x in cnv_paths]
         selected_cnv = cnv_names[-1]
-        self.cnv_dir = ctdfile.destination_cnvs[0].parent
+        self.cnv_dir = cnv_paths[0].parent
+        steps_done, total_steps = ctdfile.get_step_count()
 
         with ui.row(align_items='center'):
             ui.select(cnv_names, value=selected_cnv,
                           on_change=lambda e: self.show_cnv(e.value)
                           ).bind_value(self, 'selected_cnv')
 
-            ui.chip(f'{len(ctdfile.destination_cnvs)} steps')
+            if steps_done == total_steps:
+                ui.chip(f'{steps_done} steps', color='gray', text_color='white')
+            else:
+                ui.chip(f'{steps_done}/{total_steps} steps', color='orange', text_color='white')
+
             with ui.button(icon='folder_open', color='white',
-                           on_click=lambda: os.startfile(ctdfile.destination_dir)):
+                           on_click=lambda: os.startfile(self.cnv_dir)):
                 ui.tooltip('Open destination directory')
 
             ui.button("Select Measurements",
@@ -134,6 +140,8 @@ def sbe_plot(base_file_name: str):
 
     prev_file, next_file = get_prev_next_files(base_file_name)
 
+    is_approvable = file_status == 'processed'
+
     # change flex column to fill height of window
     ui.add_css('''
         .nicegui-content {
@@ -169,17 +177,27 @@ def sbe_plot(base_file_name: str):
 
         ui.label().style('flex: auto;')
 
-        ui.button('Approve', icon='thumb_up', color='green')
+        if is_approvable:
+            approve_btn = ui.button('Approve', icon='thumb_up', color='green')
+            async def approve():
+                approve_btn.disable()
+                await PROC_STATE.approve(ctdfile)
+                ui.navigate.reload()
 
-    # TODO better abstraction over processing/dest mode.
+            approve_btn.on_click(approve)
+
+        elif file_status == 'done':
+            ui.chip('Done', color='green', text_color='white')
+
     if file_status == 'pending':
         ui.label('Not processed')
+    elif file_status == 'unknown':
+        error_message('Files in processing and done!')
 
-    if ctdfile.processing_cnvs:
-        ui.badge(f'{len(ctdfile.processing_cnvs)} processing')
-
-    if ctdfile.destination_cnvs:
-        PlotSection(ctdfile)
+    if file_status.startswith('proc'):
+        PlotSection(ctdfile, ctdfile.processing_cnvs)
+    elif file_status == 'done':
+        PlotSection(ctdfile, ctdfile.destination_cnvs)
 
 def get_prev_next_files(current_name: str) -> tuple[Optional[CTDFile], Optional[CTDFile]]:
     ctdfiles = PROC_STATE.mgr.ctdfiles

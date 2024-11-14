@@ -2,7 +2,7 @@ import threading
 from contextlib import AbstractContextManager
 from pathlib import Path
 import os
-from collections.abc import Mapping
+from collections.abc import Mapping, Callable
 from multiprocessing import Queue
 from typing import Optional
 
@@ -31,6 +31,10 @@ class Manager(AbstractContextManager):
     processed: set[str]
 
     audit_log: Optional[AuditLog]
+
+    # callback when file info changes.
+    # hacky, only works for the last client
+    on_change: Optional[Callable] = None
 
     _scan_lock = threading.Lock()
 
@@ -99,6 +103,9 @@ class Manager(AbstractContextManager):
             # TODO what should be done with processing? option to delete it?
             self.pending = base_names - processed - processing
 
+        if self.on_change:
+            self.on_change()
+
     def start(self):
         # copy pending set since we mutate it
         pending = list(self.pending)
@@ -106,6 +113,14 @@ class Manager(AbstractContextManager):
         i = 0
         file_num = 1 # 1-based index
         while i < len(pending):
+            if not self.recv.empty():
+                msg = self.recv.get()
+                if msg == 'stop':
+                    print('stopping')
+                    break
+                else:
+                    print('Unknown message:', msg)
+
             base_name = pending[i]
             ctdfile = self.ctdfile[base_name]
 

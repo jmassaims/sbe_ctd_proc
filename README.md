@@ -71,6 +71,9 @@ To see the console, run `sbe-ctd-proc-cli`
 To develop the nicegui app, run `gui_dev.py`, which will launch in reload mode.
 This will reload the page whenever you modify python code.
 
+If reload stops updating, stop the server. Check if it's still running in the background
+by refreshing the page; if it is, kill the python process before starting again.
+
 See [ui.run docs](https://nicegui.io/documentation/run) to change configuration.
 
 ## Tests

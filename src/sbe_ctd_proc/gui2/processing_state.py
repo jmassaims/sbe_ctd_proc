@@ -1,7 +1,9 @@
+import asyncio
 import inspect
-import queue
-from multiprocessing import Queue
+from multiprocessing import Queue, JoinableQueue
 from datetime import datetime
+from typing import Optional
+
 from nicegui import app, run, ui
 
 from ..manager import Manager, start_manager
@@ -27,13 +29,18 @@ class ProcessingState:
     current_serial_number: str = None
     current_cast_date: datetime = None
 
+    # file error processing is waiting on
     is_file_error: bool = False
     file_error_base_name: str = None
     file_error_message: str = None
 
+    # error that stopped processing
+    is_processing_error: bool = False
+    processing_error: str
+
     mgr: Manager
-    send = Queue()
-    recv = Queue()
+    send: Optional[Queue]
+    recv: Optional[JoinableQueue]
 
     def __init__(self):
         self.mgr = Manager()
@@ -68,27 +75,40 @@ class ProcessingState:
         self.file_error_base_name = ''
         self.file_error_message = ''
 
+    def clear_processing_error(self):
+        self.is_processing_error = False
+        self.processing_error = ''
+
     async def __start(self):
         self.is_processing = True
         self.progress = 0.0
         self.timer.activate()
+        self.clear_processing_error()
+
+        self.send = Queue()
+        self.recv = JoinableQueue()
 
         try:
             await run.io_bound(start_manager, self.recv, self.send)
 
-        except Exception as e:
-            print('error', e)
-
         finally:
             self.is_processing = False
+            # wait for all messages to be processed
+            # join in separate thread, otherwise it breaks timer that's processing messages.
+            await asyncio.to_thread(self.recv.join)
+
             self.timer.deactivate()
 
+            self.send.close()
+            self.send = None
+            self.recv.close()
+            self.recv = None
+
     async def check_message(self):
-        try:
+        if not self.recv.empty():
             msg = self.recv.get(block=False)
             await self.process_msg(msg)
-        except queue.Empty:
-            pass
+            self.recv.task_done()
 
     async def process_msg(self, msg):
         print("msg:", msg)
@@ -138,9 +158,9 @@ class ProcessingState:
         self.mgr.scan_dirs()
         ui.notify(f'Processed {self.num_to_process} files')
 
-
     def handle_msg_usermsg(self, message: str):
-        ui.notify(message)
+        # TODO
+        print('TODO usermsg', message)
 
     async def handle_msg_file_error(self, file_name: str, error: str):
         self.is_file_error = True
@@ -148,8 +168,8 @@ class ProcessingState:
         self.file_error_message = error
 
     def handle_msg_error(self, message: str):
-        # TODO error dialog
-        print('error', message)
+        self.is_processing_error = True
+        self.processing_error = message
 
 
 PROC_STATE = ProcessingState()

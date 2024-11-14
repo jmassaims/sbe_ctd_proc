@@ -1,6 +1,6 @@
 from nicegui import ui
 
-from .dialogs import setup_file_error_dialog
+from .dialogs import setup_file_error_dialog, setup_processing_error_dialog
 from ..manager import Manager
 from ..ctd_file import CTDFile
 from .processing_state import PROC_STATE
@@ -54,6 +54,7 @@ def overview_page():
     search_input.bind_value(table.table, 'filter')
 
     setup_file_error_dialog()
+    setup_processing_error_dialog()
 
     def refresh():
         create_filters.refresh()

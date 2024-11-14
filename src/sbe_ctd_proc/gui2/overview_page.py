@@ -56,6 +56,14 @@ def overview_page():
     setup_file_error_dialog()
     setup_processing_error_dialog()
 
+    # use ui.notify to show user messages from processing.
+    # they overlay each other, so may need to change UI if more messages are added.
+    def check_usermsgs():
+        if PROC_STATE.user_messages:
+            last_msg = PROC_STATE.user_messages.pop()
+            ui.notify(last_msg)
+    ui.timer(0.5, check_usermsgs)
+
     def refresh():
         create_filters.refresh()
         table.refresh()

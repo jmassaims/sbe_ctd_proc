@@ -38,6 +38,8 @@ class ProcessingState:
     is_processing_error: bool = False
     processing_error: str
 
+    user_messages: list[str] = []
+
     mgr: Manager
     send: Optional[Queue]
     recv: Optional[JoinableQueue]
@@ -84,6 +86,7 @@ class ProcessingState:
         self.progress = 0.0
         self.timer.activate()
         self.clear_processing_error()
+        self.user_messages.clear()
 
         self.send = Queue()
         self.recv = JoinableQueue()
@@ -159,8 +162,7 @@ class ProcessingState:
         ui.notify(f'Processed {self.num_to_process} files')
 
     def handle_msg_usermsg(self, message: str):
-        # TODO
-        print('TODO usermsg', message)
+        self.user_messages.append(message)
 
     async def handle_msg_file_error(self, file_name: str, error: str):
         self.is_file_error = True

@@ -22,9 +22,9 @@ class ProcessingState:
     progress: float = 0.0
     file_progress_init: float = 0.0
 
-    # total to process this run
-    num_to_process: int = 0
-    # currently pending
+    # total processing file count this run.
+    total_processing: int = 0
+    # count of currently pending files
     num_pending: int = 0
 
     current_basename: str = None
@@ -134,7 +134,7 @@ class ProcessingState:
             print(f'WARNING: no message handler for "{event_name}"', msg)
 
     def handle_msg_begin(self, num_pending: int):
-        self.num_to_process = num_pending
+        self.total_processing = num_pending
         self.num_pending = num_pending
         self.progress = 0
         self.current_basename = ''
@@ -144,18 +144,18 @@ class ProcessingState:
         self.current_basename = name
         self.num_pending = num_pending
         # minus 1 since num is 1-based index
-        self.file_progress_init = (num - 1) / self.num_to_process
+        self.file_progress_init = (num - 1) / self.total_processing
         self.progress = self.file_progress_init
 
     def handle_msg_finish(self, name: str, num: int, num_processed: int):
-        self.progress = num / self.num_to_process
+        self.progress = num / self.total_processing
         self.mgr.scan_dirs()
 
     def handle_msg_process_step(self, step_name: str, step_num: int, num_steps: int):
         self.current_step = step_name
 
         # width of progressbar allocated to a file
-        file_width = 1 / self.num_pending
+        file_width = 1 / self.total_processing
 
         self.progress = self.file_progress_init + (step_num / num_steps) * file_width
 
@@ -166,7 +166,7 @@ class ProcessingState:
     def handle_msg_done(self):
         self.progress = 1.0
         self.mgr.scan_dirs()
-        ui.notify(f'Processed {self.num_to_process} files')
+        ui.notify(f'Processed {self.total_processing} files')
 
     def handle_msg_usermsg(self, message: str):
         self.user_messages.append(message)

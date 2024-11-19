@@ -126,7 +126,10 @@ class CTDFile:
 
     def get_step_count(self) -> tuple[int, int]:
         """get the number of steps completed and the total steps.
-        depends on refresh_dirs"""
+        Depends on state from refresh_dirs and calls that method if not called yet."""
+        if not hasattr(self, 'processing_cnvs'):
+            self.refresh_dirs()
+
         total = 8
 
         if self.destination_dir.exists():

@@ -200,7 +200,13 @@ def sbe_plot(base_file_name: str):
         PlotSection(ctdfile, ctdfile.destination_cnvs)
 
 def get_prev_next_files(current_name: str) -> tuple[Optional[CTDFile], Optional[CTDFile]]:
-    ctdfiles = PROC_STATE.mgr.ctdfiles
+    """Returns the previous and next base file names that are processing/processed.
+    Values are None if no previous/next.
+    """
+    ctdfiles = [f for f in PROC_STATE.mgr.ctdfiles if f.status().startswith('proc')]
+
+    if not ctdfiles:
+        return None, None
 
     index = None
     for i, ctdfile in enumerate(ctdfiles):
@@ -209,7 +215,9 @@ def get_prev_next_files(current_name: str) -> tuple[Optional[CTDFile], Optional[
             break
 
     if index is None:
-        return None, None
+        # current file not in ctdfiles. this may happen when selected done file.
+        # -1 so next_file will be the first processing ctdfile in the list
+        index = -1
 
     prev_file = ctdfiles[index - 1] if index > 0 else None
     next_file = ctdfiles[index + 1] if index < len(ctdfiles) - 1 else None

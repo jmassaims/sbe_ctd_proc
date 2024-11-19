@@ -131,6 +131,10 @@ class CTDFilesTable:
         table.on('rowClick', lambda e: click_handler(e.args[1]), [[], ['base_file_name'], None])
 
     def filter(self, status: str | None):
+        """Filter the tables rows matching the status.
+        processing translates to (processing || processed)
+        """
+
         self.filter_status = status
 
         # always generate new row objects, otherwise table inconsistent about updating
@@ -138,7 +142,14 @@ class CTDFilesTable:
             all_rows = [ctdfile_to_row(row) for row in self.mgr.ctdfiles]
             self.table.update_rows(all_rows)
         else:
-            filtered_rows = [ctdfile_to_row(row) for row in self.mgr.ctdfiles if row.status() == status]
+            if status == 'processing':
+                def f(s: str):
+                    return s == 'processing' or s == 'processed'
+            else:
+                def f(s: str):
+                    return s == status
+
+            filtered_rows = [ctdfile_to_row(row) for row in self.mgr.ctdfiles if f(row.status())]
             self.table.update_rows(filtered_rows)
 
     def refresh(self):

@@ -291,28 +291,25 @@ def process() -> None:
 
         print("\n******************* Processing new file *******************")
 
+        if ctdfile.latitude is None:
+            # database disabled or latitude missing for this file, request latitude input
+            print(f"WARNING: database missing latitude for file {base_file_name}. Manual latitude input required.")
+            ctdfile.latitude = request_latitude(base_file_name)
+
         process_hex_file(ctdfile)
 
 
 def process_hex_file(ctdfile: CTDFile, audit: AuditLog = None, send: Queue = None):
+    """
+    Process the CTDFile through all
+    @throws Exception if latitude not set on CTDFile
+    """
+
     base_file_name = ctdfile.base_file_name
 
-    # find ctd id for the cast
-
-    latitude = None
-
-    oceandb = get_db()
-    if oceandb is not None:
-        latitude = oceandb.get_latitude(base_file_name)
-
-    if latitude is None:
-        # database disabled or latitude missing for this file, request latitude input
-        print(f"WARNING: database missing latitude for file {base_file_name}. Manual latitude input required.")
-        latitude = request_latitude(base_file_name)
-
-    # TODO proper validation of latitude text
-    if latitude is None:
-        raise Exception("latitude missing!")
+    latitude = ctdfile.latitude
+    if latitude is None or latitude == '':
+        raise Exception('latitude is required')
 
     ctdfile.parse_hex()
 

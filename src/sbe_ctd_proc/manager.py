@@ -8,6 +8,7 @@ from typing import Optional
 
 from .audit_log import AuditLog
 from .ctd_file import CTDFile
+from .db import get_db
 from .process import process_hex_file
 from .config_util import get_config_dir_path
 
@@ -112,23 +113,24 @@ class Manager(AbstractContextManager):
         i = 0
         file_num = 1 # 1-based index
         while i < len(pending):
-            if not self.recv.empty():
-                msg = self.recv.get()
-                if msg == 'stop':
-                    print('stopping')
-                    break
-                else:
-                    print('Unknown message:', msg)
-
             base_name = pending[i]
-            ctdfile = self.ctdfile[base_name]
 
             response = None
             try:
+                self.check_stop_message()
+                ctdfile = self.ctdfile[base_name]
                 self.process_file(ctdfile, file_num)
+
+            except SkipFile:
+                print(f'skip file "{base_name}"')
+                response = "ignore"
+            except StopProcessing:
+                print('Stop processing')
+                break
             except Exception as e:
                 self.send.put(("file_error", base_name, str(e)))
                 # expecting App to respond with abort, retry, ignore
+                # both GUIs use these same commands.
                 msg = self.recv.get()
                 response, app_base_name = msg
 
@@ -142,6 +144,7 @@ class Manager(AbstractContextManager):
             if response is None or response == "ignore":
                 file_num += 1
             elif response == "retry":
+                # continue now, don't increment i
                 continue
             else:
                 raise Exception(f"Unknown response '{response}'")
@@ -160,10 +163,62 @@ class Manager(AbstractContextManager):
         self.processing.add(base_name)
 
         self.send.put(("start", base_name, file_num, len(self.pending)))
+
+        # attempt to get latitude from primary source
+        latitude = None
+        oceandb = get_db()
+        if oceandb is not None:
+            latitude = oceandb.get_latitude(base_name)
+
+        if latitude is None:
+            # database disabled or latitude missing for this file, request latitude input
+            print(f"WARNING: database missing latitude for file {base_name}. Manual latitude input required.")
+            latitude = self.request_latitude(base_name)
+
+        if latitude is not None:
+            # TODO validate latitude value
+            latitude = latitude.strip()
+            ctdfile.latitude = latitude
+
         process_hex_file(ctdfile, audit=self.audit_log, send=self.send)
 
         self.processed.add(base_name)
         self.send.put(("finish", base_name, file_num, len(self.processed)))
+
+    def check_stop_message(self):
+        """Check for stop message from the app.
+        If received, raises StopProcessing"""
+        if not self.recv.empty():
+            msg = self.recv.get()
+            if msg == 'stop':
+                raise StopProcessing()
+            else:
+                print('Unknown message:', msg)
+
+    def request_latitude(self, base_name: str) -> str:
+        """
+        Request latitude from the GUI process
+        Blocks until reply received.
+        """
+
+        self.send.put(("request_latitude", base_name))
+        msg = self.recv.get()
+        command = msg[0]
+        if msg == 'stop':
+            raise StopProcessing()
+        else:
+            name = msg[1]
+            if name != base_name:
+                raise Exception('message reply refers to different file')
+
+            if command == 'skip':
+                raise SkipFile()
+            elif command == 'submit_latitude':
+                lat = msg[2]
+                return lat
+
+            else:
+                raise Exception(f'unexpected message {msg}')
 
 
 def start_manager(send: Queue, recv: Queue):
@@ -185,3 +240,11 @@ def start_manager(send: Queue, recv: Queue):
     except Exception as e:
         send.put(("error", str(e)))
         raise e
+
+class StopProcessing(Exception):
+    """Raise to stop processing after current file"""
+    pass
+
+class SkipFile(Exception):
+    """Raise to skip over the current file"""
+    pass

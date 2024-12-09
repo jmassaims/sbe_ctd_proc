@@ -59,6 +59,9 @@ class CTDFile:
     base_file_name: str
     "hex file name without extension"
 
+    latitude: str | None
+    "latitude for this file. set externally"
+
     processing_dir: Path
     """Path of directory where this file is processed.
     directory may not exist.
@@ -90,6 +93,7 @@ class CTDFile:
 
         self.base_file_name = hex_path.stem
         self.hex_path = hex_path
+        self.latitude = None
 
         self.processing_dir = Path(CONFIG["PROCESSING_PATH"]) / self.base_file_name
         self.destination_dir = Path(CONFIG["DESTINATION_PATH"]) / self.base_file_name

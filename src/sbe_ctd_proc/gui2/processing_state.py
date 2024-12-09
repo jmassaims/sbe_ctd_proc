@@ -34,8 +34,10 @@ class ProcessingState:
 
     # file error processing is waiting on
     is_file_error: bool = False
-    file_error_base_name: str = None
-    file_error_message: str = None
+    file_error_base_name: str | None = None
+    file_error_message: str | None = None
+
+    is_requesting_latitude: bool = False
 
     # error that stopped processing
     is_processing_error: bool = False
@@ -68,6 +70,9 @@ class ProcessingState:
     def stop_processing(self):
         self.send.put_nowait('stop')
 
+    def skip_file(self):
+        self.send.put_nowait(('skip', self.current_basename))
+
     async def approve(self, ctdfile: CTDFile):
         await run.io_bound(move_to_destination_dir, ctdfile)
         self.mgr.scan_dirs()
@@ -84,15 +89,32 @@ class ProcessingState:
         self.file_error_base_name = ''
         self.file_error_message = ''
 
+    def respond_latitude(self, latitude: str):
+        if not self.is_requesting_latitude:
+            raise Exception('Not requesting latitude')
+
+        self.is_requesting_latitude = False
+
+        self.send.put_nowait(('submit_latitude', self.current_basename, latitude))
+
+
     def clear_processing_error(self):
         self.is_processing_error = False
         self.processing_error = ''
 
+    def reset_dialog_state(self):
+        """Reset dialog state that occurs during processing"""
+        self.is_file_error = False
+        self.file_error_base_name = None
+        self.file_error_message = None
+        self.is_requesting_latitude = False
+
     async def __start(self):
+        self.reset_dialog_state()
+        self.clear_processing_error()
         self.is_processing = True
         self.progress = 0.0
         self.timer.activate()
-        self.clear_processing_error()
         self.user_messages.clear()
 
         self.send = Queue()
@@ -164,12 +186,19 @@ class ProcessingState:
         self.current_cast_date = cast_date
 
     def handle_msg_done(self):
+        self.reset_dialog_state()
         self.progress = 1.0
         self.mgr.scan_dirs()
         ui.notify(f'Processed {self.total_processing} files')
 
     def handle_msg_usermsg(self, message: str):
         self.user_messages.append(message)
+
+    def handle_msg_request_latitude(self, base_name: str):
+        if self.current_basename != base_name:
+            raise Exception('base_name does not match current file')
+
+        self.is_requesting_latitude = True
 
     async def handle_msg_file_error(self, file_name: str, error: str):
         self.is_file_error = True
@@ -179,6 +208,7 @@ class ProcessingState:
     def handle_msg_error(self, message: str):
         self.is_processing_error = True
         self.processing_error = message
+        self.reset_dialog_state()
 
 
 PROC_STATE = ProcessingState()

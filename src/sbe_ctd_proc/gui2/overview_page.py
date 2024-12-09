@@ -1,6 +1,6 @@
 from nicegui import ui
 
-from .dialogs import setup_file_error_dialog, setup_processing_error_dialog
+from .dialogs import setup_file_error_dialog, setup_processing_error_dialog, setup_latitude_dialog
 from ..manager import Manager
 from ..ctd_file import CTDFile
 from .processing_state import PROC_STATE
@@ -55,6 +55,7 @@ def overview_page():
 
     setup_file_error_dialog()
     setup_processing_error_dialog()
+    setup_latitude_dialog()
 
     # use ui.notify to show user messages from processing.
     # they overlay each other, so may need to change UI if more messages are added.

@@ -43,6 +43,11 @@ commands. Manage the environment with `hatch env`
 
 VSCode [should find the Hatch environment](https://hatch.pypa.io/1.12/how-to/integrate/vscode/)
 
+For other IDEs, you may need to configure the Python interpreter with the hatch environment.  
+Get the path with: `hatch env find`  
+For example, in PyCharm add a new Python **System Interpreter** with that path
+plus _/Scripts/python.exe_
+
 ## Seabird Dependencies
 
 Install [SBE Data Processing](https://software.seabird.com/)
@@ -58,6 +63,18 @@ Copy `config.example.toml` to `config.toml` and edit for your setup.
 Outside the environment: `hatch run sbe-ctd-proc`
 
 If that doesn't work, use `sbe_proc.py`
+
+To see the console, run `sbe-ctd-proc-cli`
+
+## Development
+
+To develop the nicegui app, run `gui_dev.py`, which will launch in reload mode.
+This will reload the page whenever you modify python code.
+
+If reload stops updating, stop the server. Check if it's still running in the background
+by refreshing the page; if it is, kill the python process before starting again.
+
+See [ui.run docs](https://nicegui.io/documentation/run) to change configuration.
 
 ## Tests
 

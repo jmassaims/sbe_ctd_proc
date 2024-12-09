@@ -18,13 +18,16 @@ dependencies = [
     "sqlalchemy-access",
     "tomlkit",
     "seabirdscientific",
+    "nicegui"
 ]
 
 [project.scripts]
-sbe-ctd-proc-cli = "sbe_ctd_proc:start_gui"
+sbe-ctd-proc-cli = "sbe_ctd_proc.gui:start_gui"
+gui2-cli = "sbe_ctd_proc.gui2:start_gui"
 
 [project.gui-scripts]
-sbe-ctd-proc = "sbe_ctd_proc:start_gui"
+sbe-ctd-proc = "sbe_ctd_proc.gui:start_gui"
+gui2 = "sbe_ctd_proc.gui2:start_gui"
 
 [tool.hatch.envs.test]
 dependencies = [

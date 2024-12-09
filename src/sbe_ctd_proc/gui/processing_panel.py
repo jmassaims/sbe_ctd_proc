@@ -10,7 +10,7 @@ def open_dir(path):
     os.startfile(path)
 
 
-class ProcessingPanel():
+class ProcessingPanel:
 
     manager: Manager
     """Manager instance for previewing what processing will do.

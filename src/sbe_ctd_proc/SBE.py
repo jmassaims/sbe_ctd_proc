@@ -24,7 +24,7 @@ from .config import CONFIG
 
 raw_path = ''
 
-class SBE(object):
+class SBE:
     """SBE processing class.
 
     Allows for the defining of global variables at instantiation so that

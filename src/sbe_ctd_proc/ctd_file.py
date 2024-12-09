@@ -59,6 +59,9 @@ class CTDFile:
     base_file_name: str
     "hex file name without extension"
 
+    latitude: str | None
+    "latitude for this file. set externally"
+
     processing_dir: Path
     """Path of directory where this file is processed.
     directory may not exist.
@@ -71,6 +74,10 @@ class CTDFile:
 
     serial_number: str
     """Temperature serial number from hex file"""
+
+    processing_cnvs: list[Path]
+
+    destination_cnvs: list[Path]
 
     cast_date: datetime
 
@@ -86,6 +93,7 @@ class CTDFile:
 
         self.base_file_name = hex_path.stem
         self.hex_path = hex_path
+        self.latitude = None
 
         self.processing_dir = Path(CONFIG["PROCESSING_PATH"]) / self.base_file_name
         self.destination_dir = Path(CONFIG["DESTINATION_PATH"]) / self.base_file_name
@@ -107,3 +115,53 @@ class CTDFile:
 
         self.serial_number = serial_number
         self.cast_date = cast_date
+
+    def refresh_dirs(self):
+        if self.destination_dir.exists():
+            self.destination_cnvs = list(self.destination_dir.joinpath('done').glob('*.cnv'))
+        else:
+            self.destination_cnvs = []
+
+        if self.processing_dir.exists():
+            # TODO 'done' subdir?
+            self.processing_cnvs = list(self.processing_dir.glob('*.cnv'))
+        else:
+            self.processing_cnvs = []
+
+    def get_step_count(self) -> tuple[int, int]:
+        """get the number of steps completed and the total steps.
+        Depends on state from refresh_dirs and calls that method if not called yet."""
+        if not hasattr(self, 'processing_cnvs'):
+            self.refresh_dirs()
+
+        total = 8
+
+        if self.destination_dir.exists():
+            if self.processing_dir.exists():
+                raise Exception('processing and done!?')
+
+            return len(self.destination_cnvs), total
+
+        elif self.processing_dir.exists():
+            return len(self.processing_cnvs), total
+
+        else:
+            return 0, total
+
+    def status(self):
+        """Determine if pending, processing, processed, done
+        unknown if both processing and done.
+        """
+        if self.destination_dir.exists():
+            if self.processing_dir.exists():
+                return 'unknown'
+            else:
+                return 'done'
+        elif self.processing_dir.exists():
+            steps, total = self.get_step_count()
+            if steps == total:
+                return 'processed'
+            else:
+                return 'processing'
+        else:
+            return 'pending'

@@ -134,11 +134,15 @@ class CnvInfoRaw:
 
 
     def get_sensors_info(self) -> list[SensorInfo]:
-        """get simplified sensor information"""
+        """
+        get simplified sensor information.
+        excludes free channels.
+        """
         xml = self.get_sensors_xml()
 
-        # actually number of channels, some <sensor> can be empty
-        # num_sensors = int(xml.attrib["count"])
+        # the count attribute is the number of channels, some <sensor> can be empty.
+        # num_channels = int(xml.attrib["count"])
+        # we only want the active sensors, so exclude the empty ones by checking len(sensor)
 
         infos = [
             sensorinfo_from_element(sensor)

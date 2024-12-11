@@ -36,6 +36,18 @@ class TestParsing(unittest.TestCase):
         num_sensors = int(xml.attrib["count"])
         self.assertEqual(num_sensors, 7)
 
+    def test_sensors_free_channel(self):
+        # example cnv with a free channel
+        filepath = self.data_dir / "19plusV2_7360_20141014_testCF.cnv"
+        cnv_info = CnvInfoRaw(filepath)
+        xml = cnv_info.get_sensors_xml()
+        num_channels = int(xml.attrib["count"])
+        self.assertEqual(num_channels, 8)
+
+        # free channel should be excluded
+        sensors_info = cnv_info.get_sensors_info()
+        self.assertEqual(len(sensors_info), 7)
+
     def test_get_sensors_info(self):
         sensors_info = self.cnv_info.get_sensors_info()
         self.assertEqual(len(sensors_info), 7)

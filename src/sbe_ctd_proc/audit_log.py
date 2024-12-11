@@ -8,7 +8,7 @@ from .cnv_parser import CnvInfoRaw, SensorInfo
 
 # TODO logreq from DB
 class AuditInfo(TypedDict):
-    """Data structure with information from .cnd file"""
+    """Data structure with information from .cnv file"""
     hex_filename: str
     # aka 'base name' in code
     folder_name: str
@@ -21,7 +21,7 @@ class AuditInfo(TypedDict):
     interval: str
     # last processing step command
     last_command: str
-    # number of sensors
+    # number of active sensors
     n_sensors: int
     # concatenated active sensors "CNDC+TEMP+PRES+BAT_PERCENT+CPHL+OBS+PAR"
     sensors: str

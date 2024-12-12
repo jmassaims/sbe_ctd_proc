@@ -22,14 +22,18 @@ dependencies = [
 ]
 
 [project.scripts]
-sbe-ctd-proc-cli = "sbe_ctd_proc.gui:start_gui"
-gui2-cli = "sbe_ctd_proc.gui2:start_gui"
+sbe-ctd-proc = "sbe_ctd_proc.gui2:start_gui"
+sbe-ctd-proc-OLD = "sbe_ctd_proc.gui:start_gui"
 
 [project.gui-scripts]
-sbe-ctd-proc = "sbe_ctd_proc.gui:start_gui"
-gui2 = "sbe_ctd_proc.gui2:start_gui"
+sbe-ctd-proc-gui = "sbe_ctd_proc.gui2:start_gui"
+sbe-ctd-proc-gui-OLD = "sbe_ctd_proc.gui:start_gui"
+
+[tool.hatch.envs.default]
+installer = "uv"
 
 [tool.hatch.envs.test]
+installer = "uv"
 dependencies = [
   "coverage[toml]",
   "pytest",

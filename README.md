@@ -22,24 +22,27 @@ Dates must be at the end of the calibration_files_##### directory names.
          -   LoopEditIMOS.psa
 
 
-## Setup
+# Setup
 
 If needed, [install Python](https://www.python.org/downloads/).
 For Windows users, it's easiest to install [Python 3 from Windows Store](https://apps.microsoft.com/detail/9ncvdn91xzqp).
 
-[Install hatch](https://hatch.pypa.io/1.12/install/#gui-installer_1)
-In Windows, this requires admin privlidges. If the GUI Installer is blocked, try the
-[hatch command line installer](https://hatch.pypa.io/1.12/install/#command-line-installer_1).
+This project uses [Hatch](https://hatch.pypa.io/1.13/), which manages the Python environment,
+ dependencies, runs tests, etc.
 
-Unfortunately, VSCode does not discover hatch installed other ways.
+[Install hatch](https://hatch.pypa.io/1.13/install/#gui-installer_1).
+In Windows, this requires admin privileges. If the GUI Installer doesn't work, try the
+[hatch command line installer](https://hatch.pypa.io/1.13/install/#command-line-installer_1).
+
+Unfortunately, VSCode does not discover hatch installed other ways (e.g. using pip).
 (see [Issue #23819](https://github.com/microsoft/vscode-python/issues/23819))
-
-If the hatch installer doesn't work for you, install it with one of the other methods.
 
 ## Python Virtual Environment
 
-`hatch` manages the environment for you and creates it automatically with certain
-commands. Manage the environment with `hatch env`
+`hatch` manages the virtual environment for you and creates it automatically with certain
+commands like `hatch run`. You can explicitly manage the environment with `hatch env`.
+To update all dependencies, delete the environment with `hatch env prune`; when the
+environment is recreated, it will download the latest dependencies versions.
 
 VSCode [should find the Hatch environment](https://hatch.pypa.io/1.12/how-to/integrate/vscode/)
 
@@ -52,19 +55,16 @@ plus _/Scripts/python.exe_
 
 Install [SBE Data Processing](https://software.seabird.com/)
 
-### Config
+## Configuration
 
 Copy `config.example.toml` to `config.toml` and edit for your setup.
 
-# Run
+# Running
 
 `sbe-ctd-proc` if you are within the environment (`hatch shell`).
+Alternatively, when outside the hatch shell: `hatch run sbe-ctd-proc`
 
-Outside the environment: `hatch run sbe-ctd-proc`
-
-If that doesn't work, use `sbe_proc.py`
-
-To see the console, run `sbe-ctd-proc-cli`
+This should open a browser tab to http://127.0.0.1:8080/ or http://localhost:8080/
 
 ## Development
 
@@ -86,3 +86,18 @@ Explicitly run a test env script like: `hatch run test:run`
 Files can be executed individually.
 Alternatively, run all tests with: `python -m unittest`
 (*not ideal because this doesn't use the hatch test env*)
+
+# Notes
+
+If you change hatch `project.scripts`, you need to re-create the environment for it
+to have an effect.
+
+This project uses the [uv installer](https://hatch.pypa.io/dev/how-to/environment/select-installer/),
+which is much faster and works with current dependencies.
+
+The old TKinter UI can be run with `sbe-ctd-proc-OLD`. This project is maintaining both UIs for now.
+Also, the original `sbe_proc.py` script runs the old UI.
+
+Issues to investigate:
+* TODO gui-scripts not working, console seems to be required.
+* TODO NiceGui reload fails often.

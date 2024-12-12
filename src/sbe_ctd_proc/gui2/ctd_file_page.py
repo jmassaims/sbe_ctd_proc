@@ -4,7 +4,7 @@ from typing import Optional
 
 from nicegui import ui
 
-from sbs.process.instrument_data import cnv_to_instrument_data, InstrumentData
+from seabirdscientific.instrument_data import cnv_to_instrument_data, InstrumentData
 
 from .processing_state import PROC_STATE
 from ..config import CONFIG

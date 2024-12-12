@@ -41,7 +41,7 @@ class CnvInfoRaw:
     """Extract information from .cnv file with minimal parsing.
     Methods will perform smarter parsing of different formats.
 
-    seabird sbs lib has cnv_to_instrument_data, but that doesn't extract general info.
+    seabirdscientific lib has cnv_to_instrument_data, but that doesn't extract general info.
     It only has interval_s, latitude, start_time and the MeasurementSeries data.
     """
 
@@ -79,7 +79,7 @@ class CnvInfoRaw:
 
                 elif line.startswith("*END*"):
                     # end of info, this is where data starts.
-                    # use sbs.process cnv_to_instrument_data instead.
+                    # use seabirdscientific cnv_to_instrument_data instead.
                     break
                 elif line.startswith("* S>"):
                     # next section

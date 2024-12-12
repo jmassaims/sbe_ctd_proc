@@ -3,8 +3,8 @@ import os.path
 import plotly.graph_objects as go
 
 # Sea-Bird imports
-from sbs.process.instrument_data import cnv_to_instrument_data, InstrumentData
-import sbs.visualize.visualization as viz
+from seabirdscientific.instrument_data import cnv_to_instrument_data, InstrumentData
+import seabirdscientific.visualization as viz
 
 #print("renderers", pio.renderers)
 

@@ -58,14 +58,14 @@ class ProcessingState:
         # re-scan directories on client connect (triggered by reload)
         app.on_connect(lambda: self.mgr.scan_dirs())
 
-    async def start_processing(self):
+    async def start_processing(self, basenames=None):
         if self.is_processing:
             print('WARN: already processing')
             return
 
         print("start_processing")
 
-        await self.__start()
+        await self.__start(basenames)
 
     def stop_processing(self):
         self.send.put_nowait('stop')
@@ -109,7 +109,7 @@ class ProcessingState:
         self.file_error_message = None
         self.is_requesting_latitude = False
 
-    async def __start(self):
+    async def __start(self, basenames=None):
         self.reset_dialog_state()
         self.clear_processing_error()
         self.is_processing = True
@@ -121,7 +121,7 @@ class ProcessingState:
         self.recv = JoinableQueue()
 
         try:
-            await run.io_bound(start_manager, self.recv, self.send)
+            await run.io_bound(start_manager, self.recv, self.send, basenames)
 
         finally:
             self.is_processing = False

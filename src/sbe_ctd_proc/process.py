@@ -203,9 +203,9 @@ def process_cnv(ctdfile: CTDFile, sbe: SBE, send: Queue = None, log = None) -> N
     log(ctdfile, cnvpath, sbe.last_command)
 
 
-def setup_processing_dir(ctdfile: CTDFile, config_folder: Path)-> None:
+def setup_processing_dir(ctdfile: CTDFile, config_folder: Path, exist_ok=False)-> None:
     """Create the processing directory and copy files to it"""
-    ctdfile.processing_dir.mkdir()
+    ctdfile.processing_dir.mkdir(exist_ok=exist_ok)
 
     #JM carry xmlcon file and psa files with data
     setupfiles=os.listdir(config_folder)
@@ -299,9 +299,10 @@ def process() -> None:
         process_hex_file(ctdfile)
 
 
-def process_hex_file(ctdfile: CTDFile, audit: AuditLog = None, send: Queue = None):
+def process_hex_file(ctdfile: CTDFile, audit: AuditLog = None, send: Queue = None, exist_ok = False):
     """
-    Process the CTDFile through all
+    Process the CTDFile through all steps.
+    exist_ok: no error if processing dir exists. remove files in existing processing directory.
     @throws Exception if latitude not set on CTDFile
     """
 
@@ -329,7 +330,12 @@ def process_hex_file(ctdfile: CTDFile, audit: AuditLog = None, send: Queue = Non
     xmlcon_file = get_xmlcon(config_folder)
     print("Configuration File:", xmlcon_file)
 
-    setup_processing_dir(ctdfile, config_folder)
+    if exist_ok and ctdfile.status() == 'processing':
+        print('already processing, clearing directory', ctdfile.processing_dir)
+        for f in ctdfile.processing_dir.iterdir():
+            f.unlink()
+
+    setup_processing_dir(ctdfile, config_folder, exist_ok)
 
     # psa files for AIMS modules
     #add and adjust for cellTM and Wildedit

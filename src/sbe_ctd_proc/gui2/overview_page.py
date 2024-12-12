@@ -12,9 +12,12 @@ def select_row(*args, **kwargs):
 def overview_page():
     mgr = PROC_STATE.mgr
 
+    async def start():
+        await PROC_STATE.start_processing(table.get_selected())
+
     running_row = ui.row().classes('items-center w-full')
     with running_row:
-        ui.button('Start', icon='play_arrow', on_click=PROC_STATE.start_processing) \
+        ui.button('Start', icon='play_arrow', on_click=start) \
             .bind_visibility_from(PROC_STATE, 'is_processing', value=False)
         ui.linear_progress(show_value=False).style('max-width: 400px;') \
             .bind_value_from(PROC_STATE, 'progress') \
@@ -105,7 +108,7 @@ class CTDFilesTable:
         rows = [ctdfile_to_row(row) for row in mgr.ctdfiles]
 
         # TODO autosort cast_date desc
-        table = ui.table(columns=columns, rows=rows, row_key='base_file_name')
+        table = ui.table(columns=columns, rows=rows, row_key='base_file_name', selection='multiple')
         self.table = table
 
         table.add_slot('body-cell-status', '''
@@ -155,3 +158,7 @@ class CTDFilesTable:
 
     def refresh(self):
         self.filter(self.filter_status)
+
+    def get_selected(self):
+        """get selected base file names"""
+        return [row['base_file_name'] for row in self.table.selected]

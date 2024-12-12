@@ -58,14 +58,19 @@ class Manager(AbstractContextManager):
         if self.audit_log:
             self.audit_log.close()
 
-    def scan_dirs(self):
-        """scan directories, set file lists"""
+    def scan_dirs(self, basenames: list[str] | None = None):
+        """
+        scan directories, set file collections: hex_files, pending, processing, processed.
+
+        """
         with self._scan_lock:
             self.hex_files = list(self.raw_path.glob("*.hex"))
             total_count = len(self.hex_files)
             self.hex_count = total_count
             print(f"{total_count} hex files in {self.raw_path}")
 
+            # FIXME currently assuming all files in every state are also in pending directory
+            # However, user could change pending directory, or move hex files
             self.ctdfiles = [CTDFile(f) for f in self.hex_files]
             base_names = set(f.base_file_name for f in self.ctdfiles)
             self.ctdfile = dict((f.base_file_name, f) for f in self.ctdfiles)
@@ -100,11 +105,41 @@ class Manager(AbstractContextManager):
             if processing:
                 print(f"{len(processing)} files already processing?\n{processing}")
 
-            # TODO what should be done with processing? option to delete it?
             self.pending = base_names - processed - processing
+
+            if basenames:
+                self._set_pending(basenames)
 
         if self.on_change:
             self.on_change()
+
+    def _set_pending(self, basenames: list[str]):
+        """
+        Set specific files to process. After this, pending will only include files in the given basenames.
+        However, only raw or processing files are considered,
+        must be called after scan_dirs()
+        """
+
+        basenames_set = set(basenames)
+
+        # warn about any that are processed
+        match_processed = self.processed & basenames_set
+        if match_processed:
+            # TODO user message
+            print('WARN: selected files already processed', match_processed)
+
+        print('pending explicitly set', basenames)
+
+        # after scan_dirs(), valid files to process are those in pending or processing
+        valid = self.pending | self.processing
+
+        unknown = basenames_set - valid - match_processed
+        if unknown:
+            print('WARN: selected unknown files', unknown)
+
+        self.pending = valid & basenames_set
+        print('valid pending', self.pending)
+
 
     def start(self):
         # copy pending set since we mutate it
@@ -180,7 +215,7 @@ class Manager(AbstractContextManager):
             latitude = latitude.strip()
             ctdfile.latitude = latitude
 
-        process_hex_file(ctdfile, audit=self.audit_log, send=self.send)
+        process_hex_file(ctdfile, audit=self.audit_log, send=self.send, exist_ok=True)
 
         self.processed.add(base_name)
         self.send.put(("finish", base_name, file_num, len(self.processed)))
@@ -221,12 +256,16 @@ class Manager(AbstractContextManager):
                 raise Exception(f'unexpected message {msg}')
 
 
-def start_manager(send: Queue, recv: Queue):
+def start_manager(send: Queue, recv: Queue, basenames: list[str] | None = None):
     """Create new instance of Manager and start processing"""
+
+    if basenames is not None and len(basenames) == 0:
+        basenames = None
+
     try:
         # TODO auditlog_path from config
         with Manager(send, recv, auditlog_path="sbe_ctd_auditlog.csv") as manager:
-            manager.scan_dirs()
+            manager.scan_dirs(basenames)
 
             if manager.pending:
                 print(f"Starting to process {len(manager.pending)} files")

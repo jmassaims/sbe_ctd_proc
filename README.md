@@ -46,8 +46,9 @@ environment is recreated, it will download the latest dependencies versions.
 
 VSCode [should find the Hatch environment](https://hatch.pypa.io/1.12/how-to/integrate/vscode/)
 
-For other IDEs, you may need to configure the Python interpreter with the hatch environment.  
-Get the path with: `hatch env find`  
+For other IDEs, you may need to configure the Python interpreter with the hatch environment.
+1. Get the path with: `hatch env find`
+2. Add that interpreter path to your IDE
 For example, in PyCharm add a new Python **System Interpreter** with that path
 plus _/Scripts/python.exe_
 
@@ -89,7 +90,7 @@ Alternatively, run all tests with: `python -m unittest`
 
 # Notes
 
-If you change hatch `project.scripts`, you need to re-create the environment for it
+If you change hatch `project.scripts`, you need to re-create the hatch environment for it
 to have an effect.
 
 This project uses the [uv installer](https://hatch.pypa.io/dev/how-to/environment/select-installer/),
@@ -98,6 +99,24 @@ which is much faster and works with current dependencies.
 The old TKinter UI can be run with `sbe-ctd-proc-OLD`. This project is maintaining both UIs for now.
 Also, the original `sbe_proc.py` script runs the old UI.
 
-Issues to investigate:
-* TODO gui-scripts not working, console seems to be required.
-* TODO NiceGui reload fails often.
+## Dependencies
+
+Dependencies in pyproject.toml are using `~=`
+([compatible release](https://hatch.pypa.io/latest/config/dependency/#compatible-release))
+up to the patch version, which is fairly conservative.
+
+If we want some dependencies to update minor versions, patch should be removed. For example
+changing `"pandas~=2.2.3"` to `"pandas~=2.2"` would allow it to update to `2.3`.
+
+**Known issues**
+
+* latest versions of starlette causes 404 for static files. see [NiceGUI issue #4255](https://github.com/zauberzeug/nicegui/issues/4255) \
+Workaround: currently starlette is pinned to 0.41.3 in pyproject.toml
+
+## Miscalaneous Issues
+
+Issues to investigate or fix. Some of these may be resolved by dependency update in the
+future.
+
+* gui-scripts not working, console seems to be required.
+* NiceGui reload fails often.

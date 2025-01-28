@@ -16,15 +16,17 @@ class LatitudeSpreadsheet:
 
     def lookup_latitude(self, base_name: str) -> float:
         """Lookup the latitude for the CTD file base name.
-        Raises exception if not found or multiple found.
+        Raises LookupError if not found or multiple found.
         """
         hex_name = f'{base_name}.hex'
 
         matching = self.df.loc[self.df['FileName'] == hex_name, 'Latitude']
 
         if len(matching) == 0:
-            raise ValueError(f'No latitude found for {hex_name}')
+            raise LookupError(f'No latitude found for {hex_name}')
         elif len(matching) > 1:
-            raise ValueError(f'Multiple latitudes found for {hex_name}')
+            raise LookupError(f'Multiple latitudes found for {hex_name}')
 
-        return float(matching.values[0])
+        lat = float(matching.values[0])
+        print(f'Latitude for {hex_name}: {lat} (from spreadsheet)')
+        return lat

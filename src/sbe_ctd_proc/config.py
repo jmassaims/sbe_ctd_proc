@@ -1,5 +1,10 @@
+from collections.abc import Callable
 from pathlib import Path
+
 import tomlkit
+
+from .db import OceanDB
+from .latitude_spreadsheet import LatitudeSpreadsheet
 
 # map from old config keys to new Config attrs
 old_mapping = {
@@ -20,6 +25,7 @@ old_mapping = {
     'LABEL_FONTS': 'label_fonts'
 }
 
+# mapping of Config attribute to config.toml path
 config_map = {
     'raw_path': ('paths', 'raw'),
     'processing_path': ('paths', 'processing'),
@@ -41,11 +47,16 @@ config_map = {
     'livewire_mapping': ('livewire_mapping',),
 
     'derive_latitude': ('options', 'derive_latitude'),
+    'latitude_method': ('options', 'latitude_method'),
+    'latitude_spreadsheet_file': ('options', 'latitude_spreadsheet_file'),
     # 'label_fonts': {
     #     'toml_path': ('options', 'label_fonts'),
     #     'default': '("Arial", 14, "bold")'
     # }
 }
+
+class ConfigError(Exception):
+    """Logical configuration error with app config system."""
 
 # TODO test for Config, check default feature
 class Config:
@@ -78,6 +89,19 @@ class Config:
     # options
     derive_latitude: bool
 
+    # 'ask' | 'spreadsheet' | 'database'
+    latitude_method: str
+
+    latitude_spreadsheet_file: Path
+
+    # ---- initialized attributes ----
+
+    # Lookup latitude using the configured implementation.
+    # Raises ValueError on lookup failure.
+    lookup_latitude: Callable[[str], float] | None
+
+    oceandb: OceanDB | None
+
     # old config for Tkinter app
     # needs to be a tuple, TBD if add to toml
     label_fonts = ("Arial", 14, "bold")
@@ -89,6 +113,8 @@ class Config:
         self.config_file = path.resolve()
 
         self.load_config()
+
+        self.setup_latitude_service()
 
     def __getitem__(self, key: str):
         new_attr = old_mapping[key]
@@ -148,6 +174,58 @@ class Config:
         p = Path('config.toml')
         if p.is_file():
             return p.resolve()
+
+    def setup_latitude_service(self):
+        if self.latitude_method == 'spreadsheet':
+            self.latitude_service = LatitudeSpreadsheet(self.latitude_spreadsheet_file)
+            self.lookup_latitude = self.latitude_service.lookup_latitude
+            print('Configured latitude lookup via spreadsheet', self.latitude_spreadsheet_file.absolute())
+        elif self.latitude_method == 'database':
+            oceandb = self.get_db()
+            if oceandb is None:
+                raise ConfigError('latitude_method is database, but database is disabled or not configured')
+
+            self.lookup_latitude = oceandb.lookup_latitude
+            print('Configured latitude lookup via database')
+        elif self.latitude_method == 'ask':
+            # default, handled by Manager send/recv messages.
+            print('Configured to ask for latitude')
+        else:
+            raise Exception(f'Invalid latitude_method: {self.latitude_method}')
+
+    def __init_db(self) -> OceanDB:
+        """Initialize new OceanDB instance from config."""
+
+        # TODO: if opening the db backend just need to supply the mdb file and not mdw and skip security check
+        mdb_file = self.db_mdb_file
+        if not mdb_file.exists():
+            raise FileNotFoundError(mdb_file)
+
+        try:
+            mdw_file = self.db_mdw_file
+            if not mdw_file.exists():
+                raise FileNotFoundError(mdw_file)
+        except KeyError:
+            # TODO test exception handling
+            mdw_file = None
+
+        return OceanDB(mdb_file, mdw_file, self.db_user, self.db_password)
+
+
+    def get_db(self) -> OceanDB | None:
+        """get the OceanDB instance (initializing if needed).
+        returns None if database disabled.
+        """
+
+        # check if already initialized
+        if hasattr(self, 'oceandb') and self.oceandb is not None:
+            return oceandb
+        else:
+            if not self.db_enabled:
+                return None
+
+            oceandb = self.__init_db()
+            return oceandb
 
 
 CONFIG = Config()

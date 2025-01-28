@@ -30,7 +30,6 @@ from .audit_log import AuditInfo, AuditLog
 from .SBE import SBE
 from .ctd_file import CTDFile
 from .psa_file import rewrite_psa_file
-from .db import get_db
 from .gui.dialog import request_latitude
 from .config_util import *
 from .config import CONFIG

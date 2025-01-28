@@ -8,8 +8,8 @@ from typing import Optional
 
 from .audit_log import AuditLog
 from .ctd_file import CTDFile
-from .db import get_db
 from .process import process_hex_file
+from .config import CONFIG
 from .config_util import get_config_dir_path
 
 class Manager(AbstractContextManager):
@@ -32,13 +32,19 @@ class Manager(AbstractContextManager):
 
     audit_log: Optional[AuditLog]
 
+    # Alternate latitude lookup method (spreadsheet or database).
+    # raises LookupError if not found or multiple found.
+    # if None, Manager defaults to "ask" via send/recv messages.
+    lookup_latitude: Optional[Callable[[str], float]]
+
     # callback when file info changes.
     # hacky, only works for the last client
     on_change: Optional[Callable] = None
 
     _scan_lock = threading.Lock()
 
-    def __init__(self, send: Queue = None, recv: Queue = None, auditlog_path = None) -> None:
+    def __init__(self, send: Queue = None, recv: Queue = None, auditlog_path = None, lookup_latitude = None) -> None:
+
         self.send = send
         self.recv = recv
 
@@ -50,6 +56,8 @@ class Manager(AbstractContextManager):
 
         if auditlog_path:
             self.audit_log = AuditLog(auditlog_path)
+
+        self.lookup_latitude = lookup_latitude
 
     def __exit__(self, *exc_details):
         self.cleanup()
@@ -199,21 +207,18 @@ class Manager(AbstractContextManager):
 
         self.send.put(("start", base_name, file_num, len(self.pending)))
 
-        # attempt to get latitude from primary source
-        latitude = None
-        oceandb = get_db()
-        if oceandb is not None:
-            latitude = oceandb.get_latitude(base_name)
-
-        if latitude is None:
-            # database disabled or latitude missing for this file, request latitude input
-            print(f"WARNING: database missing latitude for file {base_name}. Manual latitude input required.")
+        if self.lookup_latitude is not None:
+            # attempt to get latitude from spreadsheet/database (depending on config)
+            try:
+                latitude = self.lookup_latitude(base_name)
+            except LookupError:
+                print(f"WARNING: missing latitude for {base_name}. Fallback to asking user for latitude.")
+                latitude = self.request_latitude(base_name)
+        else:
+            # default to asking if alternate method not configured.
             latitude = self.request_latitude(base_name)
 
-        if latitude is not None:
-            # TODO validate latitude value
-            latitude = latitude.strip()
-            ctdfile.latitude = latitude
+        ctdfile.latitude = latitude
 
         process_hex_file(ctdfile, audit=self.audit_log, send=self.send, exist_ok=True)
 
@@ -257,14 +262,15 @@ class Manager(AbstractContextManager):
 
 
 def start_manager(send: Queue, recv: Queue, basenames: list[str] | None = None):
-    """Create new instance of Manager and start processing"""
+    """Create new instance of Manager using current config and start processing"""
 
     if basenames is not None and len(basenames) == 0:
         basenames = None
 
     try:
         # TODO auditlog_path from config
-        with Manager(send, recv, auditlog_path="sbe_ctd_auditlog.csv") as manager:
+
+        with Manager(send, recv, auditlog_path="sbe_ctd_auditlog.csv", lookup_latitude=CONFIG.lookup_latitude) as manager:
             manager.scan_dirs(basenames)
 
             if manager.pending:

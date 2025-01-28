@@ -89,7 +89,7 @@ class ProcessingState:
         self.file_error_base_name = ''
         self.file_error_message = ''
 
-    def respond_latitude(self, latitude: str):
+    def respond_latitude(self, latitude: float):
         if not self.is_requesting_latitude:
             raise Exception('Not requesting latitude')
 

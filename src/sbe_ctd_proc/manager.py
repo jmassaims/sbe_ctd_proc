@@ -235,7 +235,7 @@ class Manager(AbstractContextManager):
             else:
                 print('Unknown message:', msg)
 
-    def request_latitude(self, base_name: str) -> str:
+    def request_latitude(self, base_name: str) -> float:
         """
         Request latitude from the GUI process
         Blocks until reply received.

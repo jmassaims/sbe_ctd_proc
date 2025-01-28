@@ -54,8 +54,8 @@ class Manager(AbstractContextManager):
         self.processing_dir = get_config_dir_path("PROCESSING_PATH")
         self.destination_dir = get_config_dir_path("DESTINATION_PATH")
 
-        if auditlog_path:
-            self.audit_log = AuditLog(auditlog_path)
+        print('Manager auditlog_path', auditlog_path)
+        self.audit_log = AuditLog(auditlog_path) if auditlog_path else None
 
         self.lookup_latitude = lookup_latitude
 
@@ -268,9 +268,7 @@ def start_manager(send: Queue, recv: Queue, basenames: list[str] | None = None):
         basenames = None
 
     try:
-        # TODO auditlog_path from config
-
-        with Manager(send, recv, auditlog_path="sbe_ctd_auditlog.csv", lookup_latitude=CONFIG.lookup_latitude) as manager:
+        with Manager(send, recv, auditlog_path=CONFIG.auditlog_file, lookup_latitude=CONFIG.lookup_latitude) as manager:
             manager.scan_dirs(basenames)
 
             if manager.pending:

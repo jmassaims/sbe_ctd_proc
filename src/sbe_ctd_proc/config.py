@@ -1,5 +1,6 @@
 from collections.abc import Callable
 from pathlib import Path
+from typing import Optional
 
 import tomlkit
 
@@ -26,6 +27,7 @@ old_mapping = {
 }
 
 # mapping of Config attribute to config.toml path
+# by default, names ending with _path or _file must exist or config value set to None.
 config_map = {
     'raw_path': ('paths', 'raw'),
     'processing_path': ('paths', 'processing'),
@@ -34,6 +36,7 @@ config_map = {
         'toml_path': ('paths', 'SBEDataProcessing'),
         'default': r'C:\Program Files (x86)\Sea-Bird\SBEDataProcessing-Win32'
     },
+    'auditlog_file': ('paths', 'auditlog_file'),
 
     'db_enabled': ('database', 'enabled'),
     'db_mdb_file': ('database', 'mdb_file'),
@@ -55,6 +58,9 @@ config_map = {
     # }
 }
 
+# path/file config attributes that are not required to exist.
+may_not_exist = {'auditlog_file'}
+
 class ConfigError(Exception):
     """Logical configuration error with app config system."""
 
@@ -73,6 +79,7 @@ class Config:
     processing_path: Path
     destination_path: Path
     sbe_bin_path: Path
+    auditlog_file: Optional[Path]
 
     # database
     db_enabled: bool
@@ -152,7 +159,7 @@ class Config:
             # naming convention for Path config values.
             if attr.endswith('_path'):
                 p = Path(val).resolve()
-                if p.is_dir():
+                if attr in may_not_exist or p.is_dir():
                     val = p
                 else:
                     val = None
@@ -160,7 +167,7 @@ class Config:
 
             elif attr.endswith('_file'):
                 p = Path(val).resolve()
-                if p.is_file():
+                if attr in may_not_exist or p.is_file():
                     val = p
                 else:
                     val = None

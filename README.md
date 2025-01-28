@@ -110,8 +110,8 @@ changing `"pandas~=2.2.3"` to `"pandas~=2.2"` would allow it to update to `2.3`.
 
 **Known issues**
 
-* latest versions of starlette causes 404 for static files. see [NiceGUI issue #4255](https://github.com/zauberzeug/nicegui/issues/4255) \
-Workaround: currently starlette is pinned to 0.41.3 in pyproject.toml
+* Starlette versions 0.42 to 0.45.2 caused a 404 for static files. see [NiceGUI issue #4255](https://github.com/zauberzeug/nicegui/issues/4255) \
+Workaround: Starlette version set to >=0.45.3 in pyproject.toml
 
 ## Miscalaneous Issues
 

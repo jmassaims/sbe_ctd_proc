@@ -32,10 +32,10 @@ def sbs_plot(
     fig.show()
 
 # TODO support mode with fewer axis sharing metrics of similar range.
-def plot_for_cnv_file(cnv_file: str = None,
-                      instr_data: InstrumentData = None,
+def plot_for_cnv_file(cnv_file: str | None = None,
+                      instr_data: InstrumentData | None = None,
                       axis_offset: float = 0.05,
-                      include: set[str] = None,
+                      include: set[str] | None = None,
                       exclude: set[str] = {'flag', 'nbin'}
                       ) -> go.Figure:
 
@@ -47,6 +47,7 @@ def plot_for_cnv_file(cnv_file: str = None,
     exclude.add('prdM')
 
     if instr_data is None:
+        assert cnv_file is not None
         instr_data = cnv_to_instrument_data(cnv_file)
 
     # MeasurementSeries(label='tv290C', description='Temperature', units='ITS-90, deg C', start_time=datetime.datetime(2013, 2, 15, 8, 2, 22), values=array([29.5942, ...])

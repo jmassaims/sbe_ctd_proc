@@ -46,7 +46,7 @@ class PlotSection:
 
         self.show_cnv(selected_cnv)
 
-    def show_cnv(self, filename: str, include=None):
+    def show_cnv(self, filename: str, include: set[str] | None = None):
         """Re-create the plot for the given cnv file.
          @param filename: CNV filename in the cnv_dir
          @param include: measurements to display
@@ -61,8 +61,8 @@ class PlotSection:
         self.measurements_dialog.update(instrument_data)
 
         if include is None:
-            include = self.measurements_dialog.get_selected()
-            if len(include) == 0:
+            selected = self.measurements_dialog.get_selected()
+            if len(selected) == 0:
                 include = {'tv290C'}
 
         fig = plot_for_cnv_file(instr_data=instrument_data, include=include)
@@ -75,7 +75,7 @@ class PlotSection:
 
         # always update for now. could add dialog buttons
         selected = self.measurements_dialog.get_selected()
-        self.show_cnv(self.selected_cnv, selected)
+        self.show_cnv(self.selected_cnv, set(selected))
 
 
 class MeasurementsDialog:
@@ -122,7 +122,7 @@ class MeasurementsDialog:
                 for m in instrument_data.measurements.values()
                 if m.label not in self.ignored]
 
-    def get_selected(self):
+    def get_selected(self) -> list[str]:
         return [row['id'] for row in self.table.selected]
 
 
@@ -182,7 +182,7 @@ def sbe_plot(base_file_name: str):
             try:
                 lat = CONFIG.lookup_latitude(ctdfile.base_file_name)
                 if lat:
-                    with ui.chip(lat, color='gray', text_color='white'):
+                    with ui.chip(str(lat), color='gray', text_color='white'):
                         ui.tooltip('Latitude')
             except LookupError:
                 pass

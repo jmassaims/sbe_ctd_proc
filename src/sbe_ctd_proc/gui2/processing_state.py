@@ -27,10 +27,10 @@ class ProcessingState:
     # count of currently pending files
     num_pending: int = 0
 
-    current_basename: str = None
-    current_step: str = None
-    current_serial_number: str = None
-    current_cast_date: datetime = None
+    current_basename: str | None = None
+    current_step: str | None = None
+    current_serial_number: str | None = None
+    current_cast_date: datetime | None = None
 
     # file error processing is waiting on
     is_file_error: bool = False
@@ -68,9 +68,11 @@ class ProcessingState:
         await self.__start(basenames)
 
     def stop_processing(self):
+        assert self.send is not None
         self.send.put_nowait('stop')
 
     def skip_file(self):
+        assert self.send is not None
         self.send.put_nowait(('skip', self.current_basename))
 
     async def approve(self, ctdfile: CTDFile):
@@ -83,6 +85,7 @@ class ProcessingState:
         if not self.is_file_error:
             raise Exception('No file error to respond to')
 
+        assert self.send is not None
         self.send.put_nowait((command, self.file_error_base_name))
 
         self.is_file_error = False
@@ -95,6 +98,7 @@ class ProcessingState:
 
         self.is_requesting_latitude = False
 
+        assert self.send is not None
         self.send.put_nowait(('submit_latitude', self.current_basename, latitude))
 
 
@@ -137,6 +141,7 @@ class ProcessingState:
             self.recv = None
 
     async def check_message(self):
+        assert self.recv is not None
         if not self.recv.empty():
             msg = self.recv.get(block=False)
             await self.process_msg(msg)

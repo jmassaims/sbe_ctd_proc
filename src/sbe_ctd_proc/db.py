@@ -44,7 +44,7 @@ class OceanDB:
 
         engine.dispose()
 
-    def lookup_latitude(self, base_file_name):
+    def lookup_latitude(self, base_file_name) -> float:
         """"Get the latitutude for the file name
         :param base_file_name
         """
@@ -76,3 +76,5 @@ class OceanDB:
             else:
                 # filename not in the db
                 raise LookupError(f"no latitude found in database for '{base_file_name}'")
+
+        return float(derive_latitude)

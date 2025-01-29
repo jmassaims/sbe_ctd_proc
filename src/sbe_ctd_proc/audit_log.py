@@ -16,7 +16,7 @@ class AuditInfo(TypedDict):
     hex_dir: str
     processed_dir: str
     cast_date: str
-    latitude: str
+    latitude: float
     # "meters: 1"
     interval: str
     # last processing step command
@@ -79,7 +79,7 @@ class AuditInfo(TypedDict):
 
 class AuditLog:
 
-    filepath: str | Path
+    filepath: Path
     file: TextIOWrapper
 
     # order to write columns to csv

@@ -3,6 +3,8 @@ from pathlib import Path
 from typing import Optional
 
 import tomlkit
+from tomlkit.items import Item, Table
+from tomlkit.container import Container
 
 from .db import OceanDB
 from .latitude_spreadsheet import LatitudeSpreadsheet
@@ -147,41 +149,53 @@ class Config:
             assert type(toml_path) is tuple and len(toml_path) > 0
 
             try:
-                val = cfg
+                item = cfg
                 for segment in toml_path:
-                    val = val[segment]
+                    # should be iterating throgh TOML Containers up to final Item.
+                    assert isinstance(item, (Container, Table))
+                    item = item[segment]
 
             except KeyError:
-                val = None
+                item = None
                 print(f'{self.config_file} missing "{toml_path}"')
                 setattr(self, attr, default_val)
                 continue
 
+            if isinstance(item, Item):
+                value = item.value
+            else:
+                value = item
+
             # naming convention for Path config values.
             if attr.endswith('_path'):
-                p = Path(val).resolve()
+                assert isinstance(value, str)
+                p = Path(value).resolve()
                 if attr in may_not_exist or p.is_dir():
-                    val = p
+                    value = p
                 else:
-                    val = None
+                    value = None
                     invalid.append(attr)
 
             elif attr.endswith('_file'):
-                p = Path(val).resolve()
+                assert isinstance(value, str)
+                p = Path(value).resolve()
                 if attr in may_not_exist or p.is_file():
-                    val = p
+                    value = p
                 else:
-                    val = None
+                    value = None
                     invalid.append(attr)
 
-            setattr(self, attr, val)
+            setattr(self, attr, value)
 
     def find_config(self) -> Path:
-        # standard local location? python lib support?
+        """Look for the app config file in the standard locations."""
+        # TODO standard local config location? python lib support? NiceGUI?
 
         p = Path('config.toml')
         if p.is_file():
             return p.resolve()
+
+        raise FileNotFoundError('config.toml not found')
 
     def setup_latitude_service(self):
         if self.latitude_method == 'spreadsheet':
@@ -234,7 +248,7 @@ class Config:
 
         # check if already initialized
         if hasattr(self, 'oceandb') and self.oceandb is not None:
-            return oceandb
+            return self.oceandb
         else:
             if not self.db_enabled:
                 return None

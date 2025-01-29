@@ -59,7 +59,7 @@ class CTDFile:
     base_file_name: str
     "hex file name without extension"
 
-    latitude: str | None
+    latitude: float | None
     "latitude for this file. set externally"
 
     processing_dir: Path

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-def rewrite_psa_file(psa_file: Path, latitude: str):
+def rewrite_psa_file(psa_file: Path, latitude: float):
     """Rewrite the psa file
     * deletes NameAppend value attribute text
     * substitutes latitude into Latitude value attribute
@@ -17,7 +17,7 @@ def rewrite_psa_file(psa_file: Path, latitude: str):
                     f.writelines('  <NameAppend value="" />\n')
                 elif "<Latitude value=" in line:
                     f.writelines(
-                        '<Latitude value="' + latitude + '" />\n'
+                        f'<Latitude value="{latitude}" />\n'
                     )
                     print(f"Latitude set to {latitude} in PSA file {psa_file}")
                 else:

@@ -21,9 +21,10 @@ Workflow adjusted by Jack Massuger
 # Imports
 import os
 from pathlib import Path
-from queue import Queue
+from multiprocessing import Queue
 import shutil
 from datetime import datetime
+from typing import Callable, Optional
 import sqlalchemy as sa
 
 from .audit_log import AuditInfo, AuditLog
@@ -105,7 +106,12 @@ def process_step(
             raise e
 
 
-def process_cnv(ctdfile: CTDFile, sbe: SBE, send: Queue = None, log = None) -> None:
+def process_cnv(
+        ctdfile: CTDFile,
+        sbe: SBE,
+        send: Optional[Queue] = None,
+        log: Optional[Callable] = None
+    ) -> None:
     """Run SBE data processing steps
 
     :param file_name: _description_
@@ -298,7 +304,10 @@ def process() -> None:
         process_hex_file(ctdfile)
 
 
-def process_hex_file(ctdfile: CTDFile, audit: AuditLog = None, send: Queue = None, exist_ok = False):
+def process_hex_file(ctdfile: CTDFile,
+                     audit: Optional[AuditLog] = None,
+                     send: Optional[Queue] = None,
+                     exist_ok = False):
     """
     Process the CTDFile through all steps.
     exist_ok: no error if processing dir exists. remove files in existing processing directory.
@@ -380,7 +389,7 @@ def process_hex_file(ctdfile: CTDFile, audit: AuditLog = None, send: Queue = Non
         # audit log function that adds information in this context.
         def log(ctdfile, cnvpath, last_command: str):
             mixin_info: AuditInfo = {
-                'con_filename': xmlcon_file,
+                'con_filename': str(xmlcon_file.resolve()),
                 'latitude': latitude,
                 'last_command': last_command
             }

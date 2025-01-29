@@ -16,8 +16,8 @@ class Manager(AbstractContextManager):
     """Manages the state of CTDFiles and tracks events.
     Processes each file that needs processing based on current configuration.
     """
-    send: Queue
-    recv: Queue
+    send: Optional[Queue]
+    recv: Optional[Queue]
 
     processing_dir: Path
     destination_dir: Path
@@ -43,7 +43,13 @@ class Manager(AbstractContextManager):
 
     _scan_lock = threading.Lock()
 
-    def __init__(self, send: Queue = None, recv: Queue = None, auditlog_path = None, lookup_latitude = None) -> None:
+    def __init__(
+            self,
+            send: Optional[Queue] = None,
+            recv: Optional[Queue] = None,
+            auditlog_path: Optional[Path] = None,
+            lookup_latitude: Optional[Callable[[str], float]] = None
+        ) -> None:
 
         self.send = send
         self.recv = recv
@@ -150,6 +156,9 @@ class Manager(AbstractContextManager):
 
 
     def start(self):
+        assert self.send is not None
+        assert self.recv is not None
+
         # copy pending set since we mutate it
         pending = list(self.pending)
 
@@ -195,6 +204,8 @@ class Manager(AbstractContextManager):
             i += 1
 
     def process_file(self, ctdfile: CTDFile, file_num: int):
+        assert self.send is not None
+
         base_name = ctdfile.base_file_name
 
         try:
@@ -228,7 +239,7 @@ class Manager(AbstractContextManager):
     def check_stop_message(self):
         """Check for stop message from the app.
         If received, raises StopProcessing"""
-        if not self.recv.empty():
+        if self.recv and not self.recv.empty():
             msg = self.recv.get()
             if msg == 'stop':
                 raise StopProcessing()
@@ -240,6 +251,9 @@ class Manager(AbstractContextManager):
         Request latitude from the GUI process
         Blocks until reply received.
         """
+
+        assert self.send is not None
+        assert self.recv is not None
 
         self.send.put(("request_latitude", base_name))
         msg = self.recv.get()

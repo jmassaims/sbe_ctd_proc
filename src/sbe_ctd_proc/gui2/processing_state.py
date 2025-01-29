@@ -127,6 +127,17 @@ class ProcessingState:
         try:
             await run.io_bound(start_manager, self.recv, self.send, basenames)
 
+        except Exception as e:
+            msg = str(e)
+
+            # occurs when LatitudeSpreadsheet is refreshed whil open in Excel.
+            # add helpful information about this permissions error
+            if isinstance(e, PermissionError) and e.filename.endswith('.xlsx'):
+                msg += '\n\nThis error is likely due to an open Excel file. Please close any open Excel files and try again.'
+
+            self.handle_msg_error(msg)
+
+
         finally:
             self.is_processing = False
             # wait for all messages to be processed

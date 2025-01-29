@@ -30,7 +30,8 @@ def setup_processing_error_dialog():
     with dialog, ui.card():
         ui.label('Processing Error').classes('text-lg')
         ui.label('Processing stopped with error:')
-        ui.label().bind_text_from(proc, 'processing_error')
+        # white-space style so \n chars are rendered.
+        ui.label().bind_text_from(proc, 'processing_error').props('style="white-space: pre-line;"')
 
         ui.button('Ok', on_click=proc.clear_processing_error)
 

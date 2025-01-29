@@ -8,9 +8,17 @@ destination = 'C:\Users\awhite\data\CTD\processed'
 # Location where you installed SBE Data Processing
 SBEDataProcessing = 'C:\Program Files (x86)\Sea-Bird\SBEDataProcessing-Win32'
 
+auditlog_file = 'sbe_ctd_auditlog.csv'
+
 [options]
 # Set whether the program designates latitude for the Derive module (1 for yes, 0 for no)
+# TODO review this config variable design.
 derive_latitude = true
+
+# 'ask' or 'spreadsheet' or 'database'
+latitude_method = 'ask'
+# for spreadsheet, specify path to .xlsx file
+#latitude_spreadsheet_file = 'latitudes.xlsx'
 
 [database]
 enabled = false

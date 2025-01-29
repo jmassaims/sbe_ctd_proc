@@ -51,7 +51,16 @@ def setup_latitude_dialog():
             dialog.close()
             if command == 'submit':
                 lat = lat_input.value
-                proc.respond_latitude(lat)
+
+                try:
+                    latitude = float(lat)
+                except ValueError:
+                    # do nothing, leave dialog open
+                    # TODO Update dialog UI, supported latitude formats? form validation
+                    print('Invalid latitude!')
+                    return
+
+                proc.respond_latitude(latitude)
             elif command == 'stop':
                 proc.stop_processing()
             elif command == 'skip':

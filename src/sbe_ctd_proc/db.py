@@ -2,8 +2,6 @@ import os.path as P
 import pandas as pd
 import sqlalchemy as sa
 
-from .config import CONFIG
-
 class OceanDB:
     def __init__(self, db_file, mdw_file, db_user, db_password) -> None:
         db_driver = r"{Microsoft Access Driver (*.mdb, *.accdb)}"
@@ -29,7 +27,7 @@ class OceanDB:
 
         self.connection_url = sa.engine.URL.create("access+pyodbc", username=db_user, password=db_password, query={"odbc_connect": cnxn_str})
 
-# TODO private
+    # TODO private
     def get_db_tables(self):
         """load and store the tables needed for OceanDB methods"""
 
@@ -46,7 +44,7 @@ class OceanDB:
 
         engine.dispose()
 
-    def get_latitude(self, base_file_name):
+    def lookup_latitude(self, base_file_name):
         """"Get the latitutude for the file name
         :param base_file_name
         """
@@ -77,42 +75,4 @@ class OceanDB:
                     f"Using latitude = {derive_latitude} from site = {ctd_deployment['Site'].values[0]}, station = {ctd_deployment['Station'].values[0]}")
             else:
                 # filename not in the db
-                return None
-
-def init_db():
-    """Initialize new OceanDB instance from config."""
-
-    # TODO: if opening the db backend just need to supply the mdb file and not mdw and skip security check
-    mdb_file = CONFIG["DATABASE_MDB_FILE"]
-    if not P.exists(mdb_file):
-        raise FileNotFoundError(mdb_file)
-
-    try:
-        mdw_file = CONFIG["DATABASE_MDW_FILE"]
-        if not P.exists(mdw_file):
-            raise FileNotFoundError(mdw_file)
-    except KeyError:
-        mdw_file = None
-
-    db_user = CONFIG["DATABASE_USER"]
-    db_password = CONFIG["DATABASE_PASSWORD"]
-
-    return OceanDB(mdb_file, mdw_file, db_user, db_password)
-
-
-oceandb = None
-
-def get_db():
-    """get the global OceanDB instance.
-    returns None if database disabled.
-    """
-    global oceandb
-    # check if already initialized
-    if oceandb is not None:
-        return oceandb
-    else:
-        if CONFIG["USE_DATABASE"] is not True:
-            return None
-
-        oceandb = init_db()
-        return oceandb
+                raise LookupError(f"no latitude found in database for '{base_file_name}'")

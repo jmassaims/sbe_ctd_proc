@@ -4,9 +4,16 @@ import pandas as pd
 class LatitudeSpreadsheet:
     """Lookup latitude values in a XLSX spreadsheet."""
 
+    df: pd.DataFrame
+
     def __init__(self, file):
 
         self.file = file
+
+        self.refresh()
+
+    def refresh(self):
+        """Load/reload the dataframe from the spreadsheet."""
 
         self.df = pd.read_excel(self.file,
                                 engine='openpyxl',

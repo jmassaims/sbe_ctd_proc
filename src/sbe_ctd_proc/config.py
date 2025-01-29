@@ -107,7 +107,8 @@ class Config:
     # Raises ValueError on lookup failure.
     lookup_latitude: Callable[[str], float] | None
 
-    oceandb: OceanDB | None
+    latitude_service: Optional[LatitudeSpreadsheet]
+    oceandb: Optional[OceanDB]
 
     # old config for Tkinter app
     # needs to be a tuple, TBD if add to toml
@@ -199,6 +200,13 @@ class Config:
             print('Configured to ask for latitude')
         else:
             raise Exception(f'Invalid latitude_method: {self.latitude_method}')
+
+    def refresh_services(self):
+        """Refresh service state that may have changed between processing runs."""
+
+        if self.latitude_service:
+            self.latitude_service.refresh()
+
 
     def __init_db(self) -> OceanDB:
         """Initialize new OceanDB instance from config."""

@@ -262,7 +262,11 @@ class Manager(AbstractContextManager):
 
 
 def start_manager(send: Queue, recv: Queue, basenames: list[str] | None = None):
-    """Create new instance of Manager using current config and start processing"""
+    """Create new instance of Manager using current config and start processing.
+    Refreshes config services before starting.
+    """
+
+    CONFIG.refresh_services()
 
     if basenames is not None and len(basenames) == 0:
         basenames = None

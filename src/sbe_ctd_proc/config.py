@@ -104,7 +104,7 @@ class Config:
     # ---- initialized attributes ----
 
     # Lookup latitude using the configured implementation.
-    # Raises ValueError on lookup failure.
+    # Raises LookupError on lookup failure.
     lookup_latitude: Callable[[str], float] | None
 
     latitude_service: Optional[LatitudeSpreadsheet]

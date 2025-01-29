@@ -172,8 +172,20 @@ def sbe_plot(base_file_name: str):
 
         ui.label(base_file_name).classes('text-h5')
 
-        ui.chip(ctdfile.serial_number, color='gray', text_color='white')
-        ui.chip(ctdfile.cast_date.strftime('%Y %b %d'), color='gray', text_color='white')
+        with ui.chip(ctdfile.serial_number, color='gray', text_color='white'):
+            ui.tooltip('Serial Number')
+
+        with ui.chip(ctdfile.cast_date.strftime('%Y %b %d'), color='gray', text_color='white'):
+            ui.tooltip('Cast Date')
+
+        if CONFIG.lookup_latitude:
+            try:
+                lat = CONFIG.lookup_latitude(ctdfile.base_file_name)
+                if lat:
+                    with ui.chip(lat, color='gray', text_color='white'):
+                        ui.tooltip('Latitude')
+            except LookupError:
+                pass
 
         ui.label().style('flex: auto;')
 

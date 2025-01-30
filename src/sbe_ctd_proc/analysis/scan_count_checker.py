@@ -1,6 +1,4 @@
 """
-
-
 intention is to adapt this to either step through full range of derived files,
 or to add this as a step to the CTD processing code
 
@@ -12,87 +10,92 @@ infer whether the cast data is close in time.
 
 """
 
-# File should end in D (derive)
+
 
 
 input_file ='C:\\Users\\jmassuge\\Documents\\wqq734_filter_align_celltm_loop_wild_derive.cnv'
 # output_file = 'C:\\Users\\jmassuge\\Documents\\extracted_data.xlsx'
+input_file = r'c:\Users\awhite\data\CTD\processing\19plus2_4525_20150101_test\19plus2_4525_20150101_testCFACLWD.cnv'
 
 
+from pathlib import Path
 import pandas as pd
 
-# Initialize variables to store column numbers
-depSM_column = None
-flag_column = None
-scan_count_column = None
+def create_scan_count_dataframe(input_file: str | Path) -> pd.DataFrame:
+    """Create a new DataFrame with columns:
+    Depth_bin, min_scan_count, max_scan_count, difference.
 
-# Open the .cnv file for reading
-with open(input_file, 'r') as file:
-    # Read all lines from the file
-    lines = file.readlines()
+    File should typiically end in D (derive), but this is not checked.
+    """
 
-    # Iterate through each line in the file to find column numbers
-    for line in lines:
-        # Check if the line contains the desired phrases
-        if "depSM" in line:
-            depSM_column = int(line.split('=')[0].split()[-1]) + 1
-        elif "flag: flag" in line:
-            flag_column = int(line.split('=')[0].split()[-1]) + 1
-        elif "scan: Scan Count" in line:
-            scan_count_column = int(line.split('=')[0].split()[-1]) + 1
+    # Initialize variables to store column numbers
+    depSM_column = None
+    flag_column = None
+    scan_count_column = None
 
-        # If all column numbers are found, break the loop
-        if depSM_column is not None and flag_column is not None and scan_count_column is not None:
-            break
+    # Open the .cnv file for reading
+    with open(input_file, 'r') as file:
+        # Read all lines from the file
+        lines = file.readlines()
 
-    # Initialize lists to store the extracted columns
-    depSM_data = []
-    flag_data = []
-    scan_count_data = []
+        # Iterate through each line in the file to find column numbers
+        for line in lines:
+            # Check if the line contains the desired phrases
+            if "depSM" in line:
+                depSM_column = int(line.split('=')[0].split()[-1]) + 1
+            elif "flag: flag" in line:
+                flag_column = int(line.split('=')[0].split()[-1]) + 1
+            elif "scan: Scan Count" in line:
+                scan_count_column = int(line.split('=')[0].split()[-1]) + 1
 
-    # Iterate through each line in the file to extract data columns
-    for line in lines:
-        # Skip lines that start with '*' or '#'
-        if line.startswith('*') or line.startswith('#'):
-            continue
+            # If all column numbers are found, break the loop
+            if depSM_column is not None and flag_column is not None and scan_count_column is not None:
+                break
 
-        # Split the line into columns based on whitespace
-        columns = line.split()
+        # Initialize lists to store the extracted columns
+        depSM_data = []
+        flag_data = []
+        scan_count_data = []
 
-        # Extract the columns using the previously determined column numbers
-        if len(columns) >= max(depSM_column, flag_column, scan_count_column):
-            depSM_data.append(columns[depSM_column - 1])
-            flag_data.append(columns[flag_column - 1])
-            scan_count_data.append(columns[scan_count_column - 1])
+        # Iterate through each line in the file to extract data columns
+        for line in lines:
+            # Skip lines that start with '*' or '#'
+            if line.startswith('*') or line.startswith('#'):
+                continue
 
-# Create a DataFrame from the extracted data
-data = pd.DataFrame({
-    'depSM': depSM_data,
-    'flag': flag_data,
-    'scan_count': scan_count_data
-})
+            # Split the line into columns based on whitespace
+            columns = line.split()
 
-# Convert flag column to numeric
-data['flag'] = pd.to_numeric(data['flag'], errors='coerce')
-data['scan_count'] = pd.to_numeric(data['scan_count'], errors='coerce')
+            # Extract the columns using the previously determined column numbers
+            if len(columns) >= max(depSM_column, flag_column, scan_count_column):
+                depSM_data.append(columns[depSM_column - 1])
+                flag_data.append(columns[flag_column - 1])
+                scan_count_data.append(columns[scan_count_column - 1])
 
-# Filter out rows where the value in the flag column is less than 0
-data = data[data['flag'] >= 0]
+    # Create a DataFrame from the extracted data
+    data = pd.DataFrame({
+        'depSM': depSM_data,
+        'flag': flag_data,
+        'scan_count': scan_count_data
+    })
 
-# Add a new column rounding the depSM values to the nearest whole number
-data['Depth_bin'] = data['depSM'].astype(float).round()
+    # Convert flag column to numeric
+    data['flag'] = pd.to_numeric(data['flag'], errors='coerce')
+    data['scan_count'] = pd.to_numeric(data['scan_count'], errors='coerce')
 
-# Group by Depth_bin and aggregate to find the minimum and maximum scan_count values
-aggregated_data = data.groupby('Depth_bin').agg(min_scan_count=('scan_count', 'min'), max_scan_count=('scan_count', 'max'))
+    # Filter out rows where the value in the flag column is less than 0
+    data = data[data['flag'] >= 0]
 
-# Reset index to make Depth_bin a column instead of an index
-aggregated_data.reset_index(inplace=True)
+    # Add a new column rounding the depSM values to the nearest whole number
+    data['Depth_bin'] = data['depSM'].astype(float).round()
 
-# Calculate the difference between min_scan_count and max_scan_count
-aggregated_data['difference'] = aggregated_data['max_scan_count'] - aggregated_data['min_scan_count']
+    # Group by Depth_bin and aggregate to find the minimum and maximum scan_count values
+    aggregated_data = data.groupby('Depth_bin').agg(min_scan_count=('scan_count', 'min'), max_scan_count=('scan_count', 'max'))
 
-# show this in the app
-print(aggregated_data)
+    # Reset index to make Depth_bin a column instead of an index
+    aggregated_data.reset_index(inplace=True)
 
-# Write the DataFrame to an Excel file
-#aggregated_data.to_excel(output_file, index=False)
+    # Calculate the difference between min_scan_count and max_scan_count
+    aggregated_data['difference'] = aggregated_data['max_scan_count'] - aggregated_data['min_scan_count']
+
+    return aggregated_data

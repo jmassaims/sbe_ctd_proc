@@ -6,6 +6,7 @@ from nicegui import ui
 
 from seabirdscientific.instrument_data import cnv_to_instrument_data, InstrumentData
 
+from ..analysis.scan_count_checker import create_scan_count_dataframe
 from .processing_state import PROC_STATE
 from ..config import CONFIG
 from ..ctd_file import CTDFile
@@ -32,10 +33,6 @@ class PlotSection:
                 ui.chip(f'{steps_done} steps', color='gray', text_color='white')
             else:
                 ui.chip(f'{steps_done}/{total_steps} steps', color='orange', text_color='white')
-
-            with ui.button(icon='folder_open', color='white',
-                           on_click=lambda: os.startfile(self.cnv_dir)):
-                ui.tooltip('Open destination directory')
 
             ui.button("Select Measurements",
                       on_click=lambda: self.open_measurements_dialog())
@@ -142,6 +139,16 @@ def sbe_plot(base_file_name: str):
 
     is_approvable = file_status == 'processed'
 
+    if file_status.startswith('proc'):
+        working_dir = ctdfile.processing_dir
+        cnv_files = ctdfile.processing_cnvs
+    elif file_status == 'done':
+        working_dir = ctdfile.destination_dir
+        cnv_files = ctdfile.destination_cnvs
+    else:
+        working_dir = None
+        cnv_files = None
+
     # change flex column to fill height of window
     ui.add_css('''
         .nicegui-content {
@@ -149,6 +156,7 @@ def sbe_plot(base_file_name: str):
         }
     ''')
 
+    # Main toolbar row
     with ui.row().classes('w-full'):
         with ui.button(icon='list', on_click=lambda: ui.navigate.to('/')):
             ui.tooltip('List of files')
@@ -171,6 +179,11 @@ def sbe_plot(base_file_name: str):
                 next_btn.on_click(lambda: ui.navigate.to(f'./{next_file.base_file_name}'))
 
         ui.label(base_file_name).classes('text-h5')
+
+        if working_dir:
+            with ui.button(icon='folder_open',
+                        on_click=lambda: os.startfile(working_dir)):
+                ui.tooltip('Open directory')
 
         with ui.chip(ctdfile.serial_number, color='gray', text_color='white'):
             ui.tooltip('Serial Number')
@@ -206,10 +219,33 @@ def sbe_plot(base_file_name: str):
     elif file_status == 'unknown':
         error_message('Files in processing and done!')
 
-    if file_status.startswith('proc'):
-        PlotSection(ctdfile, ctdfile.processing_cnvs)
-    elif file_status == 'done':
-        PlotSection(ctdfile, ctdfile.destination_cnvs)
+    # Tabs: Chart, Scan Counts
+
+    # find derive step cnv file
+    derive_file = None
+    if cnv_files:
+        matching = [f for f in cnv_files if f.name.endswith('D.cnv')]
+        derive_file = matching[0] if matching else None
+
+    with ui.tabs() as tabs:
+        chart_tab = ui.tab('Chart')
+
+        if derive_file:
+            sc_tab = ui.tab('Scan Counts')
+
+    # flex auto to fill vertical space
+    with ui.tab_panels(tabs, value = chart_tab).classes('w-full').style('flex: auto'):
+        with ui.tab_panel(chart_tab):
+            if working_dir and cnv_files:
+                PlotSection(ctdfile, cnv_files)
+
+        if derive_file:
+            df = create_scan_count_dataframe(derive_file)
+
+            with ui.tab_panel(sc_tab):
+                ui.label(str(derive_file))
+                ui.table.from_pandas(df)
+
 
 def get_prev_next_files(current_name: str) -> tuple[Optional[CTDFile], Optional[CTDFile]]:
     """Returns the previous and next base file names that are processing/processed.

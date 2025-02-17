@@ -27,12 +27,12 @@ Dates must be at the end of the calibration_files_##### directory names.
 If needed, [install Python](https://www.python.org/downloads/).
 For Windows users, it's easiest to install [Python 3 from Windows Store](https://apps.microsoft.com/detail/9ncvdn91xzqp).
 
-This project uses [Hatch](https://hatch.pypa.io/1.13/), which manages the Python environment,
+This project uses [Hatch](https://hatch.pypa.io/latest/), which manages the Python environment,
  dependencies, runs tests, etc.
 
-[Install hatch](https://hatch.pypa.io/1.13/install/#gui-installer_1).
+[Install hatch](https://hatch.pypa.io/latest/install/#gui-installer).
 In Windows, this requires admin privileges. If the GUI Installer doesn't work, try the
-[hatch command line installer](https://hatch.pypa.io/1.13/install/#command-line-installer_1).
+[hatch command line installer](https://hatch.pypa.io/latest/install/#command-line-installer).
 
 Unfortunately, VSCode does not discover hatch installed other ways (e.g. using pip).
 (see [Issue #23819](https://github.com/microsoft/vscode-python/issues/23819))

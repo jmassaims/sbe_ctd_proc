@@ -2,15 +2,24 @@
 This code is for proofing the bin_down file by checking for negative values introduced by the interpolation step.
 """
 
-input_file = "C:\\Users\\jmassuge\\Documents\\wqq660_filter_align_celltm_loop_wild_derive_bin_down.cnv"
+from pathlib import Path
 
-def check_for_negatives(input_file):
-    with open(input_file, 'r') as file:
+def check_for_negatives(cnv_file: str | Path) -> list[str]:
+    """
+    Check for negative values in the bin-down CNV file.
+    @returns list of columns with negative values
+    """
+    with open(cnv_file, 'r') as file:
         # Read lines, ignoring those starting with * or #
         lines = [line for line in file if not line.startswith('*') and not line.startswith('#')]
 
     # Remove leading and trailing whitespace, split each line by whitespace
     data = [line.strip().split() for line in lines]
+
+    # Remove empty rows, otherwise zip fails
+    def not_empty(row):
+        return len(row) > 0
+    data = filter(not_empty, data)
 
     # Transpose the data to iterate over columns
     columns = zip(*data)
@@ -22,9 +31,6 @@ def check_for_negatives(input_file):
             negative_columns.append(i)
 
     if negative_columns:
-        print("Negative values found in columns:", negative_columns)
+        return negative_columns
     else:
-        print("No negative values found in any column.")
-
-
-check_for_negatives(input_file)
+        return []

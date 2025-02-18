@@ -4,9 +4,10 @@ from typing import Optional
 
 from nicegui import ui
 
-from seabirdscientific.instrument_data import cnv_to_instrument_data, InstrumentData
+from seabirdscientific.instrument_data import cnv_to_instrument_data, \
+    InstrumentData, MeasurementSeries
 
-from ..analysis.scan_count_checker import create_scan_count_dataframe
+from ..analysis import create_scan_count_dataframe, check_for_negatives
 from .processing_state import PROC_STATE
 from ..config import CONFIG
 from ..ctd_file import CTDFile
@@ -222,16 +223,35 @@ def sbe_plot(base_file_name: str):
     # Tabs: Chart, Scan Counts
 
     # find derive step cnv file
+    # TODO move code to utility
     derive_file = None
+    bin_file = None
     if cnv_files:
         matching = [f for f in cnv_files if f.name.endswith('D.cnv')]
         derive_file = matching[0] if matching else None
+
+        matching = [f for f in cnv_files if f.name.endswith('B.cnv')]
+        bin_file = matching[0] if matching else None
 
     with ui.tabs() as tabs:
         chart_tab = ui.tab('Chart')
 
         if derive_file:
             sc_tab = ui.tab('Scan Counts')
+
+        if bin_file:
+            negative_cols = check_for_negatives(bin_file)
+            # UI: maybe "Data Checks" with multiple checkes in this tab.
+            neg_tab = ui.tab('Data Checker')
+
+            negative_col_count = len(negative_cols)
+            if negative_col_count > 0:
+                # show red badge with problem count.
+                with neg_tab:
+                    # override top so badge isn't on text
+                    ui.badge(str(negative_col_count), color='red') \
+                        .props('floating').style('top: 2px;')
+
 
     # flex auto to fill vertical space
     with ui.tab_panels(tabs, value = chart_tab).classes('w-full').style('flex: auto'):
@@ -243,8 +263,12 @@ def sbe_plot(base_file_name: str):
             df = create_scan_count_dataframe(derive_file)
 
             with ui.tab_panel(sc_tab):
-                ui.label(str(derive_file))
+                ui.label(f'Scanned: {derive_file}')
                 ui.table.from_pandas(df)
+
+        if bin_file:
+            with ui.tab_panel(neg_tab):
+                build_negative_cols_view(bin_file, negative_cols)
 
 
 def get_prev_next_files(current_name: str) -> tuple[Optional[CTDFile], Optional[CTDFile]]:
@@ -270,3 +294,17 @@ def get_prev_next_files(current_name: str) -> tuple[Optional[CTDFile], Optional[
     prev_file = ctdfiles[index - 1] if index > 0 else None
     next_file = ctdfiles[index + 1] if index < len(ctdfiles) - 1 else None
     return prev_file, next_file
+
+def build_negative_cols_view(file: Path, negative_cols: list[MeasurementSeries]):
+    ui.label(f'Scanned: {file}')
+    ui.label(f'Negative values found in {len(negative_cols)} columns.')
+    if negative_cols:
+        # ui.label(f'Negative values found in columns: {negative_cols}')
+        for col in negative_cols:
+            ui.label(col.label).classes('text-h5')
+            ui.label(f'{col.description} ({col.units})')
+            neg_values = list(float(x) for x in col.values if float(x) < 0)
+            ui.label(f'Negative values: {neg_values}')
+
+    else:
+        ui.label('No negative values found in any column.')

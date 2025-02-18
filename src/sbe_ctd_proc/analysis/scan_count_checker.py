@@ -10,14 +10,6 @@ infer whether the cast data is close in time.
 
 """
 
-
-
-
-input_file ='C:\\Users\\jmassuge\\Documents\\wqq734_filter_align_celltm_loop_wild_derive.cnv'
-# output_file = 'C:\\Users\\jmassuge\\Documents\\extracted_data.xlsx'
-input_file = r'c:\Users\awhite\data\CTD\processing\19plus2_4525_20150101_test\19plus2_4525_20150101_testCFACLWD.cnv'
-
-
 from pathlib import Path
 import pandas as pd
 

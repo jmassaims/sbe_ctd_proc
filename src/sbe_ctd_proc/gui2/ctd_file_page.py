@@ -4,7 +4,8 @@ from typing import Optional
 
 from nicegui import ui
 
-from seabirdscientific.instrument_data import cnv_to_instrument_data, InstrumentData
+from seabirdscientific.instrument_data import cnv_to_instrument_data, \
+    InstrumentData, MeasurementSeries
 
 from ..analysis import create_scan_count_dataframe, check_for_negatives
 from .processing_state import PROC_STATE
@@ -241,7 +242,7 @@ def sbe_plot(base_file_name: str):
         if bin_file:
             negative_cols = check_for_negatives(bin_file)
             # UI: maybe "Data Checks" with multiple checkes in this tab.
-            neg_tab = ui.tab(f'Negative Checker')
+            neg_tab = ui.tab('Data Checker')
 
             negative_col_count = len(negative_cols)
             if negative_col_count > 0:
@@ -267,11 +268,7 @@ def sbe_plot(base_file_name: str):
 
         if bin_file:
             with ui.tab_panel(neg_tab):
-                ui.label(f'Scanned: {bin_file}')
-                if negative_cols:
-                    ui.label(f'Negative values found in columns: {negative_cols}')
-                else:
-                    ui.label('No negative values found in any column.')
+                build_negative_cols_view(bin_file, negative_cols)
 
 
 def get_prev_next_files(current_name: str) -> tuple[Optional[CTDFile], Optional[CTDFile]]:
@@ -297,3 +294,17 @@ def get_prev_next_files(current_name: str) -> tuple[Optional[CTDFile], Optional[
     prev_file = ctdfiles[index - 1] if index > 0 else None
     next_file = ctdfiles[index + 1] if index < len(ctdfiles) - 1 else None
     return prev_file, next_file
+
+def build_negative_cols_view(file: Path, negative_cols: list[MeasurementSeries]):
+    ui.label(f'Scanned: {file}')
+    ui.label(f'Negative values found in {len(negative_cols)} columns.')
+    if negative_cols:
+        # ui.label(f'Negative values found in columns: {negative_cols}')
+        for col in negative_cols:
+            ui.label(col.label).classes('text-h5')
+            ui.label(f'{col.description} ({col.units})')
+            neg_values = list(float(x) for x in col.values if float(x) < 0)
+            ui.label(f'Negative values: {neg_values}')
+
+    else:
+        ui.label('No negative values found in any column.')

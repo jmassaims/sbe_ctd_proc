@@ -14,6 +14,7 @@ class TestAnalysis(unittest.TestCase):
         neg_cols = check_for_negatives(filepath)
 
         self.assertEqual(len(neg_cols), 1)
+        self.assertEqual(neg_cols[0].label, "flECO-AFL")
 
         filepath2 = self.data_dir / "19plus2_4525_20140618_testCFACLWDB.cnv"
         neg_cols = check_for_negatives(filepath2)

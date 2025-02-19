@@ -48,7 +48,7 @@ class AuditInfo(TypedDict):
     par_sn: str
     par_calibdate: str
 
-    datacnv_in: str
+    datcnv_in: str
 
     filter_in: str
     filter_low_pass_tc_B: str
@@ -59,7 +59,7 @@ class AuditInfo(TypedDict):
 
     celltm_in: str
     celltm_alpha: str
-    celltmp_tau: str
+    celltm_tau: str
 
     loopedit_in: str
     loopedit_minVelocity: str
@@ -94,7 +94,7 @@ class AuditLog:
         # CNV info
         'interval',
 
-        'datacnv_in',
+        'datcnv_in',
 
         'filter_in',
         'filter_low_pass_tc_B',
@@ -105,7 +105,7 @@ class AuditLog:
 
         'celltm_in',
         'celltm_alpha',
-        'celltmp_tau',
+        'celltm_tau',
 
         'loopedit_in',
         'loopedit_minVelocity',
@@ -166,7 +166,7 @@ class AuditLog:
     simple_info = [
         'interval',
 
-        'datacnv_in',
+        'datcnv_in',
 
         'filter_in',
         'filter_low_pass_tc_B',
@@ -177,7 +177,7 @@ class AuditLog:
 
         'celltm_in',
         'celltm_alpha',
-        'celltmp_tau',
+        'celltm_tau',
 
         'loopedit_in',
         'loopedit_minVelocity',

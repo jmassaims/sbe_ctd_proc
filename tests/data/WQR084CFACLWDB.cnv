@@ -260,37 +260,40 @@
 #     </SPAR_Sensor>
 #   </sensor>
 # </Sensors>
-# datcnv_date = Feb 27 2025 15:29:38, 7.26.7.129 [datcnv_vars = 13]
+# datcnv_date = Feb 27 2025 16:32:57, 7.26.7.129 [datcnv_vars = 13]
 # datcnv_in = C:\Users\awhite\data\CTD\processing\WQR084\2f5ccbcd5a6dba06f366e8a10a855f8930c8eef7.hex C:\Users\awhite\data\CTD\processing\WQR084\911plus_0890_dualTC_20241120.xmlcon
 # datcnv_skipover = 0
-# filter_date = Feb 27 2025 15:29:39, 7.26.7.129
-# filter_in = C:\Users\awhite\data\CTD\processing\WQR084\3e1baa3b5db144cb68baa82c71a9b3186419776c.cnv
+# filter_date = Feb 27 2025 16:32:58, 7.26.7.129
+# filter_in = C:\Users\awhite\data\CTD\processing\WQR084\6baa1d4f6037faf03c830078d4994ad3eb26ec26.cnv
 # filter_low_pass_tc_A = 0.000
 # filter_low_pass_tc_B = 0.150
 # filter_low_pass_A_vars = t090C c0S/m t190C c1S/m
 # filter_low_pass_B_vars = prDM
-# celltm_date = Feb 27 2025 15:29:39, 7.26.7.129
-# celltm_in = C:\Users\awhite\data\CTD\processing\WQR084\a34f9cd137374c5d49fc58971404989f6e55adc0.cnv
+# alignctd_date = Feb 27 2025 16:32:58, 7.26.7.129
+# alignctd_in = C:\Users\awhite\data\CTD\processing\WQR084\3a6cf90ccd754bc432af43d7acb855e736995e07.cnv
+# alignctd_adv = c0S/m 0.073, c1S/m 0.073                                                                                                                                                                                            
+# celltm_date = Feb 27 2025 16:32:59, 7.26.7.129
+# celltm_in = C:\Users\awhite\data\CTD\processing\WQR084\ef71594d8734b144f14043dd9e6398ae945b1dbd.cnv
 # celltm_alpha = 0.0300, 0.0000
 # celltm_tau = 7.0000, 0.0000
 # celltm_temp_sensor_use_for_cond = primary, 
-# loopedit_date = Feb 27 2025 15:29:40, 7.26.7.129
-# loopedit_in = C:\Users\awhite\data\CTD\processing\WQR084\e68f959b745acfa3e3fbd1a36bad3a7006005014.cnv
+# loopedit_date = Feb 27 2025 16:32:59, 7.26.7.129
+# loopedit_in = C:\Users\awhite\data\CTD\processing\WQR084\459ee1eb4a481ffc34f2fd5cf5403f481a3c8df9.cnv
 # loopedit_minVelocity = 0.250                                                                                            
 # loopedit_surfaceSoak: minDepth = 2.0, maxDepth = 5, useDeckPress = 1                                                    
 # loopedit_excl_bad_scans = yes
-# wildedit_date = Feb 27 2025 15:29:40, 7.26.7.129
-# wildedit_in = C:\Users\awhite\data\CTD\processing\WQR084\60b67ee57d01fe50affde3e665e58ec7347bfc10.cnv
+# wildedit_date = Feb 27 2025 16:32:59, 7.26.7.129
+# wildedit_in = C:\Users\awhite\data\CTD\processing\WQR084\5743437253427ec83e833f6814f89e72fc0db71d.cnv
 # wildedit_pass1_nstd = 2.0
 # wildedit_pass2_nstd = 20.0
 # wildedit_pass2_mindelta = 0.000e+000
 # wildedit_npoint = 100
 # wildedit_vars = prDM t090C c0S/m depSM cpar spar turbWETntu0 flECO-AFL par t190C c1S/m
 # wildedit_excl_bad_scans = yes
-# Derive_date = Feb 27 2025 15:29:40, 7.26.7.129 [derive_vars = 2]
-# Derive_in = C:\Users\awhite\data\CTD\processing\WQR084\157a3a8de05212df1afe9ac93fccebf8676b54df.cnv C:\Users\awhite\data\CTD\processing\WQR084\911plus_0890_dualTC_20241120.xmlcon
-# binavg_date = Feb 27 2025 15:29:41, 7.26.7.129
-# binavg_in = C:\Users\awhite\data\CTD\processing\WQR084\9e4cf8a11bcc2126ded442fd37210d6d6b4f429d.cnv
+# Derive_date = Feb 27 2025 16:33:00, 7.26.7.129 [derive_vars = 2]
+# Derive_in = C:\Users\awhite\data\CTD\processing\WQR084\4da5f45f29fc558149884b54a7ffcdee4aca1ee1.cnv C:\Users\awhite\data\CTD\processing\WQR084\911plus_0890_dualTC_20241120.xmlcon
+# binavg_date = Feb 27 2025 16:33:00, 7.26.7.129
+# binavg_in = C:\Users\awhite\data\CTD\processing\WQR084\268d145e27a2046704492ee4a86a633b14c418f5.cnv
 # binavg_bintype = meters
 # binavg_binsize = 1
 # binavg_excl_bad_scans = yes

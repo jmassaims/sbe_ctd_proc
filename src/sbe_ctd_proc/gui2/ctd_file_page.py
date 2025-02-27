@@ -125,7 +125,7 @@ class MeasurementsDialog:
 
 
 @ui.page('/ctd_file/{base_file_name}')
-def sbe_plot(base_file_name: str):
+def ctd_file_page(base_file_name: str):
     hex_path = CONFIG.raw_path / f'{base_file_name}.hex'
     if not hex_path.exists():
         error_message(f'HEX file does not exist: {hex_path}')
@@ -208,7 +208,19 @@ def sbe_plot(base_file_name: str):
             async def approve():
                 approve_btn.disable()
                 await PROC_STATE.approve(ctdfile)
-                ui.navigate.reload()
+
+                # go to next file in processing state.
+                prev, next = get_prev_next_files(base_file_name)
+                # prefer next, otherwise go back to previous
+                next_processing = next or prev
+                if next_processing:
+                    ui.navigate.to(f'/ctd_file/{next_processing.base_file_name}')
+                else:
+                    # go back to overview page
+                    ui.navigate.to('/')
+
+                # Alternatively, could refresh page with:
+                # ui.navigate.reload()
 
             approve_btn.on_click(approve)
 

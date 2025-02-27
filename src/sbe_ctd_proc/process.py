@@ -392,7 +392,7 @@ def process_hex_file(ctdfile: CTDFile,
         # audit log function that adds information in this context.
         def log(ctdfile, cnvpath, last_command: str):
             mixin_info: AuditInfo = {
-                'con_filename': str(xmlcon_file.resolve()),
+                'con_filename': str(xmlcon_file.name),
                 'latitude': latitude,
                 'last_command': last_command
             }

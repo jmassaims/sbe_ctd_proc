@@ -93,7 +93,7 @@ def overview_page():
         # TODO change status values soon. variables names chosen for future status
         is_raw = 'pending' in distinct_status
         # TODO processing/partial (future status values)
-        is_processing = 'processed' in distinct_status
+        is_processing = 'processed' in distinct_status or 'processing' in distinct_status
         is_done = 'done' in distinct_status
 
         if one_status and is_processing:

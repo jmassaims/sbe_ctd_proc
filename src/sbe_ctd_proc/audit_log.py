@@ -194,17 +194,18 @@ class AuditLog:
         'binavg_excl_bad_scans'
     ]
 
-    def __init__(self, filepath: str | Path) -> None:
+    def __init__(self, filepath: str | Path, is_empty=False) -> None:
         filepath = Path(filepath)
         self.filepath = filepath
 
         if filepath.is_dir():
             raise Exception("path to directory")
 
-        is_newfile = not filepath.exists()
+        is_newfile = not filepath.exists() or is_empty
 
         if is_newfile:
-            self.file = open(filepath, 'x', newline='')
+            mode = 'x' if not filepath.exists() else 'w'
+            self.file = open(filepath, mode, newline='')
         else:
             self.check_existing_file()
             self.file = open(filepath, 'a', newline='')
@@ -226,7 +227,7 @@ class AuditLog:
                 raise Exception(f"Cannot append to audit log '{self.filepath.resolve()}'; columns have changed since audit log written")
 
 
-    def log(self, ctd_file: CTDFile, cnv_file: str, mixin_info: AuditInfo):
+    def log(self, ctd_file: CTDFile, cnv_file: str | Path, mixin_info: AuditInfo):
         cnv = CnvInfoRaw(cnv_file)
 
         # ctd_file.serial_number

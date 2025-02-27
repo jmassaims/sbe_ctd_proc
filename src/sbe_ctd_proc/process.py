@@ -395,7 +395,7 @@ def process_hex_file(ctdfile: CTDFile,
                 'con_filename': str(xmlcon_file.name),
                 'latitude': latitude,
                 'last_command': last_command
-            }
+            } # type: ignore partial dict
             audit.log(ctdfile, cnvpath, mixin_info)
     else:
         log = None

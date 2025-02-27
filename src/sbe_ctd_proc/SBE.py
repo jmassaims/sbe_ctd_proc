@@ -22,6 +22,7 @@ import glob
 # config
 from .config import CONFIG
 
+raw_path = ''
 
 class SBE:
     """SBE processing class.

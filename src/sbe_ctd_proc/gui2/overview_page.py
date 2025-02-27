@@ -1,12 +1,9 @@
-from typing import Callable
 from nicegui import ui
 
 from .dialogs import setup_file_error_dialog, setup_processing_error_dialog, setup_latitude_dialog
 from ..manager import Manager
 from ..ctd_file import CTDFile
 from .processing_state import PROC_STATE
-
-default_proc_button_label = 'Process All Raw'
 
 def select_row(*args, **kwargs):
     print(args, kwargs)
@@ -18,18 +15,10 @@ def overview_page():
     async def start():
         await PROC_STATE.start_processing(table.get_selected())
 
-    def go_approve():
-        first_processing = next(iter(table.mgr.processing))
-        ui.navigate.to(f'/ctd_file/{first_processing}')
-
     running_row = ui.row().classes('items-center w-full')
     with running_row:
-        proc_button = ui.button(default_proc_button_label, icon='play_arrow', on_click=start) \
+        ui.button('Start', icon='play_arrow', on_click=start) \
             .bind_visibility_from(PROC_STATE, 'is_processing', value=False)
-
-        # button visibility bound to if any files processing below.
-        approve_button = ui.button('Start Approving', color='green', on_click=go_approve)
-
         ui.linear_progress(show_value=False).style('max-width: 400px;') \
             .bind_value_from(PROC_STATE, 'progress') \
             .bind_visibility_from(PROC_STATE, 'is_processing')
@@ -47,9 +36,9 @@ def overview_page():
     @ui.refreshable
     def create_filters():
         toggle = ui.toggle({
-            'pending': f'{len(mgr.pending)} Raw',
+            'pending': f'{len(mgr.pending)} Pending',
             'processing': f'{len(mgr.processing)} Processing',
-            'done': f'{len(mgr.processed)} Approved'
+            'done': f'{len(mgr.processed)} Done'
         }, clearable=True)
         toggle.on_value_change(lambda e: table.filter(e.value))
 
@@ -66,7 +55,6 @@ def overview_page():
 
     table = CTDFilesTable(mgr)
     search_input.bind_value(table.table, 'filter')
-    approve_button.bind_visibility_from(table, 'has_processing')
 
     setup_file_error_dialog()
     setup_processing_error_dialog()
@@ -81,39 +69,10 @@ def overview_page():
     ui.timer(0.5, check_usermsgs)
 
     def refresh():
-        """refresh UI to represent current Manager state"""
         create_filters.refresh()
         table.refresh()
 
     mgr.on_change = refresh
-
-    def update_proc_button(selection):
-        distinct_status = set(s['status'] for s in selection)
-        one_status = len(distinct_status) == 1
-        # TODO change status values soon. variables names chosen for future status
-        is_raw = 'pending' in distinct_status
-        # TODO processing/partial (future status values)
-        is_processing = 'processed' in distinct_status
-        is_done = 'done' in distinct_status
-
-        if one_status and is_processing:
-            label = 'Reprocess Selected'
-        elif one_status and is_raw:
-            label = 'Process Selected'
-        elif is_raw and is_processing:
-            label = '[Re]Process Selected'
-        elif is_done:
-            # TODO review with Jack. Currently, file processing code skips done.
-            # probably better to show message that selected Approved files are skipped.
-            label = 'Reprocess Approved does nothing!'
-        else:
-            # button  action should default to process raw.
-            label = default_proc_button_label
-
-        proc_button.set_text(label)
-
-
-    table.on_select = update_proc_button
 
 
 def ctdfile_to_row(ctdfile: CTDFile):
@@ -132,17 +91,8 @@ def ctdfile_to_row(ctdfile: CTDFile):
 class CTDFilesTable:
     filter_status: str | None = None
 
-    # called when selection changes. given the selected objects created for table.
-    on_select: Callable | None
-
-    # if any files trocked by Manager are processing.
-    # TODO maybe move to Manager
-    has_processing: bool
-
     def __init__(self, mgr: Manager):
         self.mgr = mgr
-        self.on_select = None
-        self.has_processing = len(mgr.processing) > 0
 
         columns = [
             {'name': 'base_file_name', 'label': 'Base Name', 'field': 'base_file_name', 'sortable': True },
@@ -158,9 +108,7 @@ class CTDFilesTable:
         rows = [ctdfile_to_row(row) for row in mgr.ctdfiles]
 
         # TODO autosort cast_date desc
-        table = ui.table(columns=columns, rows=rows, row_key='base_file_name', selection='multiple',
-                         on_select=lambda : self.__on_select())
-
+        table = ui.table(columns=columns, rows=rows, row_key='base_file_name', selection='multiple')
         self.table = table
 
         table.add_slot('body-cell-status', '''
@@ -208,19 +156,9 @@ class CTDFilesTable:
             filtered_rows = [ctdfile_to_row(row) for row in self.mgr.ctdfiles if f(row.status())]
             self.table.update_rows(filtered_rows)
 
-        # above resets selection, but does not trigger on_select
-        self.__on_select()
-
     def refresh(self):
-        """refresh to represent current Manager state"""
-        self.has_processing = len(self.mgr.processing) > 0
         self.filter(self.filter_status)
 
     def get_selected(self):
         """get selected base file names"""
         return [row['base_file_name'] for row in self.table.selected]
-
-    def __on_select(self):
-        """table selection changed"""
-        if self.on_select:
-            self.on_select(self.table.selected)

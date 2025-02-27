@@ -1,6 +1,6 @@
 from nicegui import ui
 # load ui.page routes
-from .ctd_file_page import ctd_file_page
+from .ctd_file_page import sbe_plot
 from .overview_page import overview_page
 
 def start_gui():

@@ -36,9 +36,9 @@ def overview_page():
     @ui.refreshable
     def create_filters():
         toggle = ui.toggle({
-            'pending': f'{len(mgr.pending)} Pending',
+            'pending': f'{len(mgr.pending)} Raw',
             'processing': f'{len(mgr.processing)} Processing',
-            'done': f'{len(mgr.processed)} Done'
+            'done': f'{len(mgr.processed)} Approved'
         }, clearable=True)
         toggle.on_value_change(lambda e: table.filter(e.value))
 

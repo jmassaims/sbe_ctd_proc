@@ -111,13 +111,14 @@ def process_cnv(
         sbe: SBE,
         send: Optional[Queue] = None,
         log: Optional[Callable] = None
-    ) -> None:
+    ) -> Path:
     """Run SBE data processing steps
 
-    :param file_name: _description_
-    :type file_name: _type_
-    :param sbe: _description_
-    :type sbe: SBE
+    @param ctdfile file to process
+    @param sbe Seabird processing service to use
+    @param send Queue to send messages to GUI
+    @param log function to call after every step
+    @returns Path to final CNV file
     """
 
     # ensure log is always a function (avoids a bunch of if statements below)
@@ -206,6 +207,8 @@ def process_cnv(
         "Error while bin averaging the CNV file!",
     )
     log(ctdfile, cnvpath, sbe.last_command)
+
+    return cnvpath
 
 
 def setup_processing_dir(ctdfile: CTDFile, config_folder: Path, exist_ok=False)-> None:
@@ -401,4 +404,7 @@ def process_hex_file(ctdfile: CTDFile,
     convert_hex_to_cnv(ctdfile, sbe)
 
     # Run other AIMS modules
-    process_cnv(ctdfile, sbe, send, log)
+    # Note: can add log argument here to log after every step.
+    cnvpath = process_cnv(ctdfile, sbe, send)
+
+    log(ctdfile, cnvpath, sbe.last_command)

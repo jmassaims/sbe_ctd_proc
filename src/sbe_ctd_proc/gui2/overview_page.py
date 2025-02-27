@@ -18,10 +18,18 @@ def overview_page():
     async def start():
         await PROC_STATE.start_processing(table.get_selected())
 
+    def go_approve():
+        first_processing = next(iter(table.mgr.processing))
+        ui.navigate.to(f'/ctd_file/{first_processing}')
+
     running_row = ui.row().classes('items-center w-full')
     with running_row:
         proc_button = ui.button(default_proc_button_label, icon='play_arrow', on_click=start) \
             .bind_visibility_from(PROC_STATE, 'is_processing', value=False)
+
+        # button visibility bound to if any files processing below.
+        approve_button = ui.button('Start Approving', color='green', on_click=go_approve)
+
         ui.linear_progress(show_value=False).style('max-width: 400px;') \
             .bind_value_from(PROC_STATE, 'progress') \
             .bind_visibility_from(PROC_STATE, 'is_processing')
@@ -58,6 +66,7 @@ def overview_page():
 
     table = CTDFilesTable(mgr)
     search_input.bind_value(table.table, 'filter')
+    approve_button.bind_visibility_from(table, 'has_processing')
 
     setup_file_error_dialog()
     setup_processing_error_dialog()
@@ -72,6 +81,7 @@ def overview_page():
     ui.timer(0.5, check_usermsgs)
 
     def refresh():
+        """refresh UI to represent current Manager state"""
         create_filters.refresh()
         table.refresh()
 
@@ -125,9 +135,14 @@ class CTDFilesTable:
     # called when selection changes. given the selected objects created for table.
     on_select: Callable | None
 
+    # if any files trocked by Manager are processing.
+    # TODO maybe move to Manager
+    has_processing: bool
+
     def __init__(self, mgr: Manager):
         self.mgr = mgr
         self.on_select = None
+        self.has_processing = len(mgr.processing) > 0
 
         columns = [
             {'name': 'base_file_name', 'label': 'Base Name', 'field': 'base_file_name', 'sortable': True },
@@ -197,6 +212,8 @@ class CTDFilesTable:
         self.__on_select()
 
     def refresh(self):
+        """refresh to represent current Manager state"""
+        self.has_processing = len(self.mgr.processing) > 0
         self.filter(self.filter_status)
 
     def get_selected(self):

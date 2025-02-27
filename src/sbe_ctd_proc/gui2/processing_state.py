@@ -13,7 +13,11 @@ from ..process import move_to_destination_dir
 
 class ProcessingState:
     """
-    State shared across the app independent of user session.
+    Manages file processing initiated by the app and provides information
+    related to processing status.
+
+    This state shared across the app independent of user session (page/tab).
+    App code may bind this class' attributes.
     Uses NiceGUI run and timer to interact with the Manager in a subprocess.
     """
 

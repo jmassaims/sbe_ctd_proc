@@ -1,4 +1,5 @@
 import re
+from pathlib import Path
 from io import TextIOWrapper
 from typing import TypedDict
 from xml.etree import ElementTree
@@ -57,7 +58,7 @@ class CnvInfoRaw:
     # uninteresting text that's ignored
     ignored_text = {"", "*", "* ds", "* dh"}
 
-    def __init__(self, file: str):
+    def __init__(self, file: str | Path):
         # separate name = value
         name_val_re = re.compile(r"[*#]\s+([^=:]+)\s*[=:]\s*(.+)\s*")
 

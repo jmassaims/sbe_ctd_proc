@@ -82,7 +82,14 @@ class AuditLog:
     filepath: Path
     file: TextIOWrapper
 
+    # sensor prefixes that can have a second sensor and have created columns for it.
+    # e.g. temp2
+
+    possible_second_sensor = {'temp', 'cndc'}
+
     # order to write columns to csv
+    # if these are changed, the program will not be able to append to old audit log and
+    # will need to move the old audit log (or choose new path).
     columns: list[str] = [
         'hex_filename',
         'folder_name',
@@ -128,9 +135,15 @@ class AuditLog:
         'cndc_name',
         'cndc_sn',
         'cndc_calibdate',
+        'cndc2_name',
+        'cndc2_sn',
+        'cndc2_calibdate',
         'temp_name',
         'temp_sn',
         'temp_calibdate',
+        'temp2_name',
+        'temp2_sn',
+        'temp2_calibdate',
         'pres_name',
         'pres_sn',
         'pres_calibdate',
@@ -194,17 +207,18 @@ class AuditLog:
         'binavg_excl_bad_scans'
     ]
 
-    def __init__(self, filepath: str | Path) -> None:
+    def __init__(self, filepath: str | Path, is_empty=False) -> None:
         filepath = Path(filepath)
         self.filepath = filepath
 
         if filepath.is_dir():
             raise Exception("path to directory")
 
-        is_newfile = not filepath.exists()
+        is_newfile = not filepath.exists() or is_empty
 
         if is_newfile:
-            self.file = open(filepath, 'x', newline='')
+            mode = 'x' if not filepath.exists() else 'w'
+            self.file = open(filepath, mode, newline='')
         else:
             self.check_existing_file()
             self.file = open(filepath, 'a', newline='')
@@ -226,7 +240,7 @@ class AuditLog:
                 raise Exception(f"Cannot append to audit log '{self.filepath.resolve()}'; columns have changed since audit log written")
 
 
-    def log(self, ctd_file: CTDFile, cnv_file: str, mixin_info: AuditInfo):
+    def log(self, ctd_file: CTDFile, cnv_file: str | Path, mixin_info: AuditInfo):
         cnv = CnvInfoRaw(cnv_file)
 
         # ctd_file.serial_number
@@ -269,12 +283,17 @@ class AuditLog:
             prefix = self._get_prefix(si)
 
             if prefix in used_prefixes:
-                # TODO support cndc_2, temp_2, need a test file
-                #AltimeterSensor SensorID="0":
-                #'other_1'
-                #UserPolynomialSensor SensorID="61"
-                #'other_2'
-                raise Exception(f'prefix="{prefix}" already used. type={si["type"]}')
+                if prefix in self.possible_second_sensor:
+                    prefix = f'{prefix}2'
+
+                else:
+                    # TODO support cndc2, need a test file
+                    # old log had other sensors, but not needed at the moment.
+                    #AltimeterSensor SensorID="0":
+                    #'other_1'
+                    #UserPolynomialSensor SensorID="61"
+                    #'other_2'
+                    raise Exception(f'prefix="{prefix}" already used. type={si["type"]}')
 
             used_prefixes.add(prefix)
 

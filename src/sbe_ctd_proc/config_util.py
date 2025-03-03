@@ -16,10 +16,14 @@ def get_config_dir_path(name: str) -> Path:
     return path
 
 # Test: test_config_util
-def get_config_dir(serial_number: str, cast_date: datetime) -> Path:
-    """get the config folder for the given serial number and cast date"""
+def get_config_dir(serial_number: str, cast_date: datetime, config_dir: Path | None = None) -> Path:
+    """get the config folder for the given serial number and cast date.
 
-    sn_config_path = os.path.join(CONFIG["CTD_CONFIG_PATH"], serial_number)
+    @param config_dir: use this config directory instead of CONFIG.ctd_config_path
+    """
+
+    config_dir = config_dir or CONFIG.ctd_config_path
+    sn_config_path = config_dir / serial_number
     print(f"Checking configuration directory {sn_config_path} for subdirectory relevant to {cast_date} cast date.")
 
     config_folder = None

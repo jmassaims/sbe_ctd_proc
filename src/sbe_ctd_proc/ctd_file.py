@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from pathlib import Path
 
@@ -95,8 +96,12 @@ class CTDFile:
         self.hex_path = hex_path
         self.latitude = None
 
-        self.processing_dir = Path(CONFIG["PROCESSING_PATH"]) / self.base_file_name
-        self.destination_dir = Path(CONFIG["DESTINATION_PATH"]) / self.base_file_name
+        if hasattr(CONFIG, 'processing_path'):
+            self.processing_dir = CONFIG.processing_path / self.base_file_name
+            self.destination_dir = CONFIG.destination_path / self.base_file_name
+        else:
+            # this is expected for testing
+            logging.warning("CTDFile.processing_path not set due to missing CONFIG attribute")
 
     def parse_hex(self):
         """Parse serial number and cast date from hex file.
@@ -107,7 +112,7 @@ class CTDFile:
         # Livewire ctds have different temperature IDs - Adjust them here
         # use CONFIG stored mapping
         try:
-            new_id = CONFIG["LIVEWIRE_MAPPING"][serial_number]
+            new_id = CONFIG.livewire_mapping[serial_number]
             print(f"LIVEWIRE_MAPPING mapped {serial_number} to {new_id}")
             serial_number = new_id
         except KeyError:

@@ -1,3 +1,4 @@
+import logging
 from collections.abc import Callable
 from pathlib import Path
 from typing import Optional
@@ -117,14 +118,23 @@ class Config:
     label_fonts = ("Arial", 14, "bold")
 
     def __init__(self, path = None) -> None:
-        if path is None:
-            path = self.find_config()
+        try:
+            if path is None:
+                path = self.find_config()
 
-        self.config_file = path.resolve()
+            self.config_file = path.resolve()
 
-        self.load_config()
+            self.load_config()
 
-        self.setup_latitude_service()
+            self.setup_latitude_service()
+        except Exception as e:
+            logging.exception('Error loading config, CONFIG attributes will be missing!')
+            self.__init_empty_config()
+
+    def __init_empty_config(self):
+        """setup empty data structures for when toml is missing.
+        This is to support running tests without config.toml"""
+        self.livewire_mapping = {}
 
     def __getitem__(self, key: str):
         new_attr = old_mapping[key]

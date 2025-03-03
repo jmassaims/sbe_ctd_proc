@@ -1,16 +1,15 @@
 import unittest
-import os
 from pathlib import Path
 
 from sbe_ctd_proc.cnv_parser import CnvInfoRaw
 
-class TestParsing(unittest.TestCase):
+class TestCnvParsing(unittest.TestCase):
 
     data_dir: Path
     cnv_info: CnvInfoRaw
 
     def setUp(self):
-        self.data_dir = Path(os.path.dirname(__file__)) / "data"
+        self.data_dir = Path(__file__).parent / "data"
         self.assertTrue(self.data_dir.is_dir())
 
         filepath = self.data_dir / "19plus2_4525_20140618_testCFACLWDB.cnv"

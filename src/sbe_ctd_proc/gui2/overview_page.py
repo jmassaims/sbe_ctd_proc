@@ -1,3 +1,4 @@
+import logging
 from typing import Callable
 from nicegui import ui
 
@@ -116,18 +117,30 @@ def overview_page():
     table.on_select = update_proc_button
 
 
-def ctdfile_to_row(ctdfile: CTDFile):
-    ctdfile.parse_hex()
-    ctdfile.refresh_dirs()
+def ctdfile_to_row(ctdfile: CTDFile) -> dict:
+    """Extract dictionary of information for use in the table.
+    Errors are caught to prevent crashing the app; in that case a dict with only
+    base_file_name and status='error' is returned.
+    """
+    try:
+        ctdfile.parse_hex()
+        ctdfile.refresh_dirs()
 
-    return {
-        'base_file_name': ctdfile.base_file_name,
-        'serial_number': ctdfile.serial_number,
-        'cast_date': ctdfile.cast_date,
-        'processed_cnv_count': len(ctdfile.destination_cnvs),
-        'processing_cnv_count': len(ctdfile.processing_cnvs),
-        'status': ctdfile.status()
-    }
+        return {
+            'base_file_name': ctdfile.base_file_name,
+            'serial_number': ctdfile.serial_number,
+            'cast_date': ctdfile.cast_date,
+            'processed_cnv_count': len(ctdfile.destination_cnvs),
+            'processing_cnv_count': len(ctdfile.processing_cnvs),
+            'status': ctdfile.status()
+        }
+    except Exception:
+        logging.exception(f'Error extracting CTDFile info for table: "{ctdfile.base_file_name}"')
+
+        return {
+            'base_file_name': ctdfile.base_file_name,
+            'status': 'error'
+        }
 
 class CTDFilesTable:
     filter_status: str | None = None
@@ -173,9 +186,10 @@ class CTDFilesTable:
 
         # Nicer date format
         # https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat
+        # props.value null if Python None value.
         table.add_slot('body-cell-cast_date', '''
         <q-td key="cast_date" :props="props">
-          {{ new Date(props.value).toLocaleString(undefined, {dateStyle:'medium'}) }}
+          {{ props.value ? new Date(props.value).toLocaleString(undefined, {dateStyle:'medium'}) : ''}}
         </q-td>
         ''')
 

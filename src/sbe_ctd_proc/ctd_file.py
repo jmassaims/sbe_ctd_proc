@@ -49,8 +49,14 @@ def parse_hex(file):
         if serial_number == None:
             raise Exception(f"No serial number found in: {file}")
 
-    if cast_date is not None:
+    # TODO show these warnings in App?
+    if cast_date is None:
+        logging.warning(f"No cast date found in: {file}")
+    else:
         logging.debug("cast date from: ", cast_date_line.rstrip())
+
+    if serial_number is None:
+        logging.warning(f"No serial number found in: {file}")
 
     return (serial_number, cast_date)
 

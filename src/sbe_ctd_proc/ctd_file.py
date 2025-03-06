@@ -83,7 +83,7 @@ class CTDFile:
     directory may not exist.
     """
 
-    serial_number: str
+    serial_number: str | None
     """Temperature serial number from hex file"""
 
     processing_cnvs: list[Path]

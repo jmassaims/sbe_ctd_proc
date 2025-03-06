@@ -186,11 +186,13 @@ def ctd_file_page(base_file_name: str):
                         on_click=lambda: os.startfile(working_dir)):
                 ui.tooltip('Open directory')
 
-        with ui.chip(ctdfile.serial_number, color='gray', text_color='white'):
-            ui.tooltip('Serial Number')
+        if ctdfile.serial_number:
+            with ui.chip(ctdfile.serial_number, color='gray', text_color='white'):
+                ui.tooltip('Serial Number')
 
-        with ui.chip(ctdfile.cast_date.strftime('%Y %b %d'), color='gray', text_color='white'):
-            ui.tooltip('Cast Date')
+        if ctdfile.cast_date:
+            with ui.chip(ctdfile.cast_date.strftime('%Y %b %d'), color='gray', text_color='white'):
+                ui.tooltip('Cast Date')
 
         if CONFIG.lookup_latitude:
             try:

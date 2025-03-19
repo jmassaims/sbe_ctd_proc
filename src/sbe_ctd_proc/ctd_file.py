@@ -11,7 +11,11 @@ def parse_hex(file):
     serial_number = None
     # cast_date should always be found, but this code could have a parsing error.
     cast_date = None
-    with open(file, "r", encoding="utf-8") as hex_file:
+
+    # encoding option omitted to be more flexible.
+    # Previously, this had encoding="utf-8", but we had one file (trip_6169_WQP143)
+    # with strange file encoding that caused an error.
+    with open(file, "r") as hex_file:
         nmea_checker = False
         for line in hex_file:
             if serial_number is None and "Temperature SN =" in line:

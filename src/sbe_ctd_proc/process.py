@@ -44,8 +44,10 @@ def convert_hex_to_cnv(ctdfile: CTDFile, sbe: SBE) -> None:
     :param sbe: _description_
     :type sbe: _type_
     """
-    # run the data conversion processing
-    with open(ctdfile.hex_path, "r", encoding="utf-8") as hex_file:
+    # encoding option omitted to be more flexible.
+    # Previously, this had encoding="utf-8", but we had one file (trip_6169_WQP143)
+    # with strange file encoding that caused an error.
+    with open(ctdfile.hex_path, "r") as hex_file:
         print("Processing file: ", ctdfile.hex_path)
         cnvfile = sbe.dat_cnv(hex_file.read())
         try:

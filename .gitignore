@@ -27,6 +27,8 @@ __pycache__/
 .Python
 build/
 dist/
+wheels/
+*.egg-info
 
 # Installer logs
 pip-log.txt

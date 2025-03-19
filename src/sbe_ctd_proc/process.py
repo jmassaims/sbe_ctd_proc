@@ -326,8 +326,8 @@ def process_hex_file(ctdfile: CTDFile,
     ctdfile.parse_hex()
 
     serial_number = ctdfile.serial_number
-    if serial_number not in CONFIG["CTD_LIST"]:
-        raise Exception("CTD serial number {ctd_id} not in config CTD_LIST")
+    if serial_number not in CONFIG.ctd_list:
+        raise Exception(f"CTD serial number {serial_number} not in config [ctd] list")
 
     cast_date = ctdfile.cast_date
 
@@ -367,7 +367,7 @@ def process_hex_file(ctdfile: CTDFile,
 
     # Create instance of SBE functions with config_path files
     sbe = SBE(
-        bin=CONFIG["SBEDataProcessing_PATH"],
+        bin=CONFIG.sbe_bin_path,
         temp_path=ctdfile.processing_dir,  # default
         xmlcon=ctdfile.processing_dir / xmlcon_file.name,
         # AIMS processing modules

@@ -11,7 +11,6 @@ from .audit_log import AuditLog
 from .ctd_file import CTDFile
 from .process import process_hex_file
 from .config import CONFIG
-from .config_util import get_config_dir_path
 
 class Manager(AbstractContextManager):
     """Manages the state of CTDFiles and tracks events.
@@ -55,11 +54,11 @@ class Manager(AbstractContextManager):
         self.send = send
         self.recv = recv
 
-        self.raw_path = get_config_dir_path("RAW_PATH")
+        self.raw_path = CONFIG.raw_path
 
         # TODO prompt to create if missing?
-        self.processing_dir = get_config_dir_path("PROCESSING_PATH")
-        self.destination_dir = get_config_dir_path("DESTINATION_PATH")
+        self.processing_dir = CONFIG.processing_path
+        self.destination_dir = CONFIG.destination_path
 
         print('Manager auditlog_path', auditlog_path)
         self.audit_log = AuditLog(auditlog_path) if auditlog_path else None

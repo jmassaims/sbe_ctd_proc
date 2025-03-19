@@ -24,77 +24,76 @@ Dates must be at the end of the calibration_files_##### directory names.
 
 # Setup
 
-If needed, [install Python](https://www.python.org/downloads/).
+This project uses [uv](https://docs.astral.sh/uv/)
+to manage the Python environment and dependencies.
+
+Current uv install command for Windows:
+```bash
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+`uv` should install Python for you if needed. Alternatively,
+ [install Python](https://www.python.org/downloads/) yourself.
 For Windows users, it's easiest to install [Python 3 from Windows Store](https://apps.microsoft.com/detail/9ncvdn91xzqp).
-
-This project uses [Hatch](https://hatch.pypa.io/latest/), which manages the Python environment,
- dependencies, runs tests, etc.
-
-[Install hatch](https://hatch.pypa.io/latest/install/#gui-installer).
-In Windows, this requires admin privileges. If the GUI Installer doesn't work, try the
-[hatch command line installer](https://hatch.pypa.io/latest/install/#command-line-installer).
-
-Unfortunately, VSCode does not discover hatch installed other ways (e.g. using pip).
-(see [Issue #23819](https://github.com/microsoft/vscode-python/issues/23819))
 
 ## Python Virtual Environment
 
-`hatch` manages the virtual environment for you and creates it automatically with certain
-commands like `hatch run`. You can explicitly manage the environment with `hatch env`.
-To update all dependencies, delete the environment with `hatch env prune`; when the
-environment is recreated, it will download the latest dependencies versions.
-
-VSCode [should find the Hatch environment](https://hatch.pypa.io/1.12/how-to/integrate/vscode/)
-
-For other IDEs, you may need to configure the Python interpreter with the hatch environment.
-1. Get the path with: `hatch env find`
-2. Add that interpreter path to your IDE
-For example, in PyCharm add a new Python **System Interpreter** with that path
-plus _/Scripts/python.exe_
+`uv` creates a _.venv_ directory, which most Python IDEs should discover automatically.
+This will be created automatically by commands like `uv run`, or you can explicitly run
+`uv sync`.
 
 ## Seabird Dependencies
 
-Install [SBE Data Processing](https://software.seabird.com/)
+Install [SBE Data Processing](https://software.seabird.com/) (in the All Software section).
+This app will execute some of the programs installed by Seabird.
 
 ## Configuration
 
 Copy `config.example.toml` to `config.toml` and edit for your setup.
+Any path with `<USER>` is an example value and should be fixed unless you're not using
+that feature.
+
+**Tip:** you can create/select directories with File Explorer, copy them, then paste in
+your editor to paste the path, which just needs quotes around it in _config.toml_.
+
+* Under `[paths]`, update `raw`, `processing`, `destination`
+
+**Optional:**
+* Update `SBEDataProcessing` if you installed SBE Data Processing to another location
+* Under `[ctd]`, set `config_path` to the directory of psa config files if you want to
+use a different location than the `config` directory in this project.
 
 # Running
 
-`sbe-ctd-proc` if you are within the environment (`hatch shell`).
-Alternatively, when outside the hatch shell: `hatch run sbe-ctd-proc`
+`uv run sbe_proc.py`
 
 This should open a browser tab to http://127.0.0.1:8080/ or http://localhost:8080/
 
 ## Development
 
 To develop the nicegui app, run `gui_dev.py`, which will launch in reload mode.
-This will reload the page whenever you modify python code.
+This will reload the page whenever you modify python code. You can run this various ways:
 
-If reload stops updating, stop the server. Check if it's still running in the background
+* `uv run gui_dev.py`
+* `python gui_dev.py` (if venv is active)
+* open file in your IDE and click play/run button. (IDE should have the venv active)
+
+Tip: If reload stops updating, stop the server. Check if it's still running in the background
 by refreshing the page; if it is, kill the python process before starting again.
+_This seems to be less of an issue with later versions of NiceGUI._
 
 See [ui.run docs](https://nicegui.io/documentation/run) to change configuration.
 
 ## Tests
 
-Tests are located in the `tests` directory. Run all tests with:
-`hatch test`
+Tests are located in the `tests` directory. Run all tests with: `python -m unittest`
 
-Explicitly run a test env script like: `hatch run test:run`
-
-Files can be executed individually.
-Alternatively, run all tests with: `python -m unittest`
-(*not ideal because this doesn't use the hatch test env*)
+Alternatively, if using VSCode, the Testing tab should work.
 
 # Notes
 
-If you change hatch `project.scripts`, you need to re-create the hatch environment for it
-to have an effect.
-
-This project uses the [uv installer](https://hatch.pypa.io/dev/how-to/environment/select-installer/),
-which is much faster and works with current dependencies.
+This project was originally created with hatch. For now, hatch configuration has been
+left in the pyproject.toml file.
 
 The old TKinter UI can be run with `sbe-ctd-proc-OLD`. This project is maintaining both UIs for now.
 Also, the original `sbe_proc.py` script runs the old UI.
@@ -112,11 +111,3 @@ changing `"pandas~=2.2.3"` to `"pandas~=2.2"` would allow it to update to `2.3`.
 
 * Starlette versions 0.42 to 0.45.2 caused a 404 for static files. see [NiceGUI issue #4255](https://github.com/zauberzeug/nicegui/issues/4255) \
 Workaround: Starlette version set to >=0.45.3 in pyproject.toml
-
-## Miscalaneous Issues
-
-Issues to investigate or fix. Some of these may be resolved by dependency update in the
-future.
-
-* gui-scripts not working, console seems to be required.
-* NiceGui reload fails often.

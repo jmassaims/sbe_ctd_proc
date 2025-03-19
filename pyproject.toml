@@ -5,12 +5,13 @@ build-backend = "hatchling.build"
 [project]
 name = "sbe-ctd-proc"
 version = "0.1"
+description = "Seabird CTD hex file data processor."
 authors = [
     {name = "Arlo White", email = "a.white@aims.gov.au"}
 ]
 readme = "README.md"
 
-requires-python = ">= 3.8"
+requires-python = ">= 3.9"
 dependencies = [
     "customtkinter~=5.2.2",
     "pandas~=2.2.3",

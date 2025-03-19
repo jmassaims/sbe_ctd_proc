@@ -44,11 +44,16 @@ class SBE:
             psa_wild_edit
         """
         super(SBE, self).__init__()
+
         # Path to SBE installation
         dflt_bin = r'\SBEDataProcessing-Win32'
         self._sbe_path = kwargs.get('bin', dflt_bin)
+        if self._sbe_path is None:
+            raise ValueError('SBE bin path not defined, cannot execute SBE programs.')
+
         # Temporary directory to store generated files
-        self._temp_dir = kwargs.get('temp_path', CONFIG["RAW_PATH"])
+        self._temp_dir = kwargs.get('temp_path', CONFIG.raw_path)
+
         # Default config files
         self._xmlcon = kwargs.get('xmlcon')
         self._psa_align_ctd = kwargs.get('psa_align_ctd')

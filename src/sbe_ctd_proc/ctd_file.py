@@ -16,7 +16,7 @@ def parse_hex(file):
         for line in hex_file:
             if serial_number is None and "Temperature SN =" in line:
                 serial_number = line[-5:].strip()
-                print("serial number from:", line.rstrip())
+                logging.debug("serial number from:", line.rstrip())
 
             if "cast" in line:
                 try:

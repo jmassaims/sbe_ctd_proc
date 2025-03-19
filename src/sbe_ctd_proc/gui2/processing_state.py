@@ -1,3 +1,4 @@
+import logging
 import asyncio
 import inspect
 from multiprocessing import Queue, JoinableQueue
@@ -132,6 +133,8 @@ class ProcessingState:
             await run.io_bound(start_manager, self.recv, self.send, basenames)
 
         except Exception as e:
+            logging.exception('start_manager task exited with error')
+
             msg = str(e)
 
             # occurs when LatitudeSpreadsheet is refreshed whil open in Excel.
@@ -163,7 +166,7 @@ class ProcessingState:
             self.recv.task_done()
 
     async def process_msg(self, msg):
-        print("msg:", msg)
+        logging.debug("msg:", msg)
         event_name = msg[0]
 
         try:
@@ -173,7 +176,7 @@ class ProcessingState:
                 await result
 
         except AttributeError:
-            print(f'WARNING: no message handler for "{event_name}"', msg)
+            logging.warning(f'no message handler for "{event_name}"', msg)
 
     def handle_msg_begin(self, num_pending: int):
         self.total_processing = num_pending

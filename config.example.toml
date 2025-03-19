@@ -1,10 +1,18 @@
+[logging]
+# Console logging configuration.
+# log level: debug, info, warning, error, critical
+level='info'
+# Python log message format
+# https://docs.python.org/3/library/logging.html#logrecord-attributes
+format='%(levelname)s: %(message)s'
+
 [paths]
-# .hex files
-raw = 'C:\Users\awhite\data\CTD\raw'
-# temporary processing directory
-processing = 'C:\Users\awhite\data\CTD\processing'
-# final destination for approved
-destination = 'C:\Users\awhite\data\CTD\processed'
+# Raw .hex file directory to process.
+raw = 'C:\Users\<USER>\data\CTD\raw'
+# temporary processing directory.
+processing = 'C:\Users\<USER>\data\CTD\processing'
+# final destination where approved are moved to.
+destination = 'C:\Users\<USER>\data\CTD\processed'
 # Location where you installed SBE Data Processing
 SBEDataProcessing = 'C:\Program Files (x86)\Sea-Bird\SBEDataProcessing-Win32'
 
@@ -28,7 +36,8 @@ user = 'readonly'
 password = 'readonly'
 
 [ctd]
-config_path = 'C:\Users\awhite\code\sbe_ctd_proc\config'
+# Path to the psa config directory. config in this project is used by default.
+# config_path = ''
 list = [
     '597',
     '0597',

@@ -1,3 +1,4 @@
+import logging
 from multiprocessing import Process, Queue, JoinableQueue
 import queue
 
@@ -79,7 +80,7 @@ class App:
                 self.stop_process()
 
     def process_msg(self, msg):
-        print("msg:", msg)
+        logging.debug("msg:", msg)
         label = msg[0]
 
         if label == "process_step":

@@ -1,19 +1,9 @@
+import logging
 import os
 from pathlib import Path
 from datetime import datetime
 
 from .config import CONFIG
-
-def get_config_dir_path(name: str) -> Path:
-    val = CONFIG[name]
-    path = Path(val)
-    if not path.exists():
-        raise FileNotFoundError(f"Missing directory: {val}")
-
-    if not path.is_dir():
-        raise FileNotFoundError(f"Not a directory: {val}")
-
-    return path
 
 # Test: test_config_util
 def get_config_dir(serial_number: str, cast_date: datetime, config_dir: Path | None = None) -> Path:
@@ -22,9 +12,17 @@ def get_config_dir(serial_number: str, cast_date: datetime, config_dir: Path | N
     @param config_dir: use this config directory instead of CONFIG.ctd_config_path
     """
 
+    if cast_date is None:
+        # TODO confirm if this should be supported or not
+        raise ValueError("cannot get config dir with out cast_date?")
+
     config_dir = config_dir or CONFIG.ctd_config_path
+    if config_dir is None:
+        raise ValueError("psa config directory missing")
+
     sn_config_path = config_dir / serial_number
-    print(f"Checking configuration directory {sn_config_path} for subdirectory relevant to {cast_date} cast date.")
+
+    logging.debug(f"Checking configuration directory {sn_config_path} for subdirectory relevant to {cast_date} cast date.")
 
     config_folder = None
     for folder in os.scandir(sn_config_path):

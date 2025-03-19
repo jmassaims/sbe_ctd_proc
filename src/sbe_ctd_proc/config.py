@@ -1,11 +1,14 @@
 import logging
+import sys
 from collections.abc import Callable
 from pathlib import Path
 from typing import Optional
 
 import tomlkit
+import tomlkit.container
 from tomlkit.items import Item, Table
 from tomlkit.container import Container
+import tomlkit.items
 
 from .db import OceanDB
 from .latitude_spreadsheet import LatitudeSpreadsheet
@@ -124,12 +127,26 @@ class Config:
 
             self.config_file = path.resolve()
 
-            self.load_config()
+            with open(self.config_file, 'r', newline='') as f:
+                toml_doc = tomlkit.load(f)
 
+                # configure logging before other config so log level respected
+                # TODO do this even earlier in startup?
+                self.setup_logging(toml_doc)
+
+                logging.info(f"loading config toml: {self.config_file}")
+                self.load_config(toml_doc)
+
+            self.check_psa_config_dir()
             self.setup_latitude_service()
-        except Exception as e:
-            logging.exception('Error loading config, CONFIG attributes will be missing!')
-            self.__init_empty_config()
+        except FileNotFoundError as e:
+            # if running unit tests, missing config file is expected.
+            if 'unittest' in sys.modules:
+                # initialize minimum config to support unit tests.
+                self.__init_empty_config()
+            else:
+                logging.error('config.toml not found! see README')
+                sys.exit(1)
 
     def __init_empty_config(self):
         """setup empty data structures for when toml is missing.
@@ -140,10 +157,11 @@ class Config:
         new_attr = old_mapping[key]
         return getattr(self, new_attr)
 
-    def load_config(self):
-        with open(self.config_file, 'r', newline='') as f:
-            cfg = tomlkit.load(f)
-            print("loaded config toml: ", self.config_file)
+    def load_config(self, toml_doc: tomlkit.TOMLDocument):
+        """Load configuration from config.toml
+        Checks that _path and _file properties exist, otherwise sets None if not found,
+        unless property in may_not_exist.
+        """
 
         invalid = []
         self.invalid = invalid
@@ -159,7 +177,7 @@ class Config:
             assert type(toml_path) is tuple and len(toml_path) > 0
 
             try:
-                item = cfg
+                item = toml_doc
                 for segment in toml_path:
                     # should be iterating throgh TOML Containers up to final Item.
                     assert isinstance(item, (Container, Table))
@@ -167,7 +185,9 @@ class Config:
 
             except KeyError:
                 item = None
-                print(f'{self.config_file} missing "{toml_path}"')
+                # TODO this should be conditional. For example, latitude_spreadsheet_file
+                # only required when latitude_method is 'spreadsheet'
+                logging.warning(f'{self.config_file} missing "{toml_path}"')
                 setattr(self, attr, default_val)
                 continue
 
@@ -175,6 +195,8 @@ class Config:
                 value = item.value
             else:
                 value = item
+
+            initial_value = value
 
             # naming convention for Path config values.
             if attr.endswith('_path'):
@@ -185,6 +207,7 @@ class Config:
                 else:
                     value = None
                     invalid.append(attr)
+                    logging.warning(f'{attr} directory does not exist: {initial_value}')
 
             elif attr.endswith('_file'):
                 assert isinstance(value, str)
@@ -194,8 +217,24 @@ class Config:
                 else:
                     value = None
                     invalid.append(attr)
+                    logging.warning(f'{attr} directory does not exist: {initial_value}')
 
             setattr(self, attr, value)
+
+        if invalid:
+            invalid_str = ', '.join(invalid)
+            logging.warning(f'''Invalid config properties: {invalid_str}
+    These values are set to None and may crash the app with None/NoneType errors, see above warnings.''')
+
+    def check_psa_config_dir(self):
+        """set default ctd_config_path if not configured by user"""
+        if self.ctd_config_path is None:
+            project_root = Path(__file__).resolve().parent.parent.parent
+            path = project_root / 'config'
+            if path.exists():
+                self.ctd_config_path = path
+            else:
+                raise ConfigError(f'[ctd] config_path not set and default config dir not found: {path}')
 
     def find_config(self) -> Path:
         """Look for the app config file in the standard locations."""
@@ -207,7 +246,24 @@ class Config:
 
         raise FileNotFoundError('config.toml not found')
 
+    def setup_logging(self, toml_doc: tomlkit.TOMLDocument):
+        # we're using our config.toml file for simplicity, but may want to consider:
+        # https://docs.python.org/3/library/logging.config.html#logging-config-fileformat
+
+        logging_config = toml_doc['logging']
+        assert isinstance(logging_config, (Container, Table))
+
+        level: str = logging_config['level']
+        level = level.upper()
+
+        format: str = logging_config['format']
+
+        logging.basicConfig(level=level, format=format)
+
     def setup_latitude_service(self):
+        self.latitude_service = None
+        self.lookup_latitude = None
+
         if self.latitude_method == 'spreadsheet':
             self.latitude_service = LatitudeSpreadsheet(self.latitude_spreadsheet_file)
             self.lookup_latitude = self.latitude_service.lookup_latitude

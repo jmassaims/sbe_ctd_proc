@@ -23,15 +23,12 @@ import os
 from pathlib import Path
 from multiprocessing import Queue
 import shutil
-from datetime import datetime
 from typing import Callable, Optional
-import sqlalchemy as sa
 
 from .audit_log import AuditInfo, AuditLog
 from .SBE import SBE
 from .ctd_file import CTDFile
 from .psa_file import rewrite_psa_file
-from .gui.dialog import request_latitude
 from .config_util import *
 from .config import CONFIG
 
@@ -267,46 +264,6 @@ def move_to_destination_dir(ctdfile: CTDFile)-> None:
 
     except FileNotFoundError:
        print("Files not copied")
-
-
-# old Process entrypoint, using Manager now.
-def process() -> None:
-    """Main process loop"""
-
-    raw_path = Path(CONFIG["RAW_PATH"])
-    if not raw_path.is_dir():
-        raise Exception(f"RAW_PATH is not a directory: {CONFIG["RAW_PATH"]}")
-
-    # convert generator to list so we can get count.
-    hex_files = list(raw_path.glob("*.hex"))
-    print(f"Processing {len(hex_files)} in {raw_path}")
-
-    for file in hex_files:
-        underway_processing = os.listdir(CONFIG["PROCESSING_PATH"])
-        completed_processing = os.listdir(CONFIG["DESTINATION_PATH"])
-
-        file_path = raw_path / file
-
-        ctdfile = CTDFile(file_path)
-        base_file_name = ctdfile.base_file_name
-
-        if base_file_name in underway_processing:
-            print(base_file_name, " already processing")
-            continue
-
-        #check if already being processed, skip if so
-        if base_file_name in completed_processing:
-            print(base_file_name, " already processed")
-            continue
-
-        print("\n******************* Processing new file *******************")
-
-        if ctdfile.latitude is None:
-            # database disabled or latitude missing for this file, request latitude input
-            print(f"WARNING: database missing latitude for file {base_file_name}. Manual latitude input required.")
-            ctdfile.latitude = request_latitude(base_file_name)
-
-        process_hex_file(ctdfile)
 
 
 def process_hex_file(ctdfile: CTDFile,

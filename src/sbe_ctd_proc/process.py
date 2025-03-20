@@ -367,7 +367,7 @@ def process_hex_file(ctdfile: CTDFile,
         rewrite_psa_file(psa_file_path, latitude)
 
 
-    # Create instance of SBE functions with config_path files
+    # Create instance of SBE with local processing dir psa/xmlcon files.
     sbe = SBE(
         bin=CONFIG.sbe_bin_path,
         temp_path=ctdfile.processing_dir,  # default

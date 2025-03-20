@@ -21,7 +21,6 @@ old_mapping = {
     'DESTINATION_PATH': 'destination_path',
     'CTD_CONFIG_PATH': 'ctd_config_path',
     'SBEDataProcessing_PATH': 'sbe_bin_path',
-    'SET_DERIVE_LATITUDE': 'derive_latitude',
     'USE_DATABASE': 'db_enabled',
     'DATABASE_MDB_FILE': 'db_mdb_file',
     'DATABASE_MDW_FILE': 'db_mdw_file',
@@ -55,7 +54,6 @@ config_map = {
     'ctd_list': ('ctd', 'list'),
     'livewire_mapping': ('livewire_mapping',),
 
-    'derive_latitude': ('options', 'derive_latitude'),
     'latitude_method': ('options', 'latitude_method'),
     'latitude_spreadsheet_file': ('options', 'latitude_spreadsheet_file'),
     # 'label_fonts': {
@@ -100,7 +98,6 @@ class Config:
     livewire_mapping: dict
 
     # options
-    derive_latitude: bool
 
     # 'ask' | 'spreadsheet' | 'database'
     latitude_method: str

@@ -61,20 +61,20 @@ class OceanDB:
                                                 na=False)]
         if not ctd_deployment.empty:
             # hex filename in db
-            derive_latitude = str(ctd_deployment['Latitude'].values[0])
+            latitude = str(ctd_deployment['Latitude'].values[0])
             print(
-                f"Using latitude = {derive_latitude} from site = {ctd_deployment['Site'].values[0]}, station = {ctd_deployment['Station'].values[0]}")
+                f"Using latitude = {latitude} from site = {ctd_deployment['Site'].values[0]}, station = {ctd_deployment['Station'].values[0]}")
         else:
             # maybe has been processed in the past so db filename includes processing steps appended
             ctd_deployment = ctd_data[
                 ctd_data['FileName'].str.contains(f'^{base_file_name}', regex=True, na=False)]
 
             if len(ctd_deployment) == 1:
-                derive_latitude = str(ctd_deployment['Latitude'].values[0])
+                latitude = str(ctd_deployment['Latitude'].values[0])
                 print(
-                    f"Using latitude = {derive_latitude} from site = {ctd_deployment['Site'].values[0]}, station = {ctd_deployment['Station'].values[0]}")
+                    f"Using latitude = {latitude} from site = {ctd_deployment['Site'].values[0]}, station = {ctd_deployment['Station'].values[0]}")
             else:
                 # filename not in the db
                 raise LookupError(f"no latitude found in database for '{base_file_name}'")
 
-        return float(derive_latitude)
+        return float(latitude)

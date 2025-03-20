@@ -15,44 +15,68 @@ TODOC all status, CTDFile holds status
 
 ## Scan Raw
 
+The app scans the raw, processing, and approved directories to determine file status
+and lists them in the app.
+
 ## Selection
 
 By default, all raw hex files that are not in the processing or approved directories
 will be processed. The user may also make a selection of files to process/reprocess.
 
-## CTD file processing steps
+## CTD file Processing
 
-### 1. Hex
+Prepare the CTD file for processing and execute all Seabird steps using the local psa files.
+See `process_hex_file` function.
 
-### 2. Setup processing directory
+### 1. Setup processing directory
 
-Done early so that user may fix issues within the directory to allow processing to continue.
+Create processing directory for the file.
+
+This is created even if there are errors such as not parsing cast date or finding psa file.
+This is so the user may fix issues within the directory to allow processing to continue.
 For example, if cast date failed to parse, the user may still determine the correct psa
-file and copy it to the processing directory.
+file and copy it to the processing directory; then re-process the file.
 
 The app should display the errors that need to be fixed to allow a file to process.
 
-### copy psa config file
+### 2. Extract and lookup information
 
-### 3. Process
+Parse cast date and other information in hex file. Lookup latitude using the configured
+method. (This is stored in `CTDFile.latitude`).
 
-Process using the local psa
+### 3. Copy psa/xmlcon files
 
-#### 3a. Lookup Information
+Lookup psa & xmlcon files in ctd _config_ directory and copy them to the processing
+ directory (if they don't already exist).
 
-latitude, cast date
-TODOC where these are stored
+_Note: this requires cast date, so will fail if cast date not found._
 
-#### 3b. Seabird steps/programs
+### 4. Modify psa files
 
-## 4. Processing, Analysis
+Modify the local psa files in the processing directory, see `rewrite_psa_file`.
+* set `<Latitude>` `value` attribute to file's latitude.
+* clear `<NameAppend>` `value` attribute.
+
+### 5. Convert hex to cnv
+
+Convert the hex file to `*C.cnv` using `DatCnvW.exe`
+
+### 6. Execute Seabird processing steps
+
+Execute all of the Seabird programs in order. The output cnv of previous program
+is input into the next.
+### 7. Audit log
+
+Write a row to the audit log.
+
+## Processing State & Analysis
 
 The file is now waiting in a `processing` state for approval by the user. If errors
 were encountered, the file may show `error`
 
-TODO review/doc: this error is currently not stored
+The user may view data checks and charts in the app.
 
-## 4a. Reprocess
+## Reprocess
 
 The user may reprocess the file after fixing issues. This runs the file through
 all Seabird steps again. Examples of typical fixes are:
@@ -61,6 +85,6 @@ all Seabird steps again. Examples of typical fixes are:
 * fix issues in this code
 
 
-## 5. Approval
+## Approve
 
-When approved, the directory is moved to the approved directory.
+When approved in the app, the directory is moved to the approved directory.

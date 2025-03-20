@@ -13,7 +13,9 @@ def get_config_dir(serial_number: str, cast_date: datetime, config_dir: Path | N
     """
 
     if cast_date is None:
-        # TODO confirm if this should be supported or not
+        # it may be possible to process without a cast date, but for our purposes
+        # the cast date is required and when not parsed should be supplied
+        # via another method like the database or spreadsheet.
         raise ValueError("cannot get config dir with out cast_date?")
 
     config_dir = config_dir or CONFIG.ctd_config_path

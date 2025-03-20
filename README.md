@@ -4,23 +4,12 @@
 Batch processing for Seabird CTD Data Processing.
 Automated calibration file and CTD selection to process all files in a directory easily.
 
-This script will process all .hex files in a directory and ask for latitude for each file's derive step.
+This script will process .hex files in a directory and ask for latitude for each file's
+derive step as well as parse/lookup the cast date and other information.
+The app is created with [NiceGUI](https://nicegui.io)
 
-Ensure all relevant calibration .xmlcon and .psa files are in the following config directory structure:
-Dates must be at the end of the calibration_files_##### directory names.
-- config ->
-   - ctd_id1
-   - ctd_id2 ->
-      -  calibration_files_20120131
-      -  calibration_files_20170601 ->
-         -   20170601.xmlcon
-         -   AlignCTD.psa
-         -   BinAvgIMOS.psa
-         -   DatCnv.psa
-         -   DeriveIMOS.psa
-         -   Filter.psa
-         -   LoopEditIMOS.psa
-
+* [Technical Overview](./docs/overview.md) - highlights and explanations of important concepts in code.
+* [Process Flow](./docs/process_flow.md) - description of the flow files go through.
 
 # Setup
 
@@ -49,6 +38,8 @@ This app will execute some of the programs installed by Seabird.
 
 ## Configuration
 
+### config.toml
+
 Copy `config.example.toml` to `config.toml` and edit for your setup.
 Any path with `<USER>` is an example value and should be fixed unless you're not using
 that feature.
@@ -62,6 +53,26 @@ your editor to paste the path, which just needs quotes around it in _config.toml
 * Update `SBEDataProcessing` if you installed SBE Data Processing to another location
 * Under `[ctd]`, set `config_path` to the directory of psa config files if you want to
 use a different location than the `config` directory in this project.
+
+### psa files config directory
+
+By default, the `config` directory in this project will be used. To use another directory,
+specify `[ctd]` `config_path` in the _config.toml_ file.
+
+Ensure all relevant calibration .xmlcon and .psa files are in the following config directory structure:
+Dates must be at the end of the calibration_files_##### directory names.
+- config ->
+   - ctd_id1
+   - ctd_id2 ->
+      -  calibration_files_20120131
+      -  calibration_files_20170601 ->
+         -   20170601.xmlcon
+         -   AlignCTD.psa
+         -   BinAvgIMOS.psa
+         -   DatCnv.psa
+         -   DeriveIMOS.psa
+         -   Filter.psa
+         -   LoopEditIMOS.psa
 
 # Running
 

@@ -114,6 +114,10 @@ class Config:
     lookup_latitude: Callable[[str], float] | None
 
     latitude_service: Optional[LatitudeSpreadsheet]
+
+    # present if latitude_method is 'constant'
+    constant_latitude: float
+
     oceandb: Optional[OceanDB]
 
     # old config for Tkinter app
@@ -137,8 +141,9 @@ class Config:
                 logging.info(f"loading config toml: {self.config_file}")
                 self.load_config(toml_doc)
 
-            self.check_psa_config_dir()
-            self.setup_latitude_service()
+                self.check_psa_config_dir()
+                self.setup_latitude_service(toml_doc)
+
         except FileNotFoundError as e:
             # if running unit tests, missing config file is expected.
             if 'unittest' in sys.modules:
@@ -260,24 +265,33 @@ class Config:
 
         logging.basicConfig(level=level, format=format)
 
-    def setup_latitude_service(self):
+    def setup_latitude_service(self, toml_doc: tomlkit.TOMLDocument):
         self.latitude_service = None
         self.lookup_latitude = None
 
         if self.latitude_method == 'spreadsheet':
             self.latitude_service = LatitudeSpreadsheet(self.latitude_spreadsheet_file)
             self.lookup_latitude = self.latitude_service.lookup_latitude
-            print('Configured latitude lookup via spreadsheet', self.latitude_spreadsheet_file.absolute())
+            logging.info('Configured latitude lookup via spreadsheet', self.latitude_spreadsheet_file.absolute())
         elif self.latitude_method == 'database':
             oceandb = self.get_db()
             if oceandb is None:
                 raise ConfigError('latitude_method is database, but database is disabled or not configured')
 
             self.lookup_latitude = oceandb.lookup_latitude
-            print('Configured latitude lookup via database')
+            logging.info('Configured latitude lookup via database')
         elif self.latitude_method == 'ask':
             # default, handled by Manager send/recv messages.
-            print('Configured to ask for latitude')
+            logging.info('Configured to ask for latitude')
+        elif self.latitude_method == 'constant':
+            lat = float(toml_doc['options']['constant_latitude'])
+
+            def lookup_latitude(base_file_name: str) -> float:
+                return lat
+
+            self.lookup_latitude = lookup_latitude
+            logging.info(f'All files will use constant latitude: {lat}')
+
         else:
             raise Exception(f'Invalid latitude_method: {self.latitude_method}')
 

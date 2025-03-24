@@ -166,7 +166,7 @@ class ProcessingState:
             self.recv.task_done()
 
     async def process_msg(self, msg):
-        logging.debug("msg:", msg)
+        logging.debug("process_msg: %s", msg)
         event_name = msg[0]
 
         try:

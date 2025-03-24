@@ -8,6 +8,8 @@ from .config import CONFIG
 # Seabird python lib doesn't seem to support extracting hex info.
 def parse_hex(file):
     """Parse serial number and cast date from Hex file"""
+    logging.debug('Parsing hex file: %s', file)
+
     serial_number = None
     # cast_date should always be found, but this code could have a parsing error.
     cast_date = None
@@ -20,7 +22,7 @@ def parse_hex(file):
         for line in hex_file:
             if serial_number is None and "Temperature SN =" in line:
                 serial_number = line[-5:].strip()
-                logging.debug("serial number from:", line.rstrip())
+                logging.debug("serial number from: %s", line.rstrip())
 
             if "cast" in line:
                 try:
@@ -44,7 +46,7 @@ def parse_hex(file):
                 nmea_checker = True
 
             elif "System UTC" in line and nmea_checker != True:
-                print(nmea_checker)
+                logging.debug(f"'System UTC' found. nmea_checker={nmea_checker}")
                 cast_date = datetime.strptime(line[15:26], "%b %d %Y")
                 cast_date_line = line
 
@@ -57,7 +59,7 @@ def parse_hex(file):
     if cast_date is None:
         logging.warning(f"No cast date found in: {file}")
     else:
-        logging.debug("cast date from: ", cast_date_line.rstrip())
+        logging.debug("cast date from: %s", cast_date_line.rstrip())
 
     if serial_number is None:
         logging.warning(f"No serial number found in: {file}")

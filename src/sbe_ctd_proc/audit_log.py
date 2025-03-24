@@ -1,4 +1,5 @@
 from io import TextIOWrapper
+import logging
 from pathlib import Path
 from typing import TypedDict
 from csv import DictReader, DictWriter
@@ -16,6 +17,8 @@ class AuditInfo(TypedDict):
     hex_dir: str
     processed_dir: str
     cast_date: str
+    start_time: str
+    start_time_type: str
     latitude: float
     # "meters: 1"
     interval: str
@@ -94,6 +97,8 @@ class AuditLog:
         'hex_filename',
         'folder_name',
         'cast_date',
+        'start_time',
+        'start_time_type',
         'latitude',
         'hex_dir',
         'processed_dir',
@@ -207,6 +212,9 @@ class AuditLog:
         'binavg_excl_bad_scans'
     ]
 
+    # Format for date+time columns
+    datetime_format = '%Y-%m-%d %H:%M:%S'
+
     def __init__(self, filepath: str | Path, is_empty=False) -> None:
         filepath = Path(filepath)
         self.filepath = filepath
@@ -246,23 +254,23 @@ class AuditLog:
         # ctd_file.serial_number
         sensor_info = cnv.get_sensors_info()
 
+        # initial AuditInfo with properties that are more compex.
         info: AuditInfo = {
             'hex_filename': ctd_file.hex_path.name,
-            'hex_dir': ctd_file.hex_path.parent,
+            'hex_dir': str(ctd_file.hex_path.parent),
             'folder_name': ctd_file.base_file_name,
-            'processed_dir': ctd_file.destination_dir.resolve(),
-            'cast_date': ctd_file.cast_date,
+            'processed_dir': str(ctd_file.destination_dir.resolve()),
+            'cast_date': ctd_file.cast_date.strftime(self.datetime_format) if ctd_file.cast_date else '',
             'n_sensors': len(sensor_info),
-        }
+        } # type: ignore ideally would be partial dict type
 
+        # add simple properties with no special formatting
         for name in self.simple_info:
             try:
                 info[name] = cnv.get(name)
             except KeyError as e:
-                # warn, but keep going
-                # TODO improve warning, expect missing if that step not done yet.
-                print(e)
-                pass
+                # warn about missing property, but keep going.
+                logging.warning(e)
 
         for name, val in mixin_info.items():
             # not expecting to override variables, should be additional info.
@@ -271,7 +279,9 @@ class AuditLog:
 
             info[name] = val
 
+        # add special groups of properties.
         self._add_sensor_info(info, sensor_info)
+        self._add_start_time_info(info, cnv)
 
         self.writer.writerow(info)
 
@@ -303,6 +313,10 @@ class AuditLog:
 
         info['sensors'] = '+'.join(used_prefixes)
 
+    def _add_start_time_info(self, info: AuditInfo, cnv: CnvInfoRaw):
+        start_time, time_type = cnv.get_start_time()
+        info['start_time'] = start_time.strftime(self.datetime_format)
+        info['start_time_type'] = time_type
 
     def _get_prefix(self, sensor_info: SensorInfo) -> str:
         """get standardized prefix for the sensor type"""

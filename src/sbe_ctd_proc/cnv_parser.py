@@ -141,7 +141,7 @@ class CnvInfoRaw:
                 raise Exception(f'multiple sections have "{name}"')
 
         if val is None:
-            raise KeyError(f'"{name}" does not exist in any section')
+            raise KeyError(f'"{name}" does not exist in any CNV section')
 
         return val
 

@@ -8,6 +8,8 @@ class TestCnvParsing(unittest.TestCase):
 
     data_dir: Path
     cnv_4525: CnvInfoRaw
+    cnv_7360: CnvInfoRaw
+    cnv_WQR: CnvInfoRaw
 
     def setUp(self):
         self.data_dir = Path(__file__).parent / "data"
@@ -82,7 +84,6 @@ class TestCnvParsing(unittest.TestCase):
             cnv.get("foobar")
 
     def test_start_time(self):
-        print('\n')
         cnv = self.cnv_4525
         starttime, type = cnv.get_start_time()
         # Jun 22 2014 14:14:08 [System UpLoad Time]

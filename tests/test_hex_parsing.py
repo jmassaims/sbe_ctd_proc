@@ -23,8 +23,9 @@ class TestHexParsing(unittest.TestCase):
         sn = info.get_serial_number()
         self.assertEqual(sn, "4409")
 
-        cast_date = info.get_cast_date()
+        cast_date, cast_date_type = info.get_cast_date()
         self.assertEqual(cast_date, datetime(2005, 8, 23, 9, 59, 58))
+        self.assertEqual(cast_date_type, 'cast')
 
     def test_time(self):
         # * SeacatPlus V 1.4D  SERIAL NO. 4525    24 Sep 2015  15:39:44
@@ -34,36 +35,53 @@ class TestHexParsing(unittest.TestCase):
         sn = info.get_serial_number()
         self.assertEqual(sn, "4525")
 
-        cast_date = info.get_cast_date()
+        cast_date, cast_date_type = info.get_cast_date()
         # should use the cast line
         # * cast  11 22 Sep 2015 17:55:29 samples ...
         self.assertEqual(cast_date, datetime(2015, 9, 22, 17, 55, 29))
+        self.assertEqual(cast_date_type, 'cast')
 
-    # FIXME fallback date
-    def test_no_date(self):
+    def test_WQR084(self):
+        hex_file = self.data_dir / "WQR084.hex"
+        info = HexInfo(hex_file)
+
+        sn = info.get_serial_number()
+        self.assertEqual(sn, "5530")
+
+        cast_date, cast_date_type = info.get_cast_date()
+        # this file does not have a cast line, 2 other date lines:
+        # * NMEA UTC (Time) = Feb 02 2025  06:47:06
+        # * System UTC = Feb 02 2025 06:49:11
+        # old hex parser would use the NMEA line.
+        self.assertEqual(cast_date, datetime(2025, 2, 2, 6, 47, 6))
+        self.assertEqual(cast_date_type, 'NMEA UTC (Time)')
+
+    def test_SeacatPlus_date(self):
         hex_file = self.data_dir / "19plus2_4525_20140618_test.hex"
         info = HexInfo(hex_file)
 
         sn = info.get_serial_number()
         self.assertEqual(sn, "4525")
 
-        cast_date = info.get_cast_date()
-        self.assertIsNone(cast_date)
+        cast_date, cast_date_type = info.get_cast_date()
+        self.assertEqual(cast_date, datetime(2014, 6, 22, 14, 13, 50))
+        self.assertEqual(cast_date_type, 'SeacatPlus')
 
     def test_mapping(self):
         hex_file = self.data_dir / "19plus1_4409_20030312_test.hex"
         info = HexInfo(hex_file)
 
-        sn = info.get_serial_number()
-        self.assertEqual(sn, "4409")
+        original_serial_number = info.get_serial_number()
+        self.assertEqual(original_serial_number, "4409")
 
-        cast_date = info.get_cast_date()
+        cast_date, cast_date_type = info.get_cast_date()
         self.assertEqual(cast_date, datetime(2005, 8, 23, 9, 59, 58))
 
         # when we create a CTDFile, the livewire mapping (4409 -> 123) should be used.
         ctdfile = CTDFile(hex_file)
         ctdfile.parse_hex()
         self.assertEqual(ctdfile.serial_number, "123")
+        self.assertEqual(cast_date_type, 'cast')
 
     def test_dualtemp(self):
         # TODO WQR084.hx

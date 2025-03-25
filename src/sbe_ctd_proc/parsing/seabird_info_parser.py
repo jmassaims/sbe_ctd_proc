@@ -86,6 +86,9 @@ class SeabirdInfoParser():
     # some lines contain multiple values
     _name_val_re = re.compile(r"[*#]\s+([^=:]+)\s*[=:]\s*(.+)\s*")
 
+    # special lines that should not be split into name=value
+    _weird_line_starts = ['* cast ', '* SeacatPlus ']
+
     def __init__(self, file: str | Path):
         self.file_path = file
         section = SeabirdSection()
@@ -152,7 +155,11 @@ class SeabirdInfoParser():
         """Special check for lines that match the name [=:] value format but that we want
         to keep in unknown_lines"""
         # cast line is hard to parse after name/value split, so consider it weird/unknown.
-        return line.startswith("* cast ")
+        for text in self._weird_line_starts:
+            if line.startswith(text):
+                return True
+
+        return False
 
     def parse_unknown_text(self, section: SeabirdSection, line: str):
         """Handle text that doesn't match the name = value format.

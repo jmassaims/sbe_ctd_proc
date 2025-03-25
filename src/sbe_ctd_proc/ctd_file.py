@@ -37,6 +37,7 @@ class CTDFile:
 
     # should always be present, but could be None if parsing failed to extract cast date.
     cast_date: datetime | None
+    cast_date_type: str | None
 
     def __init__(self, hex_path: Path) -> None:
         if not hex_path.is_file():
@@ -64,8 +65,19 @@ class CTDFile:
         Applies the LIVEWIRE_MAPPING if it has an entry for the serial number.
         """
         self.info = HexInfo(self.hex_path)
+
         serial_number = self.info.get_serial_number()
-        cast_date = self.info.get_cast_date()
+        if serial_number is None:
+            logging.warning(f"No serial number found in: {self.hex_path}")
+
+        try:
+            cast_date, cast_date_type = self.info.get_cast_date()
+            self.cast_date = cast_date
+            self.cast_date_type = cast_date_type
+        except ValueError:
+            logging.warning(f"No cast date found in: {self.hex_path}")
+            self.cast_date = None
+            self.cast_date_type = None
 
         # Livewire ctds have different temperature IDs - Adjust them here
         # use CONFIG stored mapping
@@ -77,7 +89,6 @@ class CTDFile:
             pass
 
         self.serial_number = serial_number
-        self.cast_date = cast_date
 
     def refresh_dirs(self):
         if self.destination_dir.exists():

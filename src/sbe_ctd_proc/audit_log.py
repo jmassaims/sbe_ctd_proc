@@ -5,7 +5,7 @@ from typing import TypedDict
 from csv import DictReader, DictWriter
 
 from .ctd_file import CTDFile
-from .cnv_parser import CnvInfoRaw, SensorInfo
+from .parsing.cnv_info import CnvInfo, SensorInfo
 
 # TODO logreq from DB
 class AuditInfo(TypedDict):
@@ -249,7 +249,7 @@ class AuditLog:
 
 
     def log(self, ctd_file: CTDFile, cnv_file: str | Path, mixin_info: AuditInfo):
-        cnv = CnvInfoRaw(cnv_file)
+        cnv = CnvInfo(cnv_file)
 
         # ctd_file.serial_number
         sensor_info = cnv.get_sensors_info()
@@ -313,7 +313,7 @@ class AuditLog:
 
         info['sensors'] = '+'.join(used_prefixes)
 
-    def _add_start_time_info(self, info: AuditInfo, cnv: CnvInfoRaw):
+    def _add_start_time_info(self, info: AuditInfo, cnv: CnvInfo):
         start_time, time_type = cnv.get_start_time()
         info['start_time'] = start_time.strftime(self.datetime_format)
         info['start_time_type'] = time_type

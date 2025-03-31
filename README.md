@@ -120,5 +120,10 @@ changing `"pandas~=2.2.3"` to `"pandas~=2.2"` would allow it to update to `2.3`.
 
 **Known issues**
 
+Various technical issues and their workarounds.
+For more information, see [these notes](./docs/tech_issues.md).
+
+* Python 3.13 (system or managed) may have various build errors.
+  The version is pinned by the `.python-version` file to avoid these issues.
 * Starlette versions 0.42 to 0.45.2 caused a 404 for static files. see [NiceGUI issue #4255](https://github.com/zauberzeug/nicegui/issues/4255) \
 Workaround: Starlette version set to >=0.45.3 in pyproject.toml

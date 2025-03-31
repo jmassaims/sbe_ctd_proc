@@ -1,0 +1,21 @@
+# Technical Issues
+
+More information on technical issues mentioned in the README.
+
+## Python 3.13 build problems
+
+Building with Python 3.13 is unreliable. On a system where Python 3.12 works,
+when switching to 3.13 we see this error:
+
+> error: Microsoft Visual C++ 14.0 or greater is required. Get it with "Microsoft C++ Build Tools": https://visualstudio.microsoft.com/visual-cpp-build-tools/
+
+Python 3.13 seems to require a newer version of C++ build tools?
+After installing C++ build tools, the app did work on one system.
+However, on another system, we saw other build errors:
+
+> error: command 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostX86\\x86\\link.exe' failed with exit code 1120
+
+> LIBCMT.lib(dll_dllmain.obj) : error LNK2001: unresolved external symbol __except_handler4
+
+These errors were resolved by using Python 3.12, so we've decided to pin that version
+in this project using `uv python pin 3.12` (updates _.python-version_).

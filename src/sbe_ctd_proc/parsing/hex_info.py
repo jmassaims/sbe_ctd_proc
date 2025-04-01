@@ -5,6 +5,10 @@ from pathlib import Path
 import re
 from .seabird_info_parser import SeabirdInfoParser
 
+# Concerns and possible future enhancements:
+# - do both 'NMEA UTC (Time)' and 'NMEA UTC' date keys exist in Seabird files?
+# - have any of these date keys changed value slightly over the years?
+# - UTC timezone conversion. automatic if key contains "UTC"?
 
 @dataclass
 class DateInfo:
@@ -33,6 +37,7 @@ class HexInfo(SeabirdInfoParser):
     # Groups: version, serial number, date+time
     _seacat_profiler_re = re.compile(r"\* SEACAT PROFILER\s+V([\d\.]+\w*)\s+SN\s+(\d+)\s+(\d+/\d+/\d+\s+\d{2}:\d{2}:\d{2}\.\d{3})")
 
+
     _next_date_keys = [
         'NMEA UTC (Time)',
         'System UTC',
@@ -41,7 +46,7 @@ class HexInfo(SeabirdInfoParser):
         'System UpLoad Time'
     ]
 
-    # return another date line if cast line not found or fails to parse.
+    # use date from another line if cast line not found.
     cast_date_fallback = True
 
     def __init__(self, file: str | Path):
@@ -158,6 +163,8 @@ class HexInfo(SeabirdInfoParser):
     def _find_next_best_date(self) -> DateInfo:
         """
         Get the next date that should be closest to the cast date.
+
+        Iterates through _next_date_keys, default order is:
         1. NMEA UTC (Time)
         2. System UTC
         3. SEACAT PROFILER
@@ -177,16 +184,19 @@ class HexInfo(SeabirdInfoParser):
 
         raise KeyError('None of the dates were found!')
 
-    def _get_date(self, name: str) -> DateInfo:
-        if name == 'SEACAT PROFILER':
+    def _get_date(self, key: str) -> DateInfo:
+        """Unified way to get simple or weird dates by known keys."""
+        if key == 'SEACAT PROFILER':
             return self._get_seacatprofiler_date()
-        elif name == 'SeacatPlus':
+        elif key == 'SeacatPlus':
             return self._get_seacatplus_date()
         else:
-            return self._get_simple_date(name)
+            return self._get_simple_date(key)
 
     def _get_simple_date(self, key: str, format="%b %d %Y %H:%M:%S") -> DateInfo:
-        """Get a simple date where the entire value is the date+time text.
+        """
+        Get a simple date where the entire value is the date+time text.
+
         Example: * NMEA UTC (Time) = Feb 02 2025  06:47:06
         Known keys: 'NMEA UTC (Time)', 'System UTC', 'System UpLoad Time'
         @throws KeyError if key not found

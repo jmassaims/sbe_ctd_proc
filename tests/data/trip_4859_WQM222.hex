@@ -1,0 +1,22 @@
+* Sea-Bird SBE19 Data File:
+* FileName = C:\Data\RWQPP\2008_09\AquilaMarch09Trip\Cast1.hex
+* Software Version 1.24
+* Temperature SN = 597
+* Conductivity SN = 597
+* System UpLoad Time = Mar 16 2009 10:19:24
+* ds
+* SEACAT PROFILER V2.1a SN 597   09/17/08  08:53:28.144
+* pressure sensor: serial no = 143864,  range = 150 psia,  tc = 151
+* clk = 32767.609   iop = 207   vmain = 7.5   vlith = 5.7
+* ncasts = 12   samples = 4588   free = 24289   lwait = 0 msec
+* sample rate = 1 scan every 0.5 seconds
+* battery cutoff = 5.8 volts
+* number of voltages sampled = 2
+
+* S>
+* dh
+* cast 0  09/11  10:37:19   samples 0 to 316  stop = switch off
+* S>
+
+*END*
+[DATA REMOVED]

@@ -87,7 +87,7 @@ class SeabirdInfoParser():
     _name_val_re = re.compile(r"[*#]\s+([^=:]+)\s*[=:]\s*(.+)\s*")
 
     # special lines that should not be split into name=value
-    _weird_line_starts = ['* cast ', '* SeacatPlus ']
+    _weird_line_starts = ['* cast ', '* SeacatPlus ', '* SEACAT PROFILER ']
 
     def __init__(self, file: str | Path):
         self.file_path = file
@@ -190,3 +190,12 @@ class SeabirdInfoParser():
             raise KeyError(f'"{name}" does not exist in any section. {self.file_path}')
 
         return val
+
+    def find_unknown_line(self, start_text: str) -> str | None:
+        """Search all sectiions for unknown line starting with given text."""
+        for sec in self.sections:
+            for line in sec.unknown_lines:
+                if line.startswith(start_text):
+                    return line
+
+        return None

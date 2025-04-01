@@ -71,9 +71,9 @@ class CTDFile:
             logging.warning(f"No serial number found in: {self.hex_path}")
 
         try:
-            cast_date, cast_date_type = self.info.get_cast_date()
-            self.cast_date = cast_date
-            self.cast_date_type = cast_date_type
+            di = self.info.get_cast_date()
+            self.cast_date = di.datetime
+            self.cast_date_type = di.key
         except ValueError:
             logging.warning(f"No cast date found in: {self.hex_path}")
             self.cast_date = None

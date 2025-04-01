@@ -1,4 +1,5 @@
-
+from functools import cached_property
+import logging
 from pathlib import Path
 import re
 from xml.etree import ElementTree
@@ -55,6 +56,39 @@ class SeabirdSection():
     def __len__(self):
         return len(self.data)
 
+class XmlSection:
+
+    root_name: str
+    # ending xml text
+    end_text: str
+
+    __lines: list[str]
+    __complete: bool
+
+    def __init__(self, root_name: str) -> None:
+        self.root_name = root_name
+        self.end_text = f'</{root_name}>'
+        self.__lines = []
+        self.__complete = False
+
+    def add_line(self, text: str):
+        if self.__complete:
+            raise AssertionError('cannot add line to completed XML')
+
+        self.__lines.append(text)
+
+    @cached_property
+    def xml(self) -> ElementTree.Element:
+        # this parser does not include Comments
+        # may need to use XMLPullParser, or another XML module.
+        logging.debug('parsing %s xml', self.root_name)
+        return ElementTree.fromstringlist(self.__lines)
+
+    def complete(self):
+        self.__complete = True
+
+    def is_complete(self):
+        return self.__complete
 
 class SeabirdInfoParser():
     """
@@ -71,10 +105,9 @@ class SeabirdInfoParser():
 
     sections: list[SeabirdSection]
 
-    # Sensor XML
-    # Specific to CNV files, but simpler to capture in this base class.
-    sensors_xml_lines: list[str]
-    sensors_xml: ElementTree.Element
+    xml_sections: list[XmlSection]
+    # root names corresponding to xml sections
+    xml_names: tuple[str, ...]
 
     # uninteresting text that's ignored
     # values must exactly match entire line with whitespace stripped.
@@ -86,32 +119,39 @@ class SeabirdInfoParser():
     # some lines contain multiple values
     _name_val_re = re.compile(r"[*#]\s+([^=:]+)\s*[=:]\s*(.+)\s*")
 
+    # Regex to check for starting XML element
+    # xml element could split across lines, but assuming Seabird doesn't that
+    _xml_start_re = re.compile(r"[*#]\s*<([^>\s]+)[^>]*>")
+
     # special lines that should not be split into name=value
     _weird_line_starts = ['* cast ', '* SeacatPlus ', '* SEACAT PROFILER ']
 
-    def __init__(self, file: str | Path):
-        self.file_path = file
+    def __init__(self, file_path: str | Path):
+        self.file_path = file_path
+        self.parse_file()
+
+        self.xml_names = tuple(xml.root_name for xml in self.xml_sections)
+
+        for xml in self.xml_sections:
+            if not xml.is_complete():
+                logging.warning(f'"{xml.root_name}" XML never commpleted! {self.file_path}')
+
+    def parse_file(self):
         section = SeabirdSection()
         self.sections = [section]
+        self.xml_sections = []
 
-        xml_lines = None
+        xml: XmlSection | None = None
 
         name_val_re = self._name_val_re
+        xml_start_re = self._xml_start_re
 
         # encoding option omitted to be more flexible.
         # Previously, this had encoding="utf-8", but we had one file (trip_6169_WQP143)
         # with strange file encoding that caused an error.
-        with open(file, 'r') as cnv:
-            for line in cnv:
-                if xml_lines is not None:
-                    # gather xml lines until </Sensors>
-                    xml_lines.append(line[2:])
-                    if line.startswith("# </Sensors>"):
-                        self.sensors_xml_lines = xml_lines
-                        self.sensors_xml_text = "".join(xml_lines)
-                        xml_lines = None
-
-                elif line.startswith("*END*"):
+        with open(self.file_path, 'r') as file:
+            for line in file:
+                if line.startswith("*END*"):
                     # end of info, this is where data starts.
                     # use seabirdscientific cnv_to_instrument_data instead.
                     break
@@ -119,15 +159,64 @@ class SeabirdInfoParser():
                     # next section
                     section = SeabirdSection()
                     self.sections.append(section)
+
+                    if xml:
+                        logging.warning("XML broken by new section: %s", line)
+                        xml = None
+
                     continue
-                elif line.startswith("# <Sensors"):
-                    assert xml_lines is None
-                    xml_lines = [line[2:]]
-                    # next section
-                    section = SeabirdSection()
-                    self.sections.append(section)
+
                 else:
                     line = line.strip()
+
+                    if xml is not None:
+                        # gather xml lines until end element
+                        # cut off the *|# and space
+                        # this assumes XML always has at least two leading characters
+                        chopped = line[2:].strip()
+                        if len(chopped) == 0:
+                            # no content on line after chopping
+                            continue
+
+                        # Need to guard against weird XML like this:
+                        #
+                        # * <Headers>
+                        # *
+                        # * cast   9 30 May 2024 11:49:18 samples 9019 to 10047, avg = 1, stop = mag switch
+                        #
+                        # So assuming all Seabird XML lines start with < or we exit XML mode.
+                        if chopped.startswith('<'):
+                            xml.add_line(chopped)
+                            # can end multiple elements on same line, so endswith check
+                            # * </EventCounters></InstrumentState>
+                            # FUTURE more robust to feed xml parser and have it say when done
+                            if chopped.endswith(xml.end_text):
+                                logging.debug("XML end: %s", line)
+                                xml.complete()
+                                xml = None
+
+                            continue
+                        else:
+                            logging.warning("XML broken by line: %s", line)
+                            xml = None
+                            # keep going, should skip xml_match check but it should fail
+
+                    # check if starting xml
+                    xml_match = xml_start_re.match(line)
+                    if xml_match:
+                        name = xml_match.group(1)
+                        logging.debug('XML start "%s": %s', name, line)
+                        xml = XmlSection(name)
+                        # assuming led by *|#, fix with nested RegEx groups?
+                        xml.add_line(line[2:])
+                        self.xml_sections.append(xml)
+
+                        # XML ends current section
+                        # (this is debatable, maybe XML belongs in sections?)
+                        section = SeabirdSection()
+                        self.sections.append(section)
+
+                        continue
 
                     if self.is_weird_line(line):
                         section.unknown_lines.append(line)
@@ -142,14 +231,6 @@ class SeabirdInfoParser():
                     else:
                         # did not match name [=:] value
                         self.parse_unknown_text(section, line)
-
-    def get_sensors_xml(self) -> ElementTree.Element:
-        if not hasattr(self, 'sensors_xml'):
-            # this parser does not include Comments
-            # may need to use XMLPullParser, or another XML module.
-            self.sensors_xml = ElementTree.fromstringlist(self.sensors_xml_lines)
-
-        return self.sensors_xml
 
     def is_weird_line(self, line: str) -> bool:
         """Special check for lines that match the name [=:] value format but that we want
@@ -190,6 +271,15 @@ class SeabirdInfoParser():
             raise KeyError(f'"{name}" does not exist in any section. {self.file_path}')
 
         return val
+
+    def get_xml(self, root_name: str) -> ElementTree.Element:
+        xmls = [x for x in self.xml_sections if x.root_name == root_name]
+        if len(xmls) > 1:
+            raise AssertionError(f'multiple "{root_name}" XML sections in: {self.file_path}')
+        elif len(xmls) == 0:
+            raise KeyError(f'No "{root_name}" section found')
+
+        return xmls[0].xml
 
     def find_unknown_line(self, start_text: str) -> str | None:
         """Search all sectiions for unknown line starting with given text."""

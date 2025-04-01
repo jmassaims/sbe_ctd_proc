@@ -1,6 +1,7 @@
 import unittest
 from datetime import datetime
 from pathlib import Path
+from xml.etree.ElementTree import Element
 
 from sbe_ctd_proc.config import CONFIG
 from sbe_ctd_proc.ctd_file import CTDFile
@@ -99,6 +100,27 @@ class TestHexParsing(unittest.TestCase):
         di = info.get_cast_date()
         self.assertEqual(di.key, 'cast+SEACAT PROFILER')
         self.assertEqual(di.datetime, datetime(2008, 9, 11, 10, 37, 19))
+
+    def test_8288_extra_xml(self):
+        """test hex file with other XML sections"""
+        hex_file = self.data_dir / 'trip_8288_FTZ362.hex'
+        info = HexInfo(hex_file)
+
+        self.assertTupleEqual(info.xml_names, ('ApplicationData', 'InstrumentState', 'Headers'))
+
+        cast_date = info.get_cast_date()
+        self.assertEqual(cast_date.key, 'cast')
+        self.assertEqual(cast_date.datetime, datetime(2024, 5, 30, 11, 49, 18))
+
+        app_data = info.get_xml('ApplicationData')
+        version = app_data.find('Seaterm232/SoftwareVersion')
+        assert isinstance(version, Element)
+        self.assertEqual(version.text, '2.8.0.119')
+
+        instr_state = info.get_xml('InstrumentState')
+        hardware_data = instr_state.find('HardwareData')
+        assert isinstance(hardware_data, Element)
+        self.assertEqual(hardware_data.attrib['DeviceType'], 'SBE19plus')
 
     def test_mapping(self):
         hex_file = self.data_dir / "19plus1_4409_20030312_test.hex"

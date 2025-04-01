@@ -40,6 +40,14 @@ class TestCnvParsing(unittest.TestCase):
 
         self.assertEqual(cnv.sections[3]["filter_low_pass_tc_A"], "0.500")
 
+    def test_hash_info(self):
+        cnv = self.cnv_7360
+        # in # line
+        interval = cnv.get('interval')
+        self.assertEqual(interval, 'seconds: 0.25')
+        # in * line
+        self.assertEqual(cnv.get('status'), 'not logging')
+
     def test_sensors_xml(self):
         xml = self.cnv_4525.get_sensors_xml()
 

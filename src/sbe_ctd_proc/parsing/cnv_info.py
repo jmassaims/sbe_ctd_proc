@@ -76,6 +76,14 @@ class CnvInfo(SeabirdInfoParser):
 
         return infos
 
+    def get_sensors_xml(self) -> ElementTree.Element:
+        for xml in self.xml_sections:
+            if xml.root_name == 'Sensors':
+                return xml.xml
+
+        raise KeyError(f'Sensors XML not found/parsed in: {self.file_path}')
+
+
     def get_start_time(self) -> tuple[datetime, str]:
         """Get the start time and its type
         @throws KeyError if start_time does not exist in anywhere in CNV.

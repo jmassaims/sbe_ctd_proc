@@ -5,11 +5,16 @@ from typing import TypedDict
 from csv import DictReader, DictWriter
 
 from .ctd_file import CTDFile
-from .cnv_parser import CnvInfoRaw, SensorInfo
+from .parsing.cnv_info import CnvInfo, SensorInfo
 
 # TODO logreq from DB
 class AuditInfo(TypedDict):
-    """Data structure with information from .cnv file"""
+    """
+    Data structure with information from a CTD file.
+
+    This is mostly .cnv file information.
+
+    """
     hex_filename: str
     # aka 'base name' in code
     folder_name: str
@@ -17,6 +22,7 @@ class AuditInfo(TypedDict):
     hex_dir: str
     processed_dir: str
     cast_date: str
+    cast_date_type: str
     start_time: str
     start_time_type: str
     latitude: float
@@ -97,6 +103,7 @@ class AuditLog:
         'hex_filename',
         'folder_name',
         'cast_date',
+        'cast_date_type',
         'start_time',
         'start_time_type',
         'latitude',
@@ -180,7 +187,7 @@ class AuditLog:
         'last_command'
     ]
 
-    # cnv variablesadded to AuditInfo with a simple get(name)
+    # cnv variables added to AuditInfo with a simple CnvInfo.get(name)
     simple_info = [
         'interval',
 
@@ -249,7 +256,7 @@ class AuditLog:
 
 
     def log(self, ctd_file: CTDFile, cnv_file: str | Path, mixin_info: AuditInfo):
-        cnv = CnvInfoRaw(cnv_file)
+        cnv = CnvInfo(cnv_file)
 
         # ctd_file.serial_number
         sensor_info = cnv.get_sensors_info()
@@ -261,6 +268,7 @@ class AuditLog:
             'folder_name': ctd_file.base_file_name,
             'processed_dir': str(ctd_file.destination_dir.resolve()),
             'cast_date': ctd_file.cast_date.strftime(self.datetime_format) if ctd_file.cast_date else '',
+            'cast_date_type': ctd_file.cast_date_type or '',
             'n_sensors': len(sensor_info),
         } # type: ignore ideally would be partial dict type
 
@@ -313,7 +321,7 @@ class AuditLog:
 
         info['sensors'] = '+'.join(used_prefixes)
 
-    def _add_start_time_info(self, info: AuditInfo, cnv: CnvInfoRaw):
+    def _add_start_time_info(self, info: AuditInfo, cnv: CnvInfo):
         start_time, time_type = cnv.get_start_time()
         info['start_time'] = start_time.strftime(self.datetime_format)
         info['start_time_type'] = time_type

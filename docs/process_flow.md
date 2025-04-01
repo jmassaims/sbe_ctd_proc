@@ -44,6 +44,22 @@ The app should display the errors that need to be fixed to allow a file to proce
 Parse cast date and other information in hex file. Lookup latitude using the configured
 method. (This is stored in `CTDFile.latitude`).
 
+#### cast date
+
+The cast date is obtained from the `* cast` line. However, the format has changed over
+the years. Some formats only have MM/DD; in this case the year will be obtained from another
+date. If the cast line does not exist, then the next best date will be used;
+this can be disabeld by setting `HexInfo.cast_date_fallback` to `False`.
+The `cast_date_type` (in `CTDFile` and audit log) indicates where the cast date
+is from. For more detail, see [HexInfo](../src/sbe_ctd_proc/parsing/hex_info.py).
+
+**Errors:**
+* `KeyError` - date line not found
+* `ValueError` - found date line, but failed to parse. _Probably need to fix Regex._
+
+In principal, if date line is found but it fails to parse, then `ValueError` should be
+raised, which indicates the developer needs to improve the code in `hex_info.py`.
+
 ### 3. Copy psa/xmlcon files
 
 Lookup psa & xmlcon files in ctd _config_ directory and copy them to the processing

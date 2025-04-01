@@ -2,14 +2,14 @@ from datetime import datetime
 import unittest
 from pathlib import Path
 
-from sbe_ctd_proc.cnv_parser import CnvInfoRaw
+from sbe_ctd_proc.parsing.cnv_info import CnvInfo
 
 class TestCnvParsing(unittest.TestCase):
 
     data_dir: Path
-    cnv_4525: CnvInfoRaw
-    cnv_7360: CnvInfoRaw
-    cnv_WQR: CnvInfoRaw
+    cnv_4525: CnvInfo
+    cnv_7360: CnvInfo
+    cnv_WQR: CnvInfo
 
     def setUp(self):
         self.data_dir = Path(__file__).parent / "data"
@@ -18,15 +18,15 @@ class TestCnvParsing(unittest.TestCase):
         filepath = self.data_dir / "19plus2_4525_20140618_testCFACLWDB.cnv"
         self.assertTrue(filepath.is_file())
 
-        self.cnv_4525 = CnvInfoRaw(filepath)
+        self.cnv_4525 = CnvInfo(filepath)
 
         filepath = self.data_dir / "19plusV2_7360_20141014_testCF.cnv"
         self.assertTrue(filepath.is_file())
-        self.cnv_7360 = CnvInfoRaw(filepath)
+        self.cnv_7360 = CnvInfo(filepath)
 
         filepath = self.data_dir / "WQR084CFACLWDB.cnv"
         self.assertTrue(filepath.is_file())
-        self.cnv_WQR = CnvInfoRaw(filepath)
+        self.cnv_WQR = CnvInfo(filepath)
 
     def test_general_info(self):
         cnv = self.cnv_4525
@@ -39,6 +39,14 @@ class TestCnvParsing(unittest.TestCase):
         self.assertEqual(cnv.sections[2]["interval"], "meters: 1")
 
         self.assertEqual(cnv.sections[3]["filter_low_pass_tc_A"], "0.500")
+
+    def test_hash_info(self):
+        cnv = self.cnv_7360
+        # in # line
+        interval = cnv.get('interval')
+        self.assertEqual(interval, 'seconds: 0.25')
+        # in * line
+        self.assertEqual(cnv.get('status'), 'not logging')
 
     def test_sensors_xml(self):
         xml = self.cnv_4525.get_sensors_xml()

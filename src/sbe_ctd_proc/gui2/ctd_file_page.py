@@ -1,3 +1,4 @@
+import logging
 import os
 from pathlib import Path
 from typing import Optional
@@ -126,12 +127,19 @@ class MeasurementsDialog:
 
 @ui.page('/ctd_file/{base_file_name}')
 def ctd_file_page(base_file_name: str):
-    hex_path = CONFIG.raw_path / f'{base_file_name}.hex'
-    if not hex_path.exists():
-        error_message(f'HEX file does not exist: {hex_path}')
-        return
+    # file could be in any of the directories, so easiest to ask Manager for it.
+    try:
+        ctdfile = PROC_STATE.mgr.ctdfile[base_file_name]
+    except KeyError:
+        logging.warning(f'Manager is not tracking CTDFile "{base_file_name}", trying raw')
 
-    ctdfile = CTDFile(hex_path)
+        hex_path = CONFIG.raw_path / f'{base_file_name}.hex'
+        if not hex_path.exists():
+            error_message(f'HEX file does not exist: {hex_path}')
+            return
+
+        ctdfile = CTDFile(hex_path)
+
     ctdfile.parse_hex()
     ctdfile.refresh_dirs()
     file_status = ctdfile.status()

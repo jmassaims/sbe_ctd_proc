@@ -134,7 +134,7 @@ class SeabirdInfoParser():
 
         for xml in self.xml_sections:
             if not xml.is_complete():
-                logging.warning(f'"{xml.root_name}" XML never commpleted! {self.file_path}')
+                logging.warning(f'"{xml.root_name}" XML never completed! {self.file_path}')
 
     def parse_file(self):
         section = SeabirdSection()

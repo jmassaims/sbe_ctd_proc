@@ -1,4 +1,6 @@
 import logging
+import os
+from pathlib import Path
 from typing import Callable
 from nicegui import ui
 
@@ -23,8 +25,17 @@ def overview_page():
         first_processing = next(iter(table.mgr.processing))
         ui.navigate.to(f'/ctd_file/{first_processing}')
 
+    def explore(path: Path):
+        os.startfile(path)
+
     running_row = ui.row().classes('items-center w-full')
     with running_row:
+        with ui.button(icon='folder_open', color='white'):
+            with ui.menu() as menu:
+                ui.menu_item('Open raw directory', lambda: explore(mgr.raw_dir))
+                ui.menu_item('Open processing directory', lambda: explore(mgr.processing_dir))
+                ui.menu_item('Open approved directory', lambda: explore(mgr.destination_dir))
+
         proc_button = ui.button(default_proc_button_label, icon='play_arrow', on_click=start) \
             .bind_visibility_from(PROC_STATE, 'is_processing', value=False)
 

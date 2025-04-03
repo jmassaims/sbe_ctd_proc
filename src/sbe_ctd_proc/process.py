@@ -209,62 +209,100 @@ def process_cnv(
 
     return cnvpath
 
+def smart_copy(src: Path, dst: Path) -> bool:
+    """
+    only copy file if it does not exist at destination.
+    log copy action at DEBUG level.
+    @returns true if copied
+    """
+    assert src.is_file()
+    if dst.is_dir():
+        file_dst = dst / src.name
+        if file_dst.exists():
+            logging.debug('file already exists: %s', file_dst)
+            return False
 
-def setup_processing_dir(ctdfile: CTDFile, config_folder: Path, exist_ok=False)-> None:
-    """Create the processing directory and copy files to it"""
-    ctdfile.processing_dir.mkdir(exist_ok=exist_ok)
+    elif dst.exists():
+        logging.debug('file already exists: %s', dst)
+        return False
 
-    #JM carry xmlcon file and psa files with data
-    setupfiles=os.listdir(config_folder)
-    print("Copying config files to", ctdfile.processing_dir)
-    print(", ".join(setupfiles))
+    shutil.copy2(src, dst)
+    logging.debug('cp %s %s', src, dst)
+    return True
 
-    for confname in setupfiles:
-        shutil.copy2(os.path.join(config_folder, confname), ctdfile.processing_dir)
+
+def setup_processing_dir(ctdfile: CTDFile, config_folder: Path | None)-> None:
+    """
+    Create the processing directory and copy files to it.
+
+    Safe to run multiple times.
+    If the directory already exists, then only missing files are copied.
+
+    Copies hex file, xmlcon, psa.
+    """
+    dir = ctdfile.processing_dir
+    dir.mkdir(exist_ok=True)
+
+    smart_copy(ctdfile.hex_path, dir)
+
+    if config_folder:
+        for src_file in config_folder.iterdir():
+            if src_file.is_file():
+                smart_copy(src_file, dir)
+            else:
+                logging.warning('Not a file: %s', src_file)
 
 def move_to_destination_dir(ctdfile: CTDFile)-> None:
-    """Create the destination directory and sub-directories"""
-    #exception doesnt work. lay out correct file struct from here instead of raw and temp ect.
+    """
+    Move the processing directory to the approved area.
+
+    Reorganizes files in the directory by moving them into subdirectories.
+    """
     destination_dir = ctdfile.destination_dir
+
+    if destination_dir.exists():
+        raise FileExistsError(f'destination directory already exists: {destination_dir}')
+
+    logging.info("Approved: mv %s %s", ctdfile.processing_dir, destination_dir)
+
+    shutil.move(ctdfile.processing_dir, destination_dir)
+
     dest_raw = destination_dir / "raw"
     dest_done = destination_dir / "done"
     dest_psa = destination_dir / "psa"
     dest_config = destination_dir / "config"
-
-    try:
-        destination_dir.mkdir()
-        print(f"Setup destination directory: {destination_dir}")
-    except FileExistsError:
-       print(f"Destination directory already exists: {destination_dir}")
 
     # Ensure all sub directories are created
     for subdir in (dest_raw, dest_done, dest_psa, dest_config):
         try:
             subdir.mkdir()
         except FileExistsError:
-            pass
+            logging.warning("subdirectory already existed in processing? %s", subdir)
 
-    file_name = ctdfile.base_file_name
-    try:
-         shutil.copy2(ctdfile.hex_path, dest_raw)
+    # reorganize files
+    for file in ctdfile.destination_dir.iterdir():
+        # only consider files
+        if not file.is_file():
+            continue
 
-         for file in ctdfile.processing_dir.iterdir():
-             if file.suffix == ".cnv":
-                 shutil.move(file, dest_done)
-             elif file.suffix == ".psa":
-                 shutil.move(file, dest_psa)
-             elif file.suffix == ".xmlcon":
-                 shutil.move(file, dest_config)
-             else:
-                 print(f"unexpected file in processing dir: {file}")
+        if file.suffix == ".cnv":
+            shutil.move(file, dest_done)
+        elif file.suffix == ".psa":
+            shutil.move(file, dest_psa)
+        elif file.suffix == ".xmlcon":
+            shutil.move(file, dest_config)
+        elif file.suffix == '.hex':
+            shutil.move(file, dest_raw)
+        else:
+            logging.warning(f"unexpected file in approved dir: {file}")
 
-         leftoverfiles = os.listdir(ctdfile.processing_dir)
-         if len(leftoverfiles) == 0:
-            ctdfile.processing_dir.rmdir()
-
-    except FileNotFoundError:
-       print("Files not copied")
-
+# not used yet
+def reset_processing_dir(ctdfile: CTDFile):
+    # TODO maybe only remove files this program creates?
+    logging.info('clearing directory', ctdfile.processing_dir)
+    # delete all files in directory
+    for f in ctdfile.processing_dir.iterdir():
+        f.unlink()
 
 def process_hex_file(ctdfile: CTDFile,
                      audit: Optional[AuditLog] = None,
@@ -272,40 +310,51 @@ def process_hex_file(ctdfile: CTDFile,
                      exist_ok = False):
     """
     Process the CTDFile through all steps.
-    exist_ok: no error if processing dir exists. remove files in existing processing directory.
+    exist_ok: no error if processing dir exists. use existing config files
     @throws Exception if latitude not set on CTDFile
+    @throws ValueError for config value issues related to config dir lookup
     """
 
     base_file_name = ctdfile.base_file_name
+
+    # Exception if caller specifies existing directory not ok.
+    # Not relevant to the App, which runs with exist_ok True.
+    if ctdfile.processing_dir.exists() and not exist_ok:
+        raise Exception(f'Processing dir already exists: {ctdfile.processing_dir}')
 
     latitude = ctdfile.latitude
     if latitude is None or latitude == '':
         raise Exception('latitude is required')
 
+    # need to parse to get cast date from the hex file.
     ctdfile.parse_hex()
 
     serial_number = ctdfile.serial_number
     if serial_number not in CONFIG.ctd_list:
-        raise Exception(f"CTD serial number {serial_number} not in config [ctd] list")
+        raise ValueError(f"CTD serial number {serial_number} not in config [ctd] list")
 
     cast_date = ctdfile.cast_date
 
-    print(f"CTD Serial Number: {serial_number}, Cast date: {cast_date}")
+    logging.debug(f"{base_file_name} CTD Serial Number: {serial_number}, Cast date: {cast_date}")
     if send:
         send.put(("hex_info", serial_number, cast_date))
 
-    config_folder = get_config_dir(serial_number, cast_date)
-    print("Configuration Folder Selected: ", config_folder)
+    config_folder = None
+    xmlcon_file = None
+    try:
+        config_folder = get_config_dir(serial_number, cast_date)
+        logging.debug("%s Configuration Folder Selected: %s", base_file_name, config_folder)
 
-    xmlcon_file = get_xmlcon(config_folder)
-    print("Configuration File:", xmlcon_file)
+        xmlcon_file = get_xmlcon(config_folder)
+        logging.debug("%s xmlcon config file: %s", base_file_name, xmlcon_file)
+    except Exception as ex:
+        # Always setup the processing directory, which allows user to manually fix issues
+        # with psa and xmlcon files.
+        setup_processing_dir(ctdfile, config_folder)
+        raise ex
 
-    if exist_ok and ctdfile.status() == 'processing':
-        print('already processing, clearing directory', ctdfile.processing_dir)
-        for f in ctdfile.processing_dir.iterdir():
-            f.unlink()
-
-    setup_processing_dir(ctdfile, config_folder, exist_ok)
+    # config files are ready
+    setup_processing_dir(ctdfile, config_folder)
 
     # psa files for AIMS modules
     #add and adjust for cellTM and Wildedit

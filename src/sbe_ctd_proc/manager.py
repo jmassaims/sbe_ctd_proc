@@ -8,7 +8,7 @@ from multiprocessing import Queue
 from typing import Optional
 
 from .audit_log import AuditLog
-from .ctd_file import CTDFile
+from .ctd_file import CTDFile, hex_path_to_base_name
 from .process import process_hex_file
 from .config import CONFIG
 
@@ -19,13 +19,16 @@ class Manager(AbstractContextManager):
     send: Optional[Queue]
     recv: Optional[Queue]
 
+    raw_dir: Path
     processing_dir: Path
     destination_dir: Path
 
+    # All CTD files in any of the directories
     ctdfiles: list[CTDFile]
     ctdfile: Mapping[str, CTDFile]
     "lookup CTDFile by base name"
 
+    # basenames in each status
     pending: set[str]
     processing: set[str]
     processed: set[str]
@@ -54,7 +57,7 @@ class Manager(AbstractContextManager):
         self.send = send
         self.recv = recv
 
-        self.raw_path = CONFIG.raw_path
+        self.raw_dir = CONFIG.raw_path
 
         # TODO prompt to create if missing?
         self.processing_dir = CONFIG.processing_path
@@ -72,62 +75,126 @@ class Manager(AbstractContextManager):
         if self.audit_log:
             self.audit_log.close()
 
-    def scan_dirs(self, basenames: list[str] | None = None):
+    def scan_dirs(self):
         """
         scan directories, set file collections: hex_files, pending, processing, processed.
 
+        This sets pending to all files in raw that are not processing or processed.
         """
         with self._scan_lock:
-            self.hex_files = list(self.raw_path.glob("*.hex"))
-            total_count = len(self.hex_files)
-            self.hex_count = total_count
-            print(f"{total_count} hex files in {self.raw_path}")
+            # start with the done CTD files
+            self.ctdfiles = ctdfiles = self.__scan_done_dir()
+            # generate initial lookup table
+            self.ctdfile = ctdfile_lookup =  dict((f.base_file_name, f) for f in ctdfiles)
 
-            # FIXME currently assuming all files in every state are also in pending directory
-            # However, user could change pending directory, or move hex files
-            self.ctdfiles = [CTDFile(f) for f in self.hex_files]
-            base_names = set(f.base_file_name for f in self.ctdfiles)
-            self.ctdfile = dict((f.base_file_name, f) for f in self.ctdfiles)
+            self.processed = set(f.base_file_name for f in ctdfiles)
 
-            processed = set(os.listdir(self.destination_dir))
-            processing = set(os.listdir(self.processing_dir))
+            # add processing CTD files not in done
+            self.processing = set()
+            for proc_ctdfile in self.__scan_processing_dir():
+                if proc_ctdfile.base_file_name in ctdfile_lookup:
+                    logging.warning('Done AND Processing!? %s', proc_ctdfile.base_file_name)
+                else:
+                    ctdfiles.append(proc_ctdfile)
+                    self.processing.add(proc_ctdfile.base_file_name)
+                    ctdfile_lookup[proc_ctdfile.base_file_name] = proc_ctdfile
 
-            # Check for unknown and unexpected situations.
+            # breakdown of status for files in the raw directory.
+            raw_status_counts = {
+                'pending': 0,
+                'processing': 0,
+                'processed': 0,
+                'done': 0
+            }
 
-            # unknown - doesn't match a hex file in raw
-            unknown_processed = processed - base_names
-            if unknown_processed:
-                print(f"Processed not matching hex file: {unknown_processed}")
+            self.pending = set()
+            raw_hex_count = 0
+            for raw_hex in self.raw_dir.glob("*.hex"):
+                base_name = hex_path_to_base_name(raw_hex)
+                raw_hex_count += 1
 
-            unknown_processing = processing - base_names
-            if unknown_processing:
-                print(f"Processing not matching hex file: {unknown_processing}")
+                existing = ctdfile_lookup.get(base_name, None)
+                if existing:
+                    # already processing or done
+                    raw_status_counts[existing.status()] += 1
+                else:
+                    # not done or processing
+                    raw_ctdfile = CTDFile(raw_hex)
+                    assert raw_ctdfile.base_file_name == base_name  # being paranoid
+                    ctdfiles.append(raw_ctdfile)
+                    self.pending.add(base_name)
+                    ctdfile_lookup[base_name] = raw_ctdfile
+
+                    raw_status_counts['pending'] += 1
+                    # sanity check
+                    if not raw_ctdfile.status() == 'pending':
+                        logging.warning(f'File should be pending but is {raw_ctdfile.status()}: {raw_ctdfile}')
 
 
-            # processed and processing
-            unexpected_processing = processed & processing
-            if unexpected_processing:
-                print(f"Files both processing and processed: {unexpected_processing}")
-
-            processed.intersection_update(base_names)
-            self.processed = processed
-            if processed:
-                print(f"{len(processed)} files already processed:\n{processed}")
-
-            processing.intersection_update(base_names)
-            self.processing = processing
-            if processing:
-                print(f"{len(processing)} files already processing?\n{processing}")
-
-            self.pending = base_names - processed - processing
-
-            if basenames:
-                self._set_pending(basenames)
+            n_done = len(self.processed)
+            n_processing = len(self.processing)
+            logging.info(f'CTDfile scan status: done={n_done}, processing={n_processing}, all raw={raw_hex_count}')
+            logging.info(f'Status breakdown of files in raw: {raw_status_counts}')
 
         if self.on_change:
             self.on_change()
 
-    def _set_pending(self, basenames: list[str]):
+    def __scan_processing_dir(self) -> list[CTDFile]:
+        """Scan processing dir for CTDfile processing directories.
+
+        * directory immediately under processing
+        * contains a hex file
+
+        @returns list of hex file paths
+        """
+        ctdfiles: list[CTDFile] = []
+        for ctd_dir in self.processing_dir.iterdir():
+            if ctd_dir.is_dir():
+                # look specifically for convention of hex with name matching directory
+                # TODO consider warning if other hex files?
+                hex = ctd_dir / f'{ctd_dir.name}.hex'
+                if hex.exists():
+                    ctdfile = CTDFile(hex)
+                    ctdfiles.append(ctdfile)
+                    logging.debug('Added processing CTDFile %s', ctdfile)
+
+                    status = ctdfile.status()
+                    if status != 'processing' and status != 'processed':
+                        logging.warning(f'File status is {status} instead of processed/processing: {ctdfile}')
+                else:
+                    logging.warning('Processing dir ignored, no hex file: %s', hex)
+
+        return ctdfiles
+
+    def __scan_done_dir(self) -> list[CTDFile]:
+        ctdfiles: list[CTDFile] = []
+        for ctd_dir in self.destination_dir.iterdir():
+            if not ctd_dir.is_dir():
+                # ignore files
+                continue
+
+            done_raw = ctd_dir / 'raw'
+            if not done_raw.is_dir():
+                logging.warning('Unexpected directory structure, no raw %s', done_raw)
+                continue
+
+            hex = done_raw / f'{ctd_dir.name}.hex'
+            #hexs = list(done_raw.glob('*.hex'))
+            #assert len(hexs) == 1
+
+            if hex.exists():
+                ctdfile = CTDFile(hex)
+                ctdfiles.append(ctdfile)
+                logging.debug('Added done CTDfile %s', ctdfile)
+
+                if not ctdfile.status() == 'done':
+                    logging.warning(f'File status is {ctdfile.status()} instead of done: {ctdfile}')
+            else:
+                logging.warning('Done dir ignored, no hex file: %s', hex)
+
+        return ctdfiles
+
+    def set_pending(self, basenames: list[str]):
         """
         Set specific files to process. After this, pending will only include files in the given basenames.
         However, only raw or processing files are considered,
@@ -136,23 +203,26 @@ class Manager(AbstractContextManager):
 
         basenames_set = set(basenames)
 
+        logging.debug('set pending files: %s', basenames)
+
         # warn about any that are processed
+        # user should move these to allow processing.
         match_processed = self.processed & basenames_set
         if match_processed:
             # TODO user message
-            print('WARN: selected files already processed', match_processed)
-
-        print('pending explicitly set', basenames)
+            logging.warning(f'{len(match_processed)} selected files ignored. already processed: {match_processed}')
 
         # after scan_dirs(), valid files to process are those in pending or processing
         valid = self.pending | self.processing
 
+        # Currently, hex files need to be in raw directory.
+        # FUTURE could be more flexible and take Paths, no reason to restrict location.
         unknown = basenames_set - valid - match_processed
         if unknown:
             print('WARN: selected unknown files', unknown)
 
         self.pending = valid & basenames_set
-        print('valid pending', self.pending)
+        logging.info(f'{len(self.pending)} files pending: {self.pending}')
 
 
     def start(self):
@@ -288,7 +358,10 @@ def start_manager(send: Queue, recv: Queue, basenames: list[str] | None = None):
 
     try:
         with Manager(send, recv, auditlog_path=CONFIG.auditlog_file, lookup_latitude=CONFIG.lookup_latitude) as manager:
-            manager.scan_dirs(basenames)
+            manager.scan_dirs()
+
+            if basenames:
+                manager.set_pending(basenames)
 
             if manager.pending:
                 print(f"Starting to process {len(manager.pending)} files")

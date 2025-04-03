@@ -10,13 +10,14 @@ def get_config_dir(serial_number: str, cast_date: datetime, config_dir: Path | N
     """get the config folder for the given serial number and cast date.
 
     @param config_dir: use this config directory instead of CONFIG.ctd_config_path
+    @throws ValueError if params or config values invalid/missing
     """
 
     if cast_date is None:
         # it may be possible to process without a cast date, but for our purposes
         # the cast date is required and when not parsed should be supplied
         # via another method like the database or spreadsheet.
-        raise ValueError("cannot get config dir with out cast_date?")
+        raise ValueError("cannot get config dir with out cast_date")
 
     config_dir = config_dir or CONFIG.ctd_config_path
     if config_dir is None:
@@ -44,9 +45,19 @@ def get_config_dir(serial_number: str, cast_date: datetime, config_dir: Path | N
 def get_xmlcon(config_folder: Path) -> Path:
     """get the .xmlcon file Path from the folder.
     Error if folder does not contain one .xmlcon file.
+    @throws Exception if zero or multiple xmlcons found.
     """
-    xmlcon_files = list(config_folder.glob("*.xmlcon"))
-    if len(xmlcon_files) != 1:
-        raise Exception(f"Expected one .xmlcon file in: {config_folder}")
-    os.listdir()
-    return xmlcon_files[0]
+    path = None
+    for xmlcon_file in config_folder.glob("*.xmlcon"):
+        if not xmlcon_file.is_file():
+            continue
+
+        if path is not None:
+            raise Exception(f'multiple .xmlcon files in: {config_folder}')
+
+        path = xmlcon_file
+
+    if path is None:
+        raise Exception(f"No .xmlcon files in: {config_folder}")
+
+    return path

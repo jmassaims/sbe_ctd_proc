@@ -6,11 +6,18 @@ from .parsing import HexInfo
 
 from .config import CONFIG
 
+def hex_path_to_base_name(hex_path: Path) -> str:
+    """Get the base name used for directory names from the hex filename."""
+    return hex_path.stem
+
 class CTDFile:
     """high-level utility class with the different paths for a CTD file."""
 
     hex_path: Path
-    "Path of the raw hex file"
+    """
+    Path of the hex file
+    in the directory corresponding to it status. done, processing, raw
+    """
 
     base_file_name: str
     "hex file name without extension"
@@ -39,6 +46,8 @@ class CTDFile:
     cast_date: datetime | None
     cast_date_type: str | None
 
+    info: HexInfo
+
     def __init__(self, hex_path: Path) -> None:
         if not hex_path.is_file():
             raise FileNotFoundError(f"not a file: {hex_path}")
@@ -49,7 +58,7 @@ class CTDFile:
         if ext != ".hex":
             raise Exception(f"expected {hex_path} to have .hex extension")
 
-        self.base_file_name = hex_path.stem
+        self.base_file_name = hex_path_to_base_name(hex_path)
         self.hex_path = hex_path
         self.latitude = None
 
@@ -64,6 +73,10 @@ class CTDFile:
         """Parse serial number and cast date from hex file.
         Applies the LIVEWIRE_MAPPING if it has an entry for the serial number.
         """
+        if hasattr(self, 'info'):
+            # avoid parsing multiple times
+            return
+
         self.info = HexInfo(self.hex_path)
 
         serial_number = self.info.get_serial_number()
@@ -91,6 +104,9 @@ class CTDFile:
         self.serial_number = serial_number
 
     def refresh_dirs(self):
+        """
+        Rescan CNVs in the processing and destionation directories.
+        """
         if self.destination_dir.exists():
             self.destination_cnvs = list(self.destination_dir.joinpath('done').glob('*.cnv'))
         else:
@@ -139,3 +155,6 @@ class CTDFile:
                 return 'processing'
         else:
             return 'pending'
+
+    def __repr__(self) -> str:
+        return f'CTDFile(hex_path="{self.hex_path}")'

@@ -26,7 +26,6 @@ old_mapping = {
     'DATABASE_MDW_FILE': 'db_mdw_file',
     'DATABASE_USER': 'db_user',
     'DATABASE_PASSWORD': 'db_password',
-    'CTD_LIST': 'ctd_list',
     'LIVEWIRE_MAPPING': 'livewire_mapping',
     'LABEL_FONTS': 'label_fonts'
 }
@@ -37,6 +36,7 @@ config_map = {
     'raw_path': ('paths', 'raw'),
     'processing_path': ('paths', 'processing'),
     'destination_path': ('paths', 'destination'),
+    'ctd_config_path': ('paths', 'ctd_config'),
     'sbe_bin_path': {
         'toml_path': ('paths', 'SBEDataProcessing'),
         'default': r'C:\Program Files (x86)\Sea-Bird\SBEDataProcessing-Win32'
@@ -49,9 +49,6 @@ config_map = {
     'db_user': ('database', 'user'),
     'db_password': ('database', 'password'),
 
-    'ctd_config_path': ('ctd', 'config_path'),
-    # TODO should this default to directories within ctd_config_path
-    'ctd_list': ('ctd', 'list'),
     'livewire_mapping': ('livewire_mapping',),
 
     'latitude_method': ('options', 'latitude_method'),
@@ -63,7 +60,8 @@ config_map = {
 }
 
 # path/file config attributes that are not required to exist.
-may_not_exist = {'auditlog_file'}
+# ctd_config_path should exist, but it's verified in check_ctd_config_dir()
+may_not_exist = {'auditlog_file', 'ctd_config_path'}
 
 class ConfigError(Exception):
     """Logical configuration error with app config system."""
@@ -94,7 +92,6 @@ class Config:
 
     # CTD
     ctd_config_path: Path
-    ctd_list: list[str]
     livewire_mapping: dict
 
     # options
@@ -138,7 +135,7 @@ class Config:
                 logging.info(f"loading config toml: {self.config_file}")
                 self.load_config(toml_doc)
 
-                self.check_psa_config_dir()
+                self.check_ctd_config_dir()
                 self.setup_latitude_service(toml_doc)
 
         except FileNotFoundError as e:
@@ -228,7 +225,7 @@ class Config:
             logging.warning(f'''Invalid config properties: {invalid_str}
     These values are set to None and may crash the app with None/NoneType errors, see above warnings.''')
 
-    def check_psa_config_dir(self):
+    def check_ctd_config_dir(self):
         """set default ctd_config_path if not configured by user"""
         if self.ctd_config_path is None:
             project_root = Path(__file__).resolve().parent.parent.parent
@@ -237,6 +234,9 @@ class Config:
                 self.ctd_config_path = path
             else:
                 raise ConfigError(f'[ctd] config_path not set and default config dir not found: {path}')
+
+        elif not self.ctd_config_path.is_dir():
+            raise ConfigError(f'[paths] ctd_config directory does not exist: {self.ctd_config_path}')
 
     def find_config(self) -> Path:
         """Look for the app config file in the standard locations."""

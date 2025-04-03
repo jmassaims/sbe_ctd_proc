@@ -18,6 +18,9 @@ SBEDataProcessing = 'C:\Program Files (x86)\Sea-Bird\SBEDataProcessing-Win32'
 
 auditlog_file = 'sbe_ctd_auditlog.csv'
 
+# Path to the psa config directory. config in this project is used by default.
+# ctd_config = ''
+
 [options]
 # how to lookup a file's latitude: 'ask', 'spreadsheet', 'database', 'constant'
 latitude_method = 'ask'
@@ -29,29 +32,10 @@ latitude_method = 'ask'
 
 [database]
 enabled = false
-mdb_file = 'C:\Users\<USER>\pathto\OceanDBMMP_be.mdb'
+mdb_file = 'C:\Users\<USER>\pathto\OceanDBMMP.mdb'
 mdw_file = 'C:\Users\<USER>\pathto\OceanDBMMPSecurity.mdw'
 user = 'readonly'
 password = 'readonly'
-
-[ctd]
-# Path to the psa config directory. config in this project is used by default.
-# config_path = ''
-list = [
-    '597',
-    '0597',
-    '0890',
-    '1009',
-    '1233',
-    '4409',
-    '4525',
-    '6180',
-    '6383',
-    '6390',
-    '7053',
-    '7360',
-    '7816',
-]
 
 [livewire_mapping]
 # Livewire ctds have different temperature IDs - Adjust them here

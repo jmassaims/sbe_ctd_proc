@@ -51,13 +51,13 @@ your editor to paste the path, which just needs quotes around it in _config.toml
 
 **Optional:**
 * Update `SBEDataProcessing` if you installed SBE Data Processing to another location
-* Under `[ctd]`, set `config_path` to the directory of psa config files if you want to
+* Under `[paths]`, set `ctd_config` to the directory of psa config files if you want to
 use a different location than the `config` directory in this project.
 
 ### psa files config directory
 
 By default, the `config` directory in this project will be used. To use another directory,
-specify `[ctd]` `config_path` in the _config.toml_ file.
+specify `[paths]` `ctd_config` in the _config.toml_ file.
 
 Ensure all relevant calibration .xmlcon and .psa files are in the following config directory structure:
 Dates must be at the end of the calibration_files_##### directory names.

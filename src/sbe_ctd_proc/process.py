@@ -330,9 +330,6 @@ def process_hex_file(ctdfile: CTDFile,
     ctdfile.parse_hex()
 
     serial_number = ctdfile.serial_number
-    if serial_number not in CONFIG.ctd_list:
-        raise ValueError(f"CTD serial number {serial_number} not in config [ctd] list")
-
     cast_date = ctdfile.cast_date
 
     logging.debug(f"{base_file_name} CTD Serial Number: {serial_number}, Cast date: {cast_date}")

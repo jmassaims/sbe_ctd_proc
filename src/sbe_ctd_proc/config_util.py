@@ -17,18 +17,23 @@ def get_config_dir(serial_number: str, cast_date: datetime, config_dir: Path | N
         # it may be possible to process without a cast date, but for our purposes
         # the cast date is required and when not parsed should be supplied
         # via another method like the database or spreadsheet.
-        raise ValueError("cannot get config dir with out cast_date")
+        raise ValueError("cast date required to get config dir")
+
+    if serial_number is None:
+        raise ValueError('serial number required to get config dir')
 
     config_dir = config_dir or CONFIG.ctd_config_path
     if config_dir is None:
         raise ValueError("psa config directory missing")
 
     sn_config_path = config_dir / serial_number
+    if not sn_config_path.is_dir():
+        raise Exception(f'CTD config directory not found for serial number {serial_number}: {sn_config_path}')
 
     logging.debug(f"Checking configuration directory {sn_config_path} for subdirectory relevant to {cast_date} cast date.")
 
     config_folder = None
-    for folder in os.scandir(sn_config_path):
+    for folder in sn_config_path.iterdir():
         if not folder.is_dir():
             continue
 

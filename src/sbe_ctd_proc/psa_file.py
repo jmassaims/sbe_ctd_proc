@@ -20,7 +20,7 @@ def rewrite_psa_file(psa_file: Path, latitude: float):
                     f.writelines(
                         f'<Latitude value="{latitude}" />\n'
                     )
-                    logging.info(f"Latitude set to {latitude} in PSA file {psa_file}")
+                    logging.info(f"Latitude set to {latitude} in PSA file {psa_file} L{i}")
                 else:
                     f.writelines(line)
     except TypeError:

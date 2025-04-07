@@ -289,7 +289,7 @@ def setup_processing_dir(ctdfile: CTDFile, config_folder: Path | None) -> Path:
             except AssertionError as e:
                 logging.warning('Existing xmlcon in processing, but none in CTD config', exc_info=True)
 
-        logging.info(f'{log_prefix} {dir} xmlcon={xmlcon_file}')
+        logging.info(f'{log_prefix} {dir} xmlcon={xmlcon_file.name}')
 
     else:
         # no config folder, see if needed files already exist.
@@ -304,7 +304,7 @@ def setup_processing_dir(ctdfile: CTDFile, config_folder: Path | None) -> Path:
         logging.debug('No ctd config, but existing psa(s) and xmlcon found: %s', existing_xmlcons[0])
         xmlcon_file = existing_xmlcons[0]
 
-        logging.info(f'{log_prefix} {dir} xmlcon={xmlcon_file}, no CTD config folder')
+        logging.info(f'{log_prefix} {dir} xmlcon={xmlcon_file.name}, no CTD config folder')
 
     assert xmlcon_file is not None
     return xmlcon_file

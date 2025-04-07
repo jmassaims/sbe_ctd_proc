@@ -209,48 +209,105 @@ def process_cnv(
 
     return cnvpath
 
-def smart_copy(src: Path, dst: Path) -> bool:
+# TODO move to utils file
+def smart_copy_file(src: Path, dst: Path) -> Path:
     """
     only copy file if it does not exist at destination.
     log copy action at DEBUG level.
-    @returns true if copied
+    @returns Path to the file
     """
     assert src.is_file()
+
+    file_dst = dst / src.name if dst.is_dir() else dst
+
+    # check if file already exists
     if dst.is_dir():
-        file_dst = dst / src.name
         if file_dst.exists():
             logging.debug('file already exists: %s', file_dst)
-            return False
+            return file_dst
 
     elif dst.exists():
         logging.debug('file already exists: %s', dst)
-        return False
+        assert dst.is_file()
+        return dst
 
     shutil.copy2(src, dst)
     logging.debug('cp %s %s', src, dst)
-    return True
+    return file_dst
 
 
-def setup_processing_dir(ctdfile: CTDFile, config_folder: Path | None)-> None:
+def setup_processing_dir(ctdfile: CTDFile, config_folder: Path | None) -> Path:
     """
-    Create the processing directory and copy files to it.
+    Create/verify the processing directory and copy files to it from config_folder.
 
-    Safe to run multiple times.
-    If the directory already exists, then only missing files are copied.
+    Safe to run multiple times for the same ctdfile; existing files are never overwritten.
+    Copies hex file, xmlcon, psa. If config_folder not provided, checks that:
+    * directory has one xmlcon file
+    * directory has at least one psa
 
-    Copies hex file, xmlcon, psa.
+    @returns xmlcon path to the single xmlcon in this directory
+    @throws AssertionError if problem and processing should not move forward.
     """
     dir = ctdfile.processing_dir
+    new_dir = not dir.exists()
     dir.mkdir(exist_ok=True)
 
-    smart_copy(ctdfile.hex_path, dir)
+    log_prefix = 'setup new processing dir' if new_dir else 'verified existing processing dir'
 
+    smart_copy_file(ctdfile.hex_path, dir)
+
+    # Note: xmlcon files can have various names whereas psa files are always the same
+    # first check for existing xmlcon files, which will determine if we try to copy a xmlcon
+    existing_xmlcons = list(dir.glob('*.xmlcon'))
+    if len(existing_xmlcons) > 1:
+        raise AssertionError(f'processing dir has multiple xmlcon files {dir}')
+
+    xmlcon_file = None
     if config_folder:
-        for src_file in config_folder.iterdir():
-            if src_file.is_file():
-                smart_copy(src_file, dir)
+        # have config folder, which should have psas and one xmlcon file
+        for psa_file in config_folder.glob('*.psa'):
+            if psa_file.is_file():
+                smart_copy_file(psa_file, dir)
             else:
-                logging.warning('Not a file: %s', src_file)
+                logging.warning('Not a file: %s', psa_file)
+
+        if len(existing_xmlcons) == 0:
+            # no xmlcon files in processing directory, copy from config
+            src_xmlcon_file = get_xmlcon(config_folder)
+            xmlcon_file = smart_copy_file(src_xmlcon_file, dir)
+        else:
+            # have xmlcon config, but a xmlcon already exists, so use that
+            xmlcon_file = existing_xmlcons[0]
+
+            try:
+                # check if names are identical
+                cfg_xmlcon_file = get_xmlcon(config_folder)
+                if cfg_xmlcon_file.name != xmlcon_file.name:
+                    logging.info('existing xmlcon name (%s) differs from config directory (%s)',
+                                 xmlcon_file.name, cfg_xmlcon_file.name)
+
+            except AssertionError as e:
+                logging.warning('Existing xmlcon in processing, but none in CTD config', exc_info=True)
+
+        logging.info(f'{log_prefix} {dir} xmlcon={xmlcon_file}')
+
+    else:
+        # no config folder, see if needed files already exist.
+        if len(existing_xmlcons) == 0:
+            raise AssertionError('no ctd config dir and no existing xmlcon files')
+
+        # check at least one psa
+        psa_files = list(dir.glob('*.psa'))
+        if len(psa_files) == 0:
+            raise AssertionError(f"No psa files in: {dir}")
+
+        logging.debug('No ctd config, but existing psa(s) and xmlcon found: %s', existing_xmlcons[0])
+        xmlcon_file = existing_xmlcons[0]
+
+        logging.info(f'{log_prefix} {dir} xmlcon={xmlcon_file}, no CTD config folder')
+
+    assert xmlcon_file is not None
+    return xmlcon_file
 
 def move_to_destination_dir(ctdfile: CTDFile)-> None:
     """
@@ -336,22 +393,21 @@ def process_hex_file(ctdfile: CTDFile,
     if send:
         send.put(("hex_info", serial_number, cast_date))
 
+    # try to get the config folder, but allow for user to supply all files manually
     config_folder = None
-    xmlcon_file = None
     try:
         config_folder = get_config_dir(serial_number, cast_date)
         logging.debug("%s Configuration Folder Selected: %s", base_file_name, config_folder)
-
-        xmlcon_file = get_xmlcon(config_folder)
-        logging.debug("%s xmlcon config file: %s", base_file_name, xmlcon_file)
     except Exception as ex:
         # Always setup the processing directory, which allows user to manually fix issues
         # with psa and xmlcon files.
-        setup_processing_dir(ctdfile, config_folder)
-        raise ex
+        logging.exception(f'Could not get ctd config directory for {ctdfile.hex_path}')
 
-    # config files are ready
-    setup_processing_dir(ctdfile, config_folder)
+    xmlcon_file = setup_processing_dir(ctdfile, config_folder)
+    if config_folder is None:
+        logging.info('Continuing processing with existing psa,xmlcon files')
+
+    logging.debug("%s xmlcon config file: %s", base_file_name, xmlcon_file)
 
     # psa files for AIMS modules
     #add and adjust for cellTM and Wildedit

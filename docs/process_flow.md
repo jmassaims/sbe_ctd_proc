@@ -16,7 +16,9 @@ TODOC all status, CTDFile holds status
 ## Scan Raw
 
 The app scans the raw, processing, and approved directories to determine file status
-and lists them in the app.
+and lists them in the app. See [Manager](../src/sbe_ctd_proc/manager.py)`.scan_dirs`
+
+Currently, the scan checks for the expected hex file, otherwise the directory is ignored.
 
 ## Selection
 
@@ -30,14 +32,17 @@ See `process_hex_file` function.
 
 ### 1. Setup processing directory
 
-Create processing directory for the file.
+Create processing directory for the file. If the directory already exists, verify it's
+ready for processing.
+* has one xmlcon file
+* has at least one psa file
 
-This is created even if there are errors such as not parsing cast date or finding psa file.
-This is so the user may fix issues within the directory to allow processing to continue.
-For example, if cast date failed to parse, the user may still determine the correct psa
-file and copy it to the processing directory; then re-process the file.
+The directory is created even if there are errors such as not parsing cast date or finding psa file.
+This is so the user may fix issues within the directory or CTD config folder to allow processing to continue.
+For example, if cast date failed to parse, the user may still determine the correct config
+files (xmlcon, psa) and copy them to the processing directory; then re-process the file.
 
-The app should display the errors that need to be fixed to allow a file to process.
+The app (or console log) should display the errors that need to be fixed to allow a file to process.
 
 ### 2. Extract and lookup information
 
@@ -104,3 +109,4 @@ all Seabird steps again. Examples of typical fixes are:
 ## Approve
 
 When approved in the app, the directory is moved to the approved directory.
+Files are then reorganized and moved into subdirectories: _config, done, psa, raw_

@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 
 def rewrite_psa_file(psa_file: Path, latitude: float):
@@ -19,12 +20,12 @@ def rewrite_psa_file(psa_file: Path, latitude: float):
                     f.writelines(
                         f'<Latitude value="{latitude}" />\n'
                     )
-                    print(f"Latitude set to {latitude} in PSA file {psa_file}")
+                    logging.info(f"Latitude set to {latitude} in PSA file {psa_file}")
                 else:
                     f.writelines(line)
     except TypeError:
         # FIXME brittle, shouldn't this copy the original?
-        print("WARNING: TypeError rewriting", psa_file)
+        logging.warning("TypeError rewriting", psa_file)
         with open(psa_file, "w") as f:
             for i, line in enumerate(get_all, 0):
                 f.writelines(line)

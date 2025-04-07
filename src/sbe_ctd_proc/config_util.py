@@ -6,9 +6,12 @@ from datetime import datetime
 from .config import CONFIG
 
 # Test: test_config_util
-def get_config_dir(serial_number: str, cast_date: datetime, config_dir: Path | None = None) -> Path:
+def get_config_dir(serial_number: str | None, cast_date: datetime | None, config_dir: Path | None = None) -> Path:
     """get the config folder for the given serial number and cast date.
 
+    serial_number and cast_date accept None for code conveience; this raises ValueError.
+    @param serial_number
+    @param cast_date
     @param config_dir: use this config directory instead of CONFIG.ctd_config_path
     @throws ValueError if params or config values invalid/missing
     """
@@ -50,7 +53,8 @@ def get_config_dir(serial_number: str, cast_date: datetime, config_dir: Path | N
 def get_xmlcon(config_folder: Path) -> Path:
     """get the .xmlcon file Path from the folder.
     Error if folder does not contain one .xmlcon file.
-    @throws Exception if zero or multiple xmlcons found.
+    @returns Path to xmlcon file in the given directory
+    @throws AssertionError if zero or multiple xmlcons found.
     """
     path = None
     for xmlcon_file in config_folder.glob("*.xmlcon"):
@@ -58,11 +62,11 @@ def get_xmlcon(config_folder: Path) -> Path:
             continue
 
         if path is not None:
-            raise Exception(f'multiple .xmlcon files in: {config_folder}')
+            raise AssertionError(f'multiple .xmlcon files in: {config_folder}')
 
         path = xmlcon_file
 
     if path is None:
-        raise Exception(f"No .xmlcon files in: {config_folder}")
+        raise AssertionError(f"No .xmlcon files in: {config_folder}")
 
     return path

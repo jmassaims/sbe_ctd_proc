@@ -1,8 +1,25 @@
+from dataclasses import dataclass
+from datetime import datetime, tzinfo
 import logging
 import os.path as P
 import time
+from zoneinfo import ZoneInfo
+import numpy as np
 import pandas as pd
 import sqlalchemy as sa
+
+
+@dataclass
+class CTDdataRecord():
+    """information from ctd_data table"""
+    basename: str
+    filename: str
+    lat: float
+    lon: float
+    cast_number: int
+    site: str
+    station: str
+    date_first_in_pos: datetime
 
 class OceanDB:
     def __init__(self, db_file, mdw_file, db_user, db_password) -> None:
@@ -54,42 +71,65 @@ class OceanDB:
         engine.dispose()
 
     def lookup_latitude(self, base_file_name: str) -> float:
-        """"Get the latitutude for the file name
-        :param base_file_name
+        return self.get_ctd_data(base_file_name).lat
+
+    def get_ctd_data(self, base_file_name: str) -> CTDdataRecord:
+        """"Get the ctd_data record for the file name
+        @param base_file_name
+        @throws LookupError if matched nothing/multiple
+        @throws ValueError if base_file_name has file extension
         """
         if base_file_name.endswith(".hex"):
-            raise Exception("expected base file name, shouldn't have .hex extension")
+            raise ValueError("expected base file name, shouldn't have .hex extension")
 
         if not hasattr(self, "ctd_data"):
             self.__load_tables()
 
         ctd_data = self.ctd_data
+        hex_filename = f'{base_file_name}.hex'
 
         ctd_deployment = ctd_data[
-            ctd_data['FileName'].str.contains(f'^{base_file_name + ".hex"}', case=False, regex=True,
-                                                na=False)]
+            ctd_data['FileName'].str.contains(f'^{hex_filename}', case=False, regex=True, na=False)]
+
         if not ctd_deployment.empty:
-            # hex filename in db
-            latitude = str(ctd_deployment['Latitude'].values[0])
-            logging.info(
-                f"OceanDB: using latitude = {latitude} from site = {ctd_deployment['Site'].values[0]}, station = {ctd_deployment['Station'].values[0]}")
+            # hex filename match
+            match_on = f'hex filename "{hex_filename}"'
+            if len(ctd_deployment) > 1:
+                raise LookupError(f'multiple ctd_data records match hex filename "{hex_filename}"')
+
         else:
+            # no match on hex filename
             # maybe has been processed in the past so db filename includes processing steps appended
+            # Example: FileName='WQN015CFACLWDB.cnv'
+            match_on = f'basename "{base_file_name}"'
             ctd_deployment = ctd_data[
                 ctd_data['FileName'].str.contains(f'^{base_file_name}', regex=True, na=False)]
 
-            if len(ctd_deployment) == 1:
-                latitude = str(ctd_deployment['Latitude'].values[0])
-                logging.info(
-                    f"OceanDB: using latitude = {latitude} from site = {ctd_deployment['Site'].values[0]}, station = {ctd_deployment['Station'].values[0]}")
-            else:
+            if ctd_deployment.empty:
                 # filename not in the db
-                raise LookupError(f"no latitude found in database for '{base_file_name}'")
+                raise LookupError(f'no ctd_data record matches FileName startswith "{base_file_name}"')
+            elif len(ctd_deployment) > 1:
+                raise LookupError(f'multiple ctd_data records match FileName stratswith "{base_file_name}"')
 
-        return float(latitude)
+        rec = CTDdataRecord(
+            basename=base_file_name,
+            filename=ctd_deployment['FileName'].values[0],
+            lat=ctd_deployment['Latitude'].values[0],
+            lon=ctd_deployment['Longitude'].values[0],
+            cast_number=ctd_deployment['CastNumber'].values[0].item(),
+            site=ctd_deployment['Site'].values[0],
+            station=ctd_deployment['Station'].values[0],
+            date_first_in_pos=self.__merge_datetime(ctd_deployment, 'DateFirstInPos', 'TimeFirstInPos', 'TimeZone')
+        )
+
+        logging.info(f"OceanDB: found {match_on} in ctd_data latitude={rec.lat}, site={rec.site}, station={rec.station}")
+        return rec
 
     def get_test_basename(self) -> tuple[str, float]:
         """Get a file basename and latitude for testing"""
+        if not hasattr(self, "ctd_data"):
+            self.__load_tables()
+
         ctd_data = self.ctd_data
         suffix = 'CFACLWDB.cnv'
         match = ctd_data[ctd_data['FileName'].str.endswith(suffix, na=False)]
@@ -99,3 +139,16 @@ class OceanDB:
             return filename[:-len(suffix)], lat
         else:
             raise LookupError('no file found for testing')
+
+    def __merge_datetime(self, series: pd.DataFrame, date_col: str, time_col: str, tz_col: str) -> datetime:
+        d: np.datetime64 = series[date_col].values[0]
+        t: np.datetime64 = series[time_col].values[0]
+        tz: str = series[tz_col].values[0]
+
+        d2 = pd.to_datetime(d)
+        t2 = pd.to_datetime(t)
+        zoneinfo = ZoneInfo(tz)
+
+        dt = datetime(d2.year, d2.month, d2.day, t2.hour, t2.minute, t2.second, t2.microsecond, zoneinfo)
+        #logging.debug('%s + %s (%s) = %s', d, t, tz, dt)
+        return dt

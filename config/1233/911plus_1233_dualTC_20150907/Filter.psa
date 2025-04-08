@@ -2,13 +2,12 @@
 <Filter >
   <Version value="7.23.2" />
   <ServerName value="Filter" />
-  <InputDir value="C:\AIMS\Seabird\Data\Batch" />
+<InputDir value="" />
   <InputFileArray size="1" GrowBy="-1" >
-    <ArrayItem index="0" value="IMOS_ANMN-NRS_CPTU_160201_FV00_CTDPRO_2130C.cnv" />
   </InputFileArray>
-  <OutputDir value="C:\AIMS\Seabird\Data\Batch" />
-  <NameAppend value="F" />
-  <OutputFile value="IMOS_ANMN-NRS_CPTU_160201_FV00_CTDPRO_2130C.cnv" />
+<OutputDir value="" />
+<NameAppend value="" />
+  <OutputFile value="" />
   <LastProcessed value="0" />
   <TimeConstFilterA value="1.000000" />
   <TimeConstFilterB value="1.000000" />

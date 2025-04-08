@@ -2,19 +2,19 @@
 <Bin_Average >
   <Version value="7.26.7.129" />
   <ServerName value="Bin Average" />
-  <InputDir value="" />
+<InputDir value="" />
   <InputFileArray size="1" GrowBy="-1" >
     <ArrayItem index="0" value="" />
   </InputFileArray>
-  <OutputDir value="" />
-  <NameAppend value="" />
+<OutputDir value="" />
+<NameAppend value="" />
   <OutputFile value="" />
   <LastProcessed value="0" />
   <BinType value="2" />
   <BinSize value="1.000000" />
   <IncludeNumberScans value="1" />
   <ExcludeMarkedBad value="1" />
-  <ScansToSkip value="0" />
+<ScansToSkip value="" />
   <ScansToOmit value="0" />
   <MinScansPerBin value="1" />
   <MaxScansPerBin value="2147483647" />

@@ -8,7 +8,7 @@
 </InputFileArray>
 <OutputDir value="" />
 <NameAppend value="" />
-<OutputFile value="" />
+  <OutputFile value="" />
 <LastProcessed value="0" />
 <TimeConstFilterA value="0.1" />
 <TimeConstFilterB value="0.5" />

@@ -9,13 +9,13 @@
 </InputFileArray>
 <OutputDir value="" />
 <NameAppend value="" />
-<OutputFile value="" />
+  <OutputFile value="" />
 <LastProcessed value="0" />
 <BinType value="2" />
 <BinSize value="1.000000" />
 <IncludeNumberScans value="1" />
 <ExcludeMarkedBad value="1" />
-<ScansToSkip value="0" />
+<ScansToSkip value="" />
 <ScansToOmit value="0" />
 <MinScansPerBin value="1" />
 <MaxScansPerBin value="2147483647" />

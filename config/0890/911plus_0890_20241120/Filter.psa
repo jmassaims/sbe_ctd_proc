@@ -2,10 +2,10 @@
 <Filter >
   <Version value="7.26.7.129" />
   <ServerName value="Filter" />
-  <InputDir value="" />
+<InputDir value="" />
   <InputFileArray size="0" GrowBy="-1" />
-  <OutputDir value="" />
-  <NameAppend value="" />
+<OutputDir value="" />
+<NameAppend value="" />
   <OutputFile value="" />
   <LastProcessed value="0" />
   <TimeConstFilterA value="0.000000" />

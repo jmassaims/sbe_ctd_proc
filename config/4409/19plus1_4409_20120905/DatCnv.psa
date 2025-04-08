@@ -10,10 +10,10 @@
 </InputFileArray>
 <OutputDir value="" />
 <NameAppend value="" />
-<OutputFile value="" />
+  <OutputFile value="" />
 <LastProcessed value="0" />
 <ProcessScansToEnd value="1" />
-<ScansToSkip value="0" />
+<ScansToSkip value="" />
 <ScansToProcess value="1" />
 <MergeHeaderFile value="0" />
 <OutputFormat value="0" high="1" low="0" initialValue="0" />

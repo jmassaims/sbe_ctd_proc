@@ -2,13 +2,12 @@
 <Align_CTD >
   <Version value="7.23.2" />
   <ServerName value="Align CTD" />
-  <InputDir value="C:\AIMS\Seabird\Data\Batch" />
+<InputDir value="" />
   <InputFileArray size="1" GrowBy="-1" >
-    <ArrayItem index="0" value="IMOS_ANMN-NRS_CPTU_160201_FV00_CTDPRO_2130CF.cnv" />
   </InputFileArray>
-  <OutputDir value="C:\AIMS\Seabird\Data\Batch" />
-  <NameAppend value="A" />
-  <OutputFile value="IMOS_ANMN-NRS_CPTU_160201_FV00_CTDPRO_2130CF.cnv" />
+<OutputDir value="" />
+<NameAppend value="" />
+  <OutputFile value="" />
   <LastProcessed value="0" />
   <CalcArray Size="12" >
     <CalcArrayItem index="0" CalcID="81" >

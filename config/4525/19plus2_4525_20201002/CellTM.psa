@@ -9,7 +9,7 @@
 </InputFileArray>
 <OutputDir value="" />
 <NameAppend value="" />
-<OutputFile value="" />
+  <OutputFile value="" />
 <LastProcessed value="0" />
 <Primary >
 <Correct value="1" />

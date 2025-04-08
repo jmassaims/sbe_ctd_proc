@@ -4,14 +4,14 @@
   <ServerName value="Data Conversion" />
   <InstrumentPath value="C:\Projects\imos\sbe_ctd_proc\config\1233\911plus_1233_dualTC_20230828\911plus_1233_dualTC_20230828.xmlcon" />
   <InstrumentMatch value="0" />
-  <InputDir value="C:\Projects\imos\sbe_ctd_proc\config\1233\911plus_1233_dualTC_20230828" />
+<InputDir value="" />
   <InputFileArray size="0" GrowBy="-1" />
-  <OutputDir value="C:\Projects\imos\sbe_ctd_proc\config\1233\911plus_1233_dualTC_20230828" />
-  <NameAppend value="" />
+<OutputDir value="" />
+<NameAppend value="" />
   <OutputFile value="" />
   <LastProcessed value="0" />
   <ProcessScansToEnd value="1" />
-  <ScansToSkip value="300" />
+<ScansToSkip value="" />
   <ScansToProcess value="1" />
   <MergeHeaderFile value="0" />
   <OutputFormat value="0" high="1" low="0" initialValue="0" />

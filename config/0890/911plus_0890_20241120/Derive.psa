@@ -4,12 +4,12 @@
   <ServerName value="Derive" />
   <InstrumentPath value="C:\AIMS\sbe_ctd_proc\config\0890\911plus_0890_20241120\911plus_0890_dualTC_20241120.xmlcon" />
   <InstrumentMatch value="0" />
-  <InputDir value="" />
+<InputDir value="" />
   <InputFileArray size="1" GrowBy="-1" >
     <ArrayItem index="0" value="" />
   </InputFileArray>
-  <OutputDir value="" />
-  <NameAppend value="" />
+<OutputDir value="" />
+<NameAppend value="" />
   <OutputFile value="" />
   <LastProcessed value="0" />
   <CalcArray Size="2" >

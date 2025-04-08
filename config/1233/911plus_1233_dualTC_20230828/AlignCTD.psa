@@ -2,10 +2,10 @@
 <Align_CTD >
   <Version value="7.26.7.129" />
   <ServerName value="Align CTD" />
-  <InputDir value="C:\Projects\imos\sbe_ctd_proc\raw" />
+<InputDir value="" />
   <InputFileArray size="0" GrowBy="-1" />
-  <OutputDir value="C:\AIMS\Seabird\Data\Batch" />
-  <NameAppend value="" />
+<OutputDir value="" />
+<NameAppend value="" />
   <OutputFile value="" />
   <LastProcessed value="0" />
   <CalcArray Size="12" >

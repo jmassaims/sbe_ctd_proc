@@ -2,10 +2,10 @@
 <Filter >
   <Version value="7.23.1" />
   <ServerName value="Filter" />
-  <InputDir value="C:\AIMS\Seabird\Data\Batch" />
+<InputDir value="" />
   <InputFileArray size="0" GrowBy="-1" />
-  <OutputDir value="C:\AIMS\Seabird\Data\Batch" />
-  <NameAppend value="F" />
+<OutputDir value="" />
+<NameAppend value="" />
   <OutputFile value="" />
   <LastProcessed value="0" />
   <TimeConstFilterA value="1.000000" />

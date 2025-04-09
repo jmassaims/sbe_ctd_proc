@@ -94,7 +94,6 @@
           <M>1.00000000</M>
           <B>0.00000000</B>
           <CalibrationConstant>325730000000.00000000</CalibrationConstant>
-          <ConversionUnits>1</ConversionUnits>
           <Multiplier>1.00000000</Multiplier>
           <Offset>-0.00474284</Offset>
         </PAR_BiosphericalLicorChelseaSensor>

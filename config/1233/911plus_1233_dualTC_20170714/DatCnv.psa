@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Data_Conversion >
-  <Version value="7.23.1" />
+  <Version value="7.26.7.129" />
   <ServerName value="Data Conversion" />
-  <InstrumentPath value="C:\AIMS\Seabird\Config\911plus_1233_dualTC_20170714.xmlcon" />
+  <InstrumentPath value="C:\AIMS\sbe_ctd_proc\config\1233\911plus_1233_dualTC_20170714\911plus_1233_dualTC_20170714.xmlcon" />
   <InstrumentMatch value="0" />
 <InputDir value="" />
   <InputFileArray size="0" GrowBy="-1" />
 <OutputDir value="" />
-<NameAppend value="" />
+  <NameAppend value="" />
   <OutputFile value="" />
   <LastProcessed value="0" />
   <ProcessScansToEnd value="1" />
@@ -22,7 +22,7 @@
   <ScanRangeDuration value="2.000000" />
   <StartTimeOption value="0" />
   <PromptForNoteAndOrStartTime value="0" />
-  <CalcArray Size="15" >
+  <CalcArray Size="14" >
     <CalcArrayItem index="0" CalcID="84" >
       <Calc UnitID="52" Ordinal="0" >
         <FullName value="Time, Elapsed [seconds]" />
@@ -79,26 +79,22 @@
         <WindowSize value="2.000000" />
       </Calc>
     </CalcArrayItem>
-    <CalcArrayItem index="11" CalcID="15" >
-      <Calc UnitID="11" Ordinal="0" >
-        <FullName value="Density [density, kg/m^3]" />
-      </Calc>
-    </CalcArrayItem>
-    <CalcArrayItem index="12" CalcID="15" >
-      <Calc UnitID="11" Ordinal="1" >
-        <FullName value="Density, 2 [density, kg/m^3]" />
-      </Calc>
-    </CalcArrayItem>
-    <CalcArrayItem index="13" CalcID="59" >
+    <CalcArrayItem index="11" CalcID="59" >
       <Calc UnitID="-1" Ordinal="0" >
         <FullName value="PAR/Irradiance, Biospherical/Licor" />
-		<PAR_Units value="0" />
+        <PAR_Units value="0" />
       </Calc>
     </CalcArrayItem>
-    <CalcArrayItem index="14" CalcID="77" >
+    <CalcArrayItem index="12" CalcID="77" >
       <Calc UnitID="-1" Ordinal="0" >
-        <FullName value="SPAR/Surface Irradiance" />
-		<SPAR_Units value="0" />
+        <FullName value="SPAR, Biospherical/Licor" />
+        <SPAR_Units value="0" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="13" CalcID="14" >
+      <Calc UnitID="46" Ordinal="0" >
+        <FullName value="CPAR/Corrected Irradiance [%]" />
+        <DegreesFromVertical value="0.000000" />
       </Calc>
     </CalcArrayItem>
   </CalcArray>

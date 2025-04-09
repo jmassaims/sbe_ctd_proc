@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SBE_InstrumentConfiguration SB_ConfigCTD_FileVersion="7.21.0.6" >
+  <Instrument Type="11" >
+    <Name>SBE 19plus V2 Seacat CTD</Name>
+    <PressureSensorType>1</PressureSensorType>
+    <ExternalVoltageChannels>5</ExternalVoltageChannels>
+    <Mode>0</Mode>
+    <!-- Serial RS-232 Sensor: 0 = None. -->
+    <SerialRS232C_Sensor>0</SerialRS232C_Sensor>
+    <SampleIntervalSeconds>90</SampleIntervalSeconds>
+    <ScansToAverage>1</ScansToAverage>
+    <SurfaceParVoltageAdded>0</SurfaceParVoltageAdded>
+    <ScanTimeAdded>0</ScanTimeAdded>
+    <NmeaPositionDataAdded>0</NmeaPositionDataAdded>
+    <NmeaDepthDataAdded>0</NmeaDepthDataAdded>
+    <NmeaTimeAdded>0</NmeaTimeAdded>
+    <NmeaDeviceConnectedToPC>0</NmeaDeviceConnectedToPC>
+    <SensorArray Size="8" >
+      <Sensor index="0" SensorID="58" >
+        <TemperatureSensor SensorID="58" >
+          <SerialNumber>7053</SerialNumber>
+          <CalibrationDate>03-Apr-12</CalibrationDate>
+          <A0>1.23207811e-003</A0>
+          <A1>2.79909327e-004</A1>
+          <A2>-1.53376760e-006</A2>
+          <A3>1.97518184e-007</A3>
+          <Slope>1.00000000</Slope>
+          <Offset>0.0000</Offset>
+        </TemperatureSensor>
+      </Sensor>
+      <Sensor index="1" SensorID="3" >
+        <ConductivitySensor SensorID="3" >
+          <SerialNumber>7053</SerialNumber>
+          <CalibrationDate>03-Apr-12</CalibrationDate>
+          <UseG_J>1</UseG_J>
+          <!-- Cell const and series R are applicable only for wide range sensors. -->
+          <SeriesR>0.0000</SeriesR>
+          <CellConst>2000.0000</CellConst>
+          <ConductivityType>0</ConductivityType>
+          <Coefficients equation="0" >
+            <A>0.00000000e+000</A>
+            <B>0.00000000e+000</B>
+            <C>0.00000000e+000</C>
+            <D>0.00000000e+000</D>
+            <M>0.0</M>
+            <CPcor>-9.57000000e-008</CPcor>
+          </Coefficients>
+          <Coefficients equation="1" >
+            <G>-9.87245500e-001</G>
+            <H>1.43655400e-001</H>
+            <I>-2.30343600e-004</I>
+            <J>3.73883700e-005</J>
+            <CPcor>-9.57000000e-008</CPcor>
+            <CTcor>3.2500e-006</CTcor>
+            <!-- WBOTC not applicable unless ConductivityType = 1. -->
+            <WBOTC>0.00000000e+000</WBOTC>
+          </Coefficients>
+          <Slope>1.00000000</Slope>
+          <Offset>0.00000</Offset>
+        </ConductivitySensor>
+      </Sensor>
+      <Sensor index="2" SensorID="46" >
+        <PressureSensor SensorID="46" >
+          <SerialNumber>7053</SerialNumber>
+          <CalibrationDate>28-Mar-12</CalibrationDate>
+          <PA0>5.02995400e-002</PA0>
+          <PA1>4.86506500e-004</PA1>
+          <PA2>-4.80463500e-012</PA2>
+          <PTEMPA0>-6.20744800e+001</PTEMPA0>
+          <PTEMPA1>5.33108500e+001</PTEMPA1>
+          <PTEMPA2>-2.65365300e-001</PTEMPA2>
+          <PTCA0>5.27127000e+005</PTCA0>
+          <PTCA1>1.09094500e+001</PTCA1>
+          <PTCA2>-2.92158400e-001</PTCA2>
+          <PTCB0>2.52706200e+001</PTCB0>
+          <PTCB1>-4.75000000e-004</PTCB1>
+          <PTCB2>0.00000000e+000</PTCB2>
+          <Offset>0.000000</Offset>
+        </PressureSensor>
+      </Sensor>
+      <Sensor index="3" SensorID="38" >
+        <OxygenSensor SensorID="38" >
+          <SerialNumber>2301</SerialNumber>
+          <CalibrationDate>07-Apr-12</CalibrationDate>
+          <Use2007Equation>1</Use2007Equation>
+          <CalibrationCoefficients equation="0" >
+            <!-- Coefficients for Owens-Millard equation. -->
+            <Boc>0.0000</Boc>
+            <Soc>0.0000e+000</Soc>
+            <offset>0.0000</offset>
+            <Pcor>0.00e+000</Pcor>
+            <Tcor>0.0000</Tcor>
+            <Tau>0.0</Tau>
+          </CalibrationCoefficients>
+          <CalibrationCoefficients equation="1" >
+            <!-- Coefficients for Sea-Bird equation - SBE calibration in 2007 and later. -->
+            <Soc>4.1906e-001</Soc>
+            <offset>-0.4926</offset>
+            <A>-2.0878e-003</A>
+            <B> 8.6737e-005</B>
+            <C>-1.3575e-006</C>
+            <D0> 2.5826e+000</D0>
+            <D1> 1.92634e-004</D1>
+            <D2>-4.64803e-002</D2>
+            <E> 3.6000e-002</E>
+            <Tau20> 1.8900</Tau20>
+            <H1>-3.3000e-002</H1>
+            <H2> 5.0000e+003</H2>
+            <H3> 1.4500e+003</H3>
+          </CalibrationCoefficients>
+        </OxygenSensor>
+      </Sensor>
+      <Sensor index="4" SensorID="43" >
+        <pH_Sensor SensorID="43" >
+          <SerialNumber>0868</SerialNumber>
+          <CalibrationDate>02-Mar-12</CalibrationDate>
+          <Slope>4.6377</Slope>
+          <Offset>2.5077</Offset>
+        </pH_Sensor>
+      </Sensor>
+      <Sensor index="5" SensorID="20" >
+        <FluoroWetlabECO_AFL_FL_Sensor SensorID="20" >
+          <SerialNumber>FLNTUS-2620</SerialNumber>
+          <CalibrationDate>05-Apr-12</CalibrationDate>
+          <ScaleFactor>1.50000000e+001</ScaleFactor>
+          <!-- Dark output -->
+          <Vblank>0.0660</Vblank>
+        </FluoroWetlabECO_AFL_FL_Sensor>
+      </Sensor>
+      <Sensor index="6" SensorID="67" >
+        <TurbidityMeter SensorID="67" >
+          <SerialNumber>FLNTUS-2620</SerialNumber>
+          <CalibrationDate>05-Apr-12</CalibrationDate>
+          <ScaleFactor>40.000000</ScaleFactor>
+          <!-- Dark output -->
+          <DarkVoltage>0.060000</DarkVoltage>
+        </TurbidityMeter>
+      </Sensor>
+      <Sensor index="7" SensorID="42" >
+        <PAR_BiosphericalLicorChelseaSensor SensorID="42" >
+          <SerialNumber>PARS-264</SerialNumber>
+          <CalibrationDate>28-Mar-12</CalibrationDate>
+          <M>0.88400000</M>
+          <B>1.36300000</B>
+          <CalibrationConstant>1000000000.00000000</CalibrationConstant>
+          <Multiplier>1.35900000</Multiplier>
+          <Offset>0.00000000</Offset>
+        </PAR_BiosphericalLicorChelseaSensor>
+      </Sensor>
+    </SensorArray>
+  </Instrument>
+</SBE_InstrumentConfiguration>

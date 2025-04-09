@@ -124,88 +124,32 @@ def process_cnv(
     noop = lambda *args, **kwargs: None
     log = log or noop
 
-    num_steps = 7
+    num_steps = len(CONFIG.process_sequence)
     def send_step(name, num):
         if send:
             send.put(("process_step", name, num, num_steps))
 
-
-    send_step("Filter", 1)
-    cnvpath = process_step(
-        ctdfile,
-        sbe.filter,
-        "C",
-        "CF",
-        "CNV file filtered successfully!",
-        "Error while filtering the CNV file!",
-    )
-    log(ctdfile, cnvpath, sbe.last_command)
-
-    send_step("Align", 2)
-    cnvpath = process_step(
-        ctdfile,
-        sbe.align_ctd,
-        "CF",
-        "CFA",
-        "CNV file aligned successfully!",
-        "Error while aligning the CNV file!",
-    )
-    log(ctdfile, cnvpath, sbe.last_command)
-
-    send_step("Cell Thermal Mass", 3)
-    cnvpath = process_step(
-        ctdfile,
-        sbe.cell_thermal_mass,
-        "CFA",
-        "CFAC",
-        "CNV file loop edited successfully!",
-        "Error while loop editing the CNV file!",
-    )
-    log(ctdfile, cnvpath, sbe.last_command)
-
-    send_step("Loop Edit", 4)
-    cnvpath = process_step(
-        ctdfile,
-        sbe.loop_edit,
-        "CFAC",
-        "CFACL",
-        "CNV file loop edited successfully!",
-        "Error while loop editing the CNV file!",
-    )
-    log(ctdfile, cnvpath, sbe.last_command)
-
-    send_step("Wild Edit", 5)
-    cnvpath = process_step(
-        ctdfile,
-        sbe.wild_edit,
-        "CFACL",
-        "CFACLW",
-        "CNV file loop edited successfully!",
-        "Error while loop editing the CNV file!",
-       )
-    log(ctdfile, cnvpath, sbe.last_command)
-
-    send_step("Derive", 6)
-    cnvpath = process_step(
-        ctdfile,
-        sbe.derive,
-        "CFACLW",
-        "CFACLWD",
-        "CNV file derived successfully!",
-        "Error while deriving the CNV file!",
-    )
-    log(ctdfile, cnvpath, sbe.last_command)
-
-    send_step("Bin Average", 7)
-    cnvpath = process_step(
-        ctdfile,
-        sbe.bin_avg,
-        "CFACLWD",
-        "CFACLWDB",
-        "CNV file bin averaged successfully!",
-        "Error while bin averaging the CNV file!",
-    )
-    log(ctdfile, cnvpath, sbe.last_command)
+    target_file_ext = '_C' # from dat_cnv
+    allowed_func_names = ['filter', 'align_ctd', 'cell_thermal_mass', 'loop_edit', 'wild_edit', 'derive', 'bin_avg', 'derive_teos10']
+    for i, step in enumerate(CONFIG.process_sequence):
+        func_name = step['function']
+        if func_name not in allowed_func_names:
+            raise ValueError(f"Invalid function name: {func_name}")
+                
+        psa_file = step['psa']
+        append = step['append']
+        send_step(func_name, i+1)
+        result_file_ext = f"{target_file_ext}{append}"
+        cnvpath = process_step(
+            ctdfile,
+            getattr(sbe, func_name),
+            target_file_ext,
+            result_file_ext,
+            f"CNV file operation successful: {func_name}",
+            f"Error while performing operation : {func_name}",
+        )
+        log(ctdfile, cnvpath, sbe.last_command)
+        target_file_ext = result_file_ext
 
     return cnvpath
 

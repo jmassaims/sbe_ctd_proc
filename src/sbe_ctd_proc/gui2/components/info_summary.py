@@ -2,6 +2,7 @@ import dataclasses
 from nicegui import ui
 from sbe_ctd_proc.config import CONFIG
 from sbe_ctd_proc.ctd_file import CTDFile
+from ..widgets import error_message
 
 @ui.refreshable
 def build_file_info_summary_view(ctdfile: CTDFile | None):
@@ -47,11 +48,15 @@ def build_file_info_summary_view(ctdfile: CTDFile | None):
     # Database table
     db = CONFIG.get_db()
     if db:
-        data = db.get_ctd_data(ctdfile.base_file_name)
+        try:
+            data = db.get_ctd_data(ctdfile.base_file_name)
 
-        rows = []
-        for f in dataclasses.fields(data):
-            value = getattr(data, f.name)
-            rows.append({'name': f.name, 'value': value})
+            rows = []
+            for f in dataclasses.fields(data):
+                value = getattr(data, f.name)
+                rows.append({'name': f.name, 'value': value})
 
-        ui.table(rows=rows, row_key='name', title='Database').props('hide-header')
+            ui.table(rows=rows, row_key='name', title='Database').props('hide-header')
+        except LookupError as e:
+            ui.label('Database').classes('text-h5')
+            error_message(str(e))

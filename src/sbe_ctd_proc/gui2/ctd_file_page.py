@@ -131,6 +131,7 @@ def ctd_file_page(base_file_name: str):
         error_message('Files in processing and done!')
 
     # Tabs: Chart, Scan Counts
+    show_chart_tab = cnv_files is not None and len(cnv_files) > 0
 
     # find derive step cnv file
     # TODO move code to utility
@@ -149,7 +150,8 @@ def ctd_file_page(base_file_name: str):
             build_file_info_summary_view.refresh(ctdfile)
 
     with ui.tabs(on_change=lambda e: on_tab_change(e.value)) as tabs:
-        chart_tab = ui.tab('Chart')
+        if show_chart_tab:
+            chart_tab = ui.tab('Chart')
 
         info_tab = ui.tab('Info')
 
@@ -171,13 +173,15 @@ def ctd_file_page(base_file_name: str):
 
 
     # flex auto to fill vertical space
-    with ui.tab_panels(tabs, value = chart_tab).classes('w-full').style('flex: auto'):
-        with ui.tab_panel(chart_tab):
-            if working_dir and cnv_files:
+    selected_tab = chart_tab if show_chart_tab else info_tab
+    with ui.tab_panels(tabs, value=selected_tab).classes('w-full').style('flex: auto'):
+        if show_chart_tab and cnv_files:
+            with ui.tab_panel(chart_tab):
                 PlotSection(ctdfile, cnv_files)
 
         with ui.tab_panel(info_tab):
-            build_file_info_summary_view(None)
+            # render now (pass ctdfile) if not showing chart tab
+            build_file_info_summary_view(None if show_chart_tab else ctdfile)
 
         if derive_file:
             with ui.tab_panel(sc_tab):

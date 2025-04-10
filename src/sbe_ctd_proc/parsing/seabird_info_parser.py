@@ -289,3 +289,15 @@ class SeabirdInfoParser():
                     return line
 
         return None
+
+    def get_header_lines(self) -> list[str]:
+        """Get header lines stripped of whitespace up to and including *END*"""
+        lines: list[str] = []
+        with open(self.file_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                lines.append(line)
+                if line.startswith('*END*'):
+                    break
+
+        return lines

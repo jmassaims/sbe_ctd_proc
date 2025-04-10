@@ -2,7 +2,7 @@ import logging
 import os
 from typing import Optional
 
-from nicegui import ui
+from nicegui import ui, html
 
 from ..analysis import check_for_negatives
 from .processing_state import PROC_STATE
@@ -171,6 +171,8 @@ def ctd_file_page(base_file_name: str):
                     ui.badge(str(negative_col_count), color='red') \
                         .props('floating').style('top: 2px;')
 
+        hex_tab = ui.tab('Hex File')
+
 
     # flex auto to fill vertical space
     selected_tab = chart_tab if show_chart_tab else info_tab
@@ -190,6 +192,10 @@ def ctd_file_page(base_file_name: str):
         if bin_file:
             with ui.tab_panel(neg_tab):
                 build_negative_cols_view(bin_file, negative_cols)
+
+        with ui.tab_panel(hex_tab):
+            lines = ctdfile.info.get_header_lines()
+            html.textarea(inner_html='\n'.join(lines)).classes('w-full h-full')
 
 
 def get_prev_next_files(current_name: str) -> tuple[Optional[CTDFile], Optional[CTDFile]]:

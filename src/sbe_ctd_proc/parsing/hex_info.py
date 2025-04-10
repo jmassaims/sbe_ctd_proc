@@ -46,6 +46,15 @@ class HexInfo(SeabirdInfoParser):
         'System UpLoad Time'
     ]
 
+    __all_known_date_keys = [
+        'cast',
+        'NMEA UTC (Time)',
+        'System UTC',
+        'SEACAT PROFILER',
+        'SeacatPlus',
+        'System UpLoad Time'
+    ]
+
     # use date from another line if cast line not found.
     cast_date_fallback = True
 
@@ -56,7 +65,7 @@ class HexInfo(SeabirdInfoParser):
         return self.get("Temperature SN")
 
 
-    def get_cast_date(self) -> DateInfo:
+    def get_cast_date(self, fallback: bool | None = None) -> DateInfo:
         """
         Find and parse the cast date.
 
@@ -69,16 +78,20 @@ class HexInfo(SeabirdInfoParser):
         5. SeacatPlus
         6. System UpLoad Time
 
+        @param fallback whether to fallback to other dates if cast line fails (defaults to cast_date_fallback)
         @returns DateInfo
         @throws KeyError if no dates or cast date line not found (depending on cast_date_fallback)
         @throws ValueError if parsing date failed.
         """
+        if fallback is None:
+            fallback = self.cast_date_fallback
+
         di = None
         # look for usual cast line
         try:
             di = self._get_simple_cast_date()
         except KeyError as e:
-            if self.cast_date_fallback:
+            if fallback:
                 logging.debug("Attempting cast date fallback, no cast line in: %s", self.file_path)
             else:
                 raise e
@@ -88,7 +101,7 @@ class HexInfo(SeabirdInfoParser):
             di = self._get_combined_cast_date()
 
         if di is None:
-            if self.cast_date_fallback:
+            if fallback:
                 di = self._find_next_best_date()
             else:
                 # code path logic error above.
@@ -98,10 +111,21 @@ class HexInfo(SeabirdInfoParser):
         logging.debug(f"cast date {di.datetime} from: {di.line}")
         return di
 
-    def get_all_dates(self) -> dict[str, datetime]:
-        """Get all known dates in the file"""
+    def get_all_dates(self) -> dict[str, DateInfo | dict]:
+        """Get all known dates in the file
+        Values are dict when error occurs.
+        """
         d = {}
-        # TODO
+        for name in self.__all_known_date_keys:
+            try:
+                d[name] = self._get_date(name)
+            except LookupError:
+                pass
+            except Exception as e:
+                # this is a bit hacky, but this method is only be used for the Info tab.
+                # TODO ideally get the line when there's a ValueError
+                d[name] = {'key': name, 'datetime': None, 'line': '???', 'error': str(e)}
+
         return d
 
     def _get_simple_cast_date(self) -> DateInfo:
@@ -190,6 +214,8 @@ class HexInfo(SeabirdInfoParser):
             return self._get_seacatprofiler_date()
         elif key == 'SeacatPlus':
             return self._get_seacatplus_date()
+        elif key == 'cast':
+            return self.get_cast_date(fallback=False)
         else:
             return self._get_simple_date(key)
 
@@ -206,8 +232,8 @@ class HexInfo(SeabirdInfoParser):
         # though can have extra space between date and time.
         # TODO probably timezone issues here. Should be UTC if in key text?
         dt = datetime.strptime(value, format)
-        # TODO ideally would lookup the raw line instead of recreating
-        return DateInfo(dt, key, f'RECREATED * {key} = {value}')
+        # TODO ideally would lookup the raw line instead of recreating text this way
+        return DateInfo(dt, key, f' * {key} = {value}')
 
     def _get_seacatplus_date(self) -> DateInfo:
         """

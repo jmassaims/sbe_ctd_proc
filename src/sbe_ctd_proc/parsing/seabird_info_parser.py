@@ -282,7 +282,7 @@ class SeabirdInfoParser():
         return xmls[0].xml
 
     def find_unknown_line(self, start_text: str) -> str | None:
-        """Search all sectiions for unknown line starting with given text."""
+        """Search all sections for unknown line starting with given text."""
         for sec in self.sections:
             for line in sec.unknown_lines:
                 if line.startswith(start_text):

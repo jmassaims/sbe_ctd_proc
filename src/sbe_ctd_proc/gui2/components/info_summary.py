@@ -23,6 +23,13 @@ def build_file_info_summary_view(ctdfile: CTDFile | None):
         { 'name': 'Status', 'value': str(ctdfile.status())},
     ]
 
+    if CONFIG.latitude_method != 'ask' and CONFIG.lookup_latitude:
+        try:
+            lat = CONFIG.lookup_latitude(ctdfile.base_file_name)
+        except Exception as e:
+            lat = repr(e)
+        rows.append({'name': f'Latitude ({CONFIG.latitude_method})', 'value': lat})
+
     ui.table(columns=cols, rows=rows, row_key='name', title='CTDFile (used for processing)')\
         .props('hide-header')
 

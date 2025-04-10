@@ -107,9 +107,9 @@ class OceanDB:
 
             if ctd_deployment.empty:
                 # filename not in the db
-                raise LookupError(f'no ctd_data record matches FileName startswith "{base_file_name}"')
+                raise LookupError(f'no ctd_data record FileName startswith "{base_file_name}"')
             elif len(ctd_deployment) > 1:
-                raise LookupError(f'multiple ctd_data records match FileName stratswith "{base_file_name}"')
+                raise LookupError(f'multiple ctd_data records FileName stratswith "{base_file_name}"')
 
         rec = CTDdataRecord(
             basename=base_file_name,

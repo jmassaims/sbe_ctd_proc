@@ -282,10 +282,22 @@ class SeabirdInfoParser():
         return xmls[0].xml
 
     def find_unknown_line(self, start_text: str) -> str | None:
-        """Search all sectiions for unknown line starting with given text."""
+        """Search all sections for unknown line starting with given text."""
         for sec in self.sections:
             for line in sec.unknown_lines:
                 if line.startswith(start_text):
                     return line
 
         return None
+
+    def get_header_lines(self) -> list[str]:
+        """Get header lines stripped of whitespace up to and including *END*"""
+        lines: list[str] = []
+        with open(self.file_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                lines.append(line)
+                if line.startswith('*END*'):
+                    break
+
+        return lines

@@ -8,7 +8,8 @@ from ..analysis import check_for_negatives
 from .processing_state import PROC_STATE
 from ..config import CONFIG
 from ..ctd_file import CTDFile
-from .components import PlotSection, build_negative_cols_view, build_scan_counts_view
+from .components import PlotSection, build_negative_cols_view, build_scan_counts_view, \
+    build_file_info_summary_view
 from .widgets import error_message
 
 
@@ -142,8 +143,15 @@ def ctd_file_page(base_file_name: str):
         matching = [f for f in cnv_files if f.name.endswith('B.cnv')]
         bin_file = matching[0] if matching else None
 
-    with ui.tabs() as tabs:
+    def on_tab_change(name: str):
+        # lazy-load and refresh the Info tab when it's selected.
+        if name == 'Info':
+            build_file_info_summary_view.refresh(ctdfile)
+
+    with ui.tabs(on_change=lambda e: on_tab_change(e.value)) as tabs:
         chart_tab = ui.tab('Chart')
+
+        info_tab = ui.tab('Info')
 
         if derive_file:
             sc_tab = ui.tab('Scan Counts')
@@ -167,6 +175,9 @@ def ctd_file_page(base_file_name: str):
         with ui.tab_panel(chart_tab):
             if working_dir and cnv_files:
                 PlotSection(ctdfile, cnv_files)
+
+        with ui.tab_panel(info_tab):
+            build_file_info_summary_view(None)
 
         if derive_file:
             with ui.tab_panel(sc_tab):

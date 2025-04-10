@@ -330,8 +330,8 @@ class Config:
             if not self.db_enabled:
                 return None
 
-            oceandb = self.__init_db()
-            return oceandb
+            self.oceandb = self.__init_db()
+            return self.oceandb
 
 
 CONFIG = Config()

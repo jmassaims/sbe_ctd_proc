@@ -54,6 +54,8 @@ class PlotSection:
             selected = self.measurements_dialog.get_selected()
             if len(selected) == 0:
                 include = {'tv290C'}
+            else:
+                include = set(selected)
 
         fig = plot_for_cnv_file(instr_data=instrument_data, include=include)
 

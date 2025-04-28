@@ -101,6 +101,10 @@ class Config:
 
     latitude_spreadsheet_file: Path
 
+    # charts
+    chart_axis: dict[str, list[float]]
+    sensor_map: dict[str, list[str]]
+
     # ---- initialized attributes ----
 
     # Lookup latitude using the configured implementation.
@@ -137,6 +141,7 @@ class Config:
 
                 self.check_ctd_config_dir()
                 self.setup_latitude_service(toml_doc)
+                self.setup_charts(toml_doc)
 
         except FileNotFoundError as e:
             # if running unit tests, missing config file is expected.
@@ -292,6 +297,18 @@ class Config:
         else:
             raise Exception(f'Invalid latitude_method: {self.latitude_method}')
 
+    def setup_charts(self, toml_doc: tomlkit.TOMLDocument):
+        sensor_map: Table = toml_doc['sensor_map']
+        self.sensor_map = sensor_map.unwrap()
+
+        axis: Table = toml_doc['chart_axis']
+        self.chart_axis = axis.unwrap()
+
+        for standard_id in self.sensor_map:
+            if standard_id not in self.chart_axis:
+                raise ConfigError(f'"{standard_id}" in [sensor_map] but not [chart_axis]')
+
+
     def refresh_services(self):
         """Refresh service state that may have changed between processing runs."""
 
@@ -332,6 +349,28 @@ class Config:
 
             self.oceandb = self.__init_db()
             return self.oceandb
+
+    def get_chart_axis(self, id: str) -> list[float]:
+        """
+        get the chart axis min/max for the id
+        @throws LookupError if not found
+        """
+        try:
+            return self.chart_axis[id]
+        except KeyError:
+            pass
+
+        standard_id = None
+        # find mapping for this id
+        for x, alias in self.sensor_map.items():
+            if id in alias:
+                standard_id = x
+                break
+
+        if standard_id is None:
+            raise LookupError(f'"{id} not mapped in [sensor_map]"')
+
+        return self.chart_axis[standard_id]
 
 
 CONFIG = Config()

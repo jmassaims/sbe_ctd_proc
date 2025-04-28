@@ -2,6 +2,8 @@ import os.path
 
 import plotly.graph_objects as go
 
+from .config import CONFIG
+
 # Sea-Bird imports
 from seabirdscientific.instrument_data import cnv_to_instrument_data, InstrumentData
 import seabirdscientific.visualization as viz
@@ -99,14 +101,22 @@ def plot_for_cnv_file(cnv_file: str | None = None,
             if units:
                 title = f"{title}, {units}"
 
+        try:
+            range = CONFIG.get_chart_axis(id)
+        except LookupError:
+            range = None
+
         if axis_num == 1:
+            # first measurement
             layout['xaxis'] = dict(
                 title=title,
                 showgrid=False,
+                range=range,
                 ticks="inside",
                 ticklen=6
             )
         else:
+            # measurements after the first
             layout[f'xaxis{axis_num}'] = dict(
                 title=title,
                 showgrid=False,
@@ -116,6 +126,7 @@ def plot_for_cnv_file(cnv_file: str | None = None,
                 # https://plotly.com/python/multiple-axes/#automatically-shifting-axes
                 # clamp to 1, otherwise error
                 position = min(axis_offset * axis_num, 1.0),
+                range=range,
                 ticks='inside',
                 ticklen=6,
                 minor_ticks="inside"

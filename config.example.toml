@@ -53,7 +53,12 @@ cond = [5.0, 6.0]
 sal = [34, 35]
 
 [sensor_map]
-# map other sensor ids (list values) to standard id used in [chart_axis]
+# map other sensor ids (list values) to a standard id.
+# used in [chart_axis] and by [chart] default_sensors
 temp = ['tv290C']
 cond = ['c0S/m']
 sal = ['sal00']
+
+[chart]
+# default sensors (aka measurements) to plot. uses sensor_map
+default_sensors = ['temp', 'cond']

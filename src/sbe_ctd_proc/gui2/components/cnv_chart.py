@@ -4,7 +4,7 @@ from seabirdscientific.instrument_data import cnv_to_instrument_data, Instrument
 
 from sbe_ctd_proc.ctd_file import CTDFile
 from sbe_ctd_proc.viz_cnv import plot_for_cnv_file
-
+from sbe_ctd_proc.config import CONFIG
 
 class PlotSection:
     """CNV file selection and Measurement selection with chart"""
@@ -94,9 +94,19 @@ class MeasurementsDialog:
         self.table.update_rows(rows, clear_selection=False)
 
         if not self.table.selected:
-            # default selection using description
-            default_select = {'Temperature', 'Conductivity'}
-            selected = [r for r in self.table.rows if r['desc'] in default_select]
+            # determine default selection using config
+            selected = []
+            for id in CONFIG.chart_default_sensors:
+                try:
+                    alias = CONFIG.sensor_map[id]
+                except KeyError:
+                    alias = []
+
+                for row in self.table.rows:
+                    if row['id'] == id or row['id'] in alias:
+                        selected.append(row)
+                        # don't break, could be multiple sensors of same type
+
             self.table.selected = selected
 
     def open(self):

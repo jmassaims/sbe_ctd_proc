@@ -5,10 +5,8 @@ from pathlib import Path
 from typing import Optional
 
 import tomlkit
-import tomlkit.container
 from tomlkit.items import Item, Table
 from tomlkit.container import Container
-import tomlkit.items
 
 from .db import OceanDB
 from .latitude_spreadsheet import LatitudeSpreadsheet
@@ -53,6 +51,7 @@ config_map = {
 
     'latitude_method': ('options', 'latitude_method'),
     'latitude_spreadsheet_file': ('options', 'latitude_spreadsheet_file'),
+    'chart_default_sensors': ('chart', 'default_sensors')
     # 'label_fonts': {
     #     'toml_path': ('options', 'label_fonts'),
     #     'default': '("Arial", 14, "bold")'
@@ -102,6 +101,7 @@ class Config:
     latitude_spreadsheet_file: Path
 
     # charts
+    chart_default_sensors: list[str]
     chart_axis: dict[str, list[float]]
     sensor_map: dict[str, list[str]]
 

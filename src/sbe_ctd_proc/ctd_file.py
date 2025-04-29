@@ -10,6 +10,12 @@ def hex_path_to_base_name(hex_path: Path) -> str:
     """Get the base name used for directory names from the hex filename."""
     return hex_path.stem
 
+def FileStatus(Enum):
+    """CTD file status"""
+    RAW = 'raw'
+    PROCESSING = 'processing'
+    APPROVED = 'approved'
+
 class CTDFile:
     """high-level utility class with the different paths for a CTD file."""
 
@@ -30,7 +36,7 @@ class CTDFile:
     directory may not exist.
     """
 
-    destination_dir: Path
+    approved_dir: Path
     """Path of directory where this file is processed.
     directory may not exist.
     """
@@ -62,9 +68,9 @@ class CTDFile:
         self.hex_path = hex_path
         self.latitude = None
 
-        if hasattr(CONFIG, 'processing_path'):
-            self.processing_dir = CONFIG.processing_path / self.base_file_name
-            self.destination_dir = CONFIG.destination_path / self.base_file_name
+        if hasattr(CONFIG, 'processing_dir'):
+            self.processing_dir = CONFIG.processing_dir / self.base_file_name
+            self.approved_dir = CONFIG.approved_dir / self.base_file_name
         else:
             # this is expected for testing
             logging.warning("CTDFile.processing_path not set due to missing CONFIG attribute")
@@ -107,8 +113,8 @@ class CTDFile:
         """
         Rescan CNVs in the processing and destionation directories.
         """
-        if self.destination_dir.exists():
-            self.destination_cnvs = list(self.destination_dir.joinpath('done').glob('*.cnv'))
+        if self.approved_dir.exists():
+            self.destination_cnvs = list(self.approved_dir.joinpath('done').glob('*.cnv'))
         else:
             self.destination_cnvs = []
 
@@ -126,7 +132,7 @@ class CTDFile:
 
         total = 8
 
-        if self.destination_dir.exists():
+        if self.approved_dir.exists():
             if self.processing_dir.exists():
                 raise Exception('processing and done!?')
 
@@ -142,7 +148,7 @@ class CTDFile:
         """Determine if pending, processing, processed, done
         unknown if both processing and done.
         """
-        if self.destination_dir.exists():
+        if self.approved_dir.exists():
             if self.processing_dir.exists():
                 return 'unknown'
             else:

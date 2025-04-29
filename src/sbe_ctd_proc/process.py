@@ -315,7 +315,7 @@ def move_to_destination_dir(ctdfile: CTDFile)-> None:
 
     Reorganizes files in the directory by moving them into subdirectories.
     """
-    destination_dir = ctdfile.destination_dir
+    destination_dir = ctdfile.approved_dir
 
     if destination_dir.exists():
         raise FileExistsError(f'destination directory already exists: {destination_dir}')
@@ -337,7 +337,7 @@ def move_to_destination_dir(ctdfile: CTDFile)-> None:
             logging.warning("subdirectory already existed in processing? %s", subdir)
 
     # reorganize files
-    for file in ctdfile.destination_dir.iterdir():
+    for file in ctdfile.approved_dir.iterdir():
         # only consider files
         if not file.is_file():
             continue
@@ -428,7 +428,7 @@ def process_hex_file(ctdfile: CTDFile,
 
     # Create instance of SBE with local processing dir psa/xmlcon files.
     sbe = SBE(
-        bin=CONFIG.sbe_bin_path,
+        bin=CONFIG.sbe_bin_dir,
         temp_path=ctdfile.processing_dir,  # default
         xmlcon=ctdfile.processing_dir / xmlcon_file.name,
         # AIMS processing modules

@@ -21,7 +21,7 @@ def ctd_file_page(base_file_name: str):
     except KeyError:
         logging.warning(f'Manager is not tracking CTDFile "{base_file_name}", trying raw')
 
-        hex_path = CONFIG.raw_path / f'{base_file_name}.hex'
+        hex_path = CONFIG.raw_dir / f'{base_file_name}.hex'
         if not hex_path.exists():
             error_message(f'HEX file does not exist: {hex_path}')
             return
@@ -40,7 +40,7 @@ def ctd_file_page(base_file_name: str):
         working_dir = ctdfile.processing_dir
         cnv_files = ctdfile.processing_cnvs
     elif file_status == 'done':
-        working_dir = ctdfile.destination_dir
+        working_dir = ctdfile.approved_dir
         cnv_files = ctdfile.destination_cnvs
     else:
         working_dir = None

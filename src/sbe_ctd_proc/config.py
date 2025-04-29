@@ -16,11 +16,11 @@ from .latitude_spreadsheet import LatitudeSpreadsheet
 # map from old config keys to new Config attrs
 old_mapping = {
     'USE_DATABASE': 'db_enabled',
-    'RAW_PATH': 'raw_path',
-    'PROCESSING_PATH': 'processing_path',
-    'DESTINATION_PATH': 'destination_path',
-    'CTD_CONFIG_PATH': 'ctd_config_path',
-    'SBEDataProcessing_PATH': 'sbe_bin_path',
+    'RAW_PATH': 'raw_dir',
+    'PROCESSING_PATH': 'processing_dir',
+    'DESTINATION_PATH': 'approved_dir',
+    'CTD_CONFIG_PATH': 'ctd_config_dir',
+    'SBEDataProcessing_PATH': 'sbe_bin_dir',
     'USE_DATABASE': 'db_enabled',
     'DATABASE_MDB_FILE': 'db_mdb_file',
     'DATABASE_MDW_FILE': 'db_mdw_file',
@@ -31,29 +31,29 @@ old_mapping = {
 }
 
 # mapping of Config attribute to config.toml path
-# by convention, names ending with _path or _file become Path values;
+# by convention, names ending with _dir or _file become Path values;
 # if they don't exist, set to None unless may_not_exist=True
 # default - set this value instead of None if config prop missing.
 # mkdir - make directory if it does not exist
 config_map = {
-    'raw_path': {
+    'raw_dir': {
         'toml_path': ('paths', 'raw'),
         'mkdir': True
     },
-    'processing_path': {
+    'processing_dir': {
         'toml_path': ('paths', 'processing'),
         'mkdir': True
     },
-    'approved_path': {
+    'approved_dir': {
         'toml_path': ('paths', 'approved'),
         'mkdir': True
     },
-    'ctd_config_path': {
+    'ctd_config_dir': {
         'toml_path': ('paths', 'ctd_config'),
-        # final CONFIG.ctd_config_path should exist, but there's fallback behavior in check_ctd_config_dir()
+        # final CONFIG.ctd_config_dir should exist, but there's fallback behavior in check_ctd_config_dir()
         'may_not_exist': True
     },
-    'sbe_bin_path': {
+    'sbe_bin_dir': {
         'toml_path': ('paths', 'SBEDataProcessing'),
         'default': r'C:\Program Files (x86)\Sea-Bird\SBEDataProcessing-Win32'
     },
@@ -112,10 +112,10 @@ class Config:
     # these attrs will always be set, but may be None if invalid
 
     # paths
-    raw_path: Path
-    processing_path: Path
-    approved_path: Path
-    sbe_bin_path: Path
+    raw_dir: Path
+    processing_dir: Path
+    approved_dir: Path
+    sbe_bin_dir: Path
     auditlog_file: Optional[Path]
 
     # database
@@ -126,7 +126,7 @@ class Config:
     db_password: str
 
     # CTD
-    ctd_config_path: Path
+    ctd_config_dir: Path
     livewire_mapping: dict
 
     # options
@@ -227,7 +227,7 @@ class Config:
     def load_config(self, toml_doc: tomlkit.TOMLDocument):
         """
         Load configuration from config.toml using the config_map definition.
-        Checks that _path and _file properties exist, otherwise sets None if not found,
+        Checks that _dir and _file properties exist, otherwise sets None if not found,
         unless property in may_not_exist.
         """
 
@@ -271,7 +271,7 @@ class Config:
             initial_value = value
 
             # naming convention for Path config values.
-            if attr.endswith('_path'):
+            if attr.endswith('_dir'):
                 assert isinstance(value, str)
                 p = Path(value).resolve()
                 if mkdir:
@@ -304,17 +304,17 @@ class Config:
     These values are set to None and may crash the app with None/NoneType errors, see above warnings.''')
 
     def check_ctd_config_dir(self):
-        """set default ctd_config_path if not configured by user"""
-        if self.ctd_config_path is None:
+        """set default ctd_config_dir if not configured by user"""
+        if self.ctd_config_dir is None:
             project_root = Path(__file__).resolve().parent.parent.parent
             path = project_root / 'config'
             if path.exists():
-                self.ctd_config_path = path
+                self.ctd_config_dir = path
             else:
-                raise ConfigError(f'[ctd] config_path not set and default config dir not found: {path}')
+                raise ConfigError(f'[ctd] config_dir not set and default config dir not found: {path}')
 
-        elif not self.ctd_config_path.is_dir():
-            raise ConfigError(f'[paths] ctd_config directory does not exist: {self.ctd_config_path}')
+        elif not self.ctd_config_dir.is_dir():
+            raise ConfigError(f'[paths] ctd_config directory does not exist: {self.ctd_config_dir}')
 
     def find_config(self) -> Path:
         """Look for the app config file in the standard locations."""

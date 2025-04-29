@@ -57,11 +57,11 @@ class Manager(AbstractContextManager):
         self.send = send
         self.recv = recv
 
-        self.raw_dir = CONFIG.raw_path
+        self.raw_dir = CONFIG.raw_dir
 
         # TODO prompt to create if missing?
-        self.processing_dir = CONFIG.processing_path
-        self.destination_dir = CONFIG.approved_path
+        self.processing_dir = CONFIG.processing_dir
+        self.destination_dir = CONFIG.approved_dir
 
         print('Manager auditlog_path', auditlog_path)
         self.audit_log = AuditLog(auditlog_path) if auditlog_path else None

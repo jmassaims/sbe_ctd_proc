@@ -61,7 +61,7 @@ class Manager(AbstractContextManager):
 
         # TODO prompt to create if missing?
         self.processing_dir = CONFIG.processing_path
-        self.destination_dir = CONFIG.destination_path
+        self.destination_dir = CONFIG.approved_path
 
         print('Manager auditlog_path', auditlog_path)
         self.audit_log = AuditLog(auditlog_path) if auditlog_path else None

@@ -31,7 +31,7 @@ class TestConfigUtil(unittest.TestCase):
         cast_date = datetime(2025, 1, 1)
         dir = get_config_dir("6180", cast_date, config_dir=self.config_dir)
         self.assertEqual('6180', dir.parts[-2])
-        self.assertEqual('SBE19plusV2_6180_20191230', dir.name)
+        self.assertEqual('SBE19plusV2_6180_20230516', dir.name)
 
 if __name__ == '__main__':
     unittest.main()

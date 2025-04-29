@@ -34,7 +34,7 @@ def overview_page():
             with ui.menu() as menu:
                 ui.menu_item('Open raw directory', lambda: explore(mgr.raw_dir))
                 ui.menu_item('Open processing directory', lambda: explore(mgr.processing_dir))
-                ui.menu_item('Open approved directory', lambda: explore(mgr.destination_dir))
+                ui.menu_item('Open approved directory', lambda: explore(mgr.approved_dir))
 
         proc_button = ui.button(default_proc_button_label, icon='play_arrow', on_click=start) \
             .bind_visibility_from(PROC_STATE, 'is_processing', value=False)

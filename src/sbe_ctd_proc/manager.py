@@ -21,7 +21,7 @@ class Manager(AbstractContextManager):
 
     raw_dir: Path
     processing_dir: Path
-    destination_dir: Path
+    approved_dir: Path
 
     # All CTD files in any of the directories
     ctdfiles: list[CTDFile]
@@ -61,7 +61,7 @@ class Manager(AbstractContextManager):
 
         # TODO prompt to create if missing?
         self.processing_dir = CONFIG.processing_dir
-        self.destination_dir = CONFIG.approved_dir
+        self.approved_dir = CONFIG.approved_dir
 
         print('Manager auditlog_path', auditlog_path)
         self.audit_log = AuditLog(auditlog_path) if auditlog_path else None
@@ -168,7 +168,7 @@ class Manager(AbstractContextManager):
 
     def __scan_done_dir(self) -> list[CTDFile]:
         ctdfiles: list[CTDFile] = []
-        for ctd_dir in self.destination_dir.iterdir():
+        for ctd_dir in self.approved_dir.iterdir():
             if not ctd_dir.is_dir():
                 # ignore files
                 continue

@@ -68,12 +68,12 @@ class CTDFile:
         self.hex_path = hex_path
         self.latitude = None
 
-        if hasattr(CONFIG, 'processing_dir'):
+        if hasattr(CONFIG, 'processing_dir') and hasattr(CONFIG, 'approved_dir'):
             self.processing_dir = CONFIG.processing_dir / self.base_file_name
             self.approved_dir = CONFIG.approved_dir / self.base_file_name
         else:
-            # this is expected for testing
-            logging.warning("CTDFile.processing_path not set due to missing CONFIG attribute")
+            # this is expected for testing but shouldn't happen when running App with a good config
+            logging.warning("CTDFile processing_dir, approved_dir attrs not set due to missing CONFIG attribute(s)")
 
     def parse_hex(self):
         """Parse serial number and cast date from hex file.

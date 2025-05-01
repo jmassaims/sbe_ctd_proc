@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Align_CTD >
+<Filter >
 <Version value="7.26.7.129" />
-<ServerName value="Align CTD" />
+<ServerName value="Filter" />
 <InputDir value="" />
 <InputFileArray size="1" GrowBy="-1" >
 <ArrayItem index="0" value="" />
@@ -10,6 +10,8 @@
 <NameAppend value="" />
   <OutputFile value="" />
 <LastProcessed value="0" />
+<TimeConstFilterA value="0.5" />
+<TimeConstFilterB value="1" />
 <CalcArray Size="5" >
 <CalcArrayItem index="0" CalcID="95" >
 <Calc UnitID="3" Ordinal="0" >
@@ -26,24 +28,23 @@
 <FullName value="Conductivity [S/m]" />
 </Calc>
 </CalcArrayItem>
-<CalcArrayItem index="3" CalcID="57" >
-<Calc UnitID="63" Ordinal="0" >
-<FullName value="Oxygen raw, SBE 43 [V]" />
-<ApplyHysteresisCorrection value="1" />
+<CalcArrayItem index="3" CalcID="93" >
+<Calc UnitID="38" Ordinal="0" >
+<FullName value="Fluorescence, WET Labs ECO-AFL/FL [mg/m^3]" />
 </Calc>
 </CalcArrayItem>
-<CalcArrayItem index="4" CalcID="201" >
+<CalcArrayItem index="4" CalcID="87" >
 <Calc UnitID="-1" Ordinal="0" >
-<FullName value="PAR/Logarithmic, Satlantic" />
-<PAR_Units value="0" />
+<FullName value="Upoly 0, Upoly 0, NTU" />
+<CalcName value="Upoly 0, NTU" />
 </Calc>
 </CalcArrayItem>
 </CalcArray>
-<ValArray size="5" >
-<ValArrayItem index="0" value="0.000000" variable_name="Pressure, Strain Gauge" />
-<ValArrayItem index="1" value="0.5" variable_name="Temperature" />
-<ValArrayItem index="2" value="0" variable_name="Conductivity" />
-<ValArrayItem index="3" value="2" variable_name="Oxygen raw, SBE 43" />
-<ValArrayItem index="4" value="0.000000" variable_name="PAR/Logarithmic, Satlantic" />
-</ValArray>
-</Align_CTD>
+<FilterTypeArray >
+<ArrayItem index="0" value="2" />
+<ArrayItem index="1" value="1" />
+<ArrayItem index="2" value="1" />
+<ArrayItem index="3" value="0" />
+<ArrayItem index="4" value="0" />
+</FilterTypeArray>
+</Filter>

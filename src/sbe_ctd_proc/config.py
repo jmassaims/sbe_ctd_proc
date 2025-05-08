@@ -304,11 +304,6 @@ class Config:
         axis: Table = toml_doc['chart_axis']
         self.chart_axis = axis.unwrap()
 
-        for standard_id in self.sensor_map:
-            if standard_id not in self.chart_axis:
-                raise ConfigError(f'"{standard_id}" in [sensor_map] but not [chart_axis]')
-
-
     def refresh_services(self):
         """Refresh service state that may have changed between processing runs."""
 

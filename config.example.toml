@@ -46,19 +46,21 @@ password = 'readonly'
 4851 = "0890"
 5530 = "0890"
 
-[chart_axis]
-# Axis min/max for different sensors
-temp = [20, 35]
-cond = [5.0, 6.0]
-sal = [34, 35]
-
 [sensor_map]
-# map other sensor ids (list values) to a standard id.
-# used in [chart_axis] and by [chart] default_sensors
+# map sensor ids (list of string values) to a standard name, which can be
+# used in [chart_axis] and [chart] default_sensors
 temp = ['tv290C']
 cond = ['c0S/m']
 sal = ['sal00']
 
 [chart]
-# default sensors (aka measurements) to plot. uses sensor_map
+# default sensors (aka measurements) to plot.
+# values can be sensor ids or names defined in sensor_map
 default_sensors = ['temp', 'cond']
+
+[chart_axis]
+# Axis min/max for different sensors
+# name can be sensor id or name defined in sensor_map
+temp = [20, 35]
+cond = [5.0, 6.0]
+sal = [34, 35]

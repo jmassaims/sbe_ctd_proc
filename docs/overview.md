@@ -28,11 +28,11 @@ Messages received from processing are handled by the `handle_msg_*` methods of
 
 ## Status
 
-The status of a CTDfile goes from `pending` to `processing` to `done`.
-This is determined by scanning the corresponding directories. The base name of the hex
-file (file name without extension) is used for processing/done directory names and is the
-primary way CTD files are identified in code. Files that are both in processing and done
-directories is ambiguous and the app warns about this situation.
+The status of a CTDfile goes from `raw` to `processing` to `approved`. (see `FileStatus`)
+This is determined by scanning the corresponding directories. The "base name" of the hex
+file (file name without extension) is used for processing/approved directory names and is the
+primary way CTD files are identified in code. Files that are both in processing and approved
+directories is ambiguous and must be manually fixed; the app warns about this situation.
 For more information, see [Process Flow](./process_flow.md).
 
 ## Config Service

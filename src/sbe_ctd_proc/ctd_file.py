@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 from pathlib import Path
+from enum import StrEnum
 
 from .parsing import HexInfo
 
@@ -10,19 +11,28 @@ def hex_path_to_base_name(hex_path: Path) -> str:
     """Get the base name used for directory names from the hex filename."""
     return hex_path.stem
 
-def FileStatus(Enum):
+class FileStatus(StrEnum):
     """CTD file status"""
+
     RAW = 'raw'
+    "File has not started processing"
+
     PROCESSING = 'processing'
+    "File is currently processing"
+
     APPROVED = 'approved'
+    "File has been approved by user"
+
+    AMBIGUOUS = 'ambiguous'
+    "File appears to be processing and approved at same time"
 
 class CTDFile:
     """high-level utility class with the different paths for a CTD file."""
 
     hex_path: Path
     """
-    Path of the hex file
-    in the directory corresponding to it status. done, processing, raw
+    Path to the hex file in the directory corresponding to it status.
+    approved, processing, raw
     """
 
     base_file_name: str
@@ -32,12 +42,12 @@ class CTDFile:
     "latitude for this file. set externally"
 
     processing_dir: Path
-    """Path of directory where this file is processed.
+    """Path to processing directory for this file.
     directory may not exist.
     """
 
     approved_dir: Path
-    """Path of directory where this file is processed.
+    """Path to approved directory for this file.
     directory may not exist.
     """
 
@@ -144,23 +154,20 @@ class CTDFile:
         else:
             return 0, total
 
-    def status(self):
-        """Determine if pending, processing, processed, done
-        unknown if both processing and done.
+    def status(self) -> FileStatus:
+        """Determine if pending, processing, approved
+        ambiguous if both processing and approved.
         """
         if self.approved_dir.exists():
             if self.processing_dir.exists():
-                return 'unknown'
+                return FileStatus.AMBIGUOUS
             else:
-                return 'done'
+                return FileStatus.APPROVED
         elif self.processing_dir.exists():
             steps, total = self.get_step_count()
-            if steps == total:
-                return 'processed'
-            else:
-                return 'processing'
+            return FileStatus.PROCESSING
         else:
-            return 'pending'
+            return FileStatus.RAW
 
     def __repr__(self) -> str:
         return f'CTDFile(hex_path="{self.hex_path}")'

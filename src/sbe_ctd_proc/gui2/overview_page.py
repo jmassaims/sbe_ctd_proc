@@ -6,7 +6,7 @@ from nicegui import ui
 
 from .dialogs import setup_file_error_dialog, setup_processing_error_dialog, setup_latitude_dialog
 from ..manager import Manager
-from ..ctd_file import CTDFile
+from ..ctd_file import CTDFile, FileStatus
 from .processing_state import PROC_STATE
 
 default_proc_button_label = 'Process All Raw'
@@ -59,10 +59,11 @@ def overview_page():
     @ui.refreshable
     def create_filters():
         toggle = ui.toggle({
-            'pending': f'{len(mgr.pending)} Raw',
-            'processing': f'{len(mgr.processing)} Processing',
-            'done': f'{len(mgr.processed)} Approved'
-        }, clearable=True)
+            'ALL': 'ALL',
+            FileStatus.RAW: f'{len(mgr.raw)} Raw',
+            FileStatus.PROCESSING: f'{len(mgr.processing)} Processing',
+            FileStatus.APPROVED: f'{len(mgr.approved)} Approved'
+        }, value='ALL')
         toggle.on_value_change(lambda e: table.filter(e.value))
 
     with ui.row().classes('items-center'):
@@ -103,10 +104,10 @@ def overview_page():
         distinct_status = set(s['status'] for s in selection)
         one_status = len(distinct_status) == 1
         # TODO change status values soon. variables names chosen for future status
-        is_raw = 'pending' in distinct_status
+        is_raw = FileStatus.RAW in distinct_status
         # TODO processing/partial (future status values)
-        is_processing = 'processed' in distinct_status or 'processing' in distinct_status
-        is_done = 'done' in distinct_status
+        is_processing = FileStatus.PROCESSING in distinct_status
+        is_approved = FileStatus.APPROVED in distinct_status
 
         if one_status and is_processing:
             label = 'Reprocess Selected'
@@ -114,8 +115,9 @@ def overview_page():
             label = 'Process Selected'
         elif is_raw and is_processing:
             label = '[Re]Process Selected'
-        elif is_done:
-            # TODO review with Jack. Currently, file processing code skips done.
+        elif is_approved:
+            # TODO:P3 better UI when selected approved
+            # file processing code skips approved files.
             # probably better to show message that selected Approved files are skipped.
             label = 'Reprocess Approved does nothing!'
         else:
@@ -189,7 +191,7 @@ class CTDFilesTable:
 
         table.add_slot('body-cell-status', '''
             <q-td key="status" :props="props">
-                <q-badge :color="{pending:'grey',processing:'orange',processed:'blue',done:'green',unknown:'red'}[props.value]">
+                <q-badge :color="{raw:'grey',processing:'blue',approved:'green',ambiguous:'red'}[props.value]">
                     {{ props.value }}
                 </q-badge>
             </q-td>
@@ -215,6 +217,9 @@ class CTDFilesTable:
         """Filter the tables rows matching the status.
         processing translates to (processing || processed)
         """
+        # translate fake ALL status
+        if status == 'ALL':
+            status = None
 
         self.filter_status = status
 
@@ -223,14 +228,13 @@ class CTDFilesTable:
             all_rows = [ctdfile_to_row(row) for row in self.mgr.ctdfiles]
             self.table.update_rows(all_rows)
         else:
-            if status == 'processing':
-                def f(s: str):
-                    return s == 'processing' or s == 'processed'
-            else:
-                def f(s: str):
-                    return s == status
+            # this will error if status string invalid
+            s = FileStatus(status)
 
-            filtered_rows = [ctdfile_to_row(row) for row in self.mgr.ctdfiles if f(row.status())]
+            def include(ctdfile: CTDFile):
+                return ctdfile.status() == s
+
+            filtered_rows = [ctdfile_to_row(f) for f in self.mgr.ctdfiles if include(f)]
             self.table.update_rows(filtered_rows)
 
         # above resets selection, but does not trigger on_select

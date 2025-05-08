@@ -8,7 +8,7 @@ from multiprocessing import Queue
 from typing import Optional
 
 from .audit_log import AuditLog
-from .ctd_file import CTDFile, hex_path_to_base_name
+from .ctd_file import CTDFile, FileStatus, hex_path_to_base_name
 from .process import process_hex_file
 from .config import CONFIG
 
@@ -29,9 +29,10 @@ class Manager(AbstractContextManager):
     "lookup CTDFile by base name"
 
     # basenames in each status
-    pending: set[str]
+    # TODO separate concerns? raw is used both for initial raw files and set_pending
+    raw: set[str]
     processing: set[str]
-    processed: set[str]
+    approved: set[str]
 
     audit_log: Optional[AuditLog]
 
@@ -68,6 +69,10 @@ class Manager(AbstractContextManager):
 
         self.lookup_latitude = lookup_latitude
 
+    # important for type checks to work in with block
+    def __enter__(self):
+        return self
+
     def __exit__(self, *exc_details):
         self.cleanup()
 
@@ -82,32 +87,30 @@ class Manager(AbstractContextManager):
         This sets pending to all files in raw that are not processing or processed.
         """
         with self._scan_lock:
-            # start with the done CTD files
-            self.ctdfiles = ctdfiles = self.__scan_done_dir()
+            # start with the approved CTD files
+            self.ctdfiles = ctdfiles = self.__scan_approved_dir()
             # generate initial lookup table
             self.ctdfile = ctdfile_lookup =  dict((f.base_file_name, f) for f in ctdfiles)
 
-            self.processed = set(f.base_file_name for f in ctdfiles)
+            self.approved = set(f.base_file_name for f in ctdfiles)
 
-            # add processing CTD files not in done
+            # add processing CTD files not in approved
             self.processing = set()
             for proc_ctdfile in self.__scan_processing_dir():
                 if proc_ctdfile.base_file_name in ctdfile_lookup:
-                    logging.warning('Done AND Processing!? %s', proc_ctdfile.base_file_name)
+                    logging.warning('Approved AND Processing!? %s', proc_ctdfile.base_file_name)
                 else:
                     ctdfiles.append(proc_ctdfile)
                     self.processing.add(proc_ctdfile.base_file_name)
                     ctdfile_lookup[proc_ctdfile.base_file_name] = proc_ctdfile
 
             # breakdown of status for files in the raw directory.
-            raw_status_counts = {
-                'pending': 0,
-                'processing': 0,
-                'processed': 0,
-                'done': 0
-            }
+            raw_status_counts = {}
+            for s in FileStatus:
+                raw_status_counts[str(s)] = 0
 
-            self.pending = set()
+
+            self.raw = set()
             raw_hex_count = 0
             for raw_hex in self.raw_dir.glob("*.hex"):
                 base_name = hex_path_to_base_name(raw_hex)
@@ -115,25 +118,25 @@ class Manager(AbstractContextManager):
 
                 existing = ctdfile_lookup.get(base_name, None)
                 if existing:
-                    # already processing or done
+                    # already processing or approved
                     raw_status_counts[existing.status()] += 1
                 else:
-                    # not done or processing
+                    # not approved or processing
                     raw_ctdfile = CTDFile(raw_hex)
                     assert raw_ctdfile.base_file_name == base_name  # being paranoid
                     ctdfiles.append(raw_ctdfile)
-                    self.pending.add(base_name)
+                    self.raw.add(base_name)
                     ctdfile_lookup[base_name] = raw_ctdfile
 
-                    raw_status_counts['pending'] += 1
+                    raw_status_counts[FileStatus.RAW] += 1
                     # sanity check
-                    if not raw_ctdfile.status() == 'pending':
-                        logging.warning(f'File should be pending but is {raw_ctdfile.status()}: {raw_ctdfile}')
+                    if not raw_ctdfile.status() == FileStatus.RAW:
+                        logging.warning(f'File should be {FileStatus.RAW} status but is {raw_ctdfile.status()}: {raw_ctdfile}')
 
 
-            n_done = len(self.processed)
+            n_approved = len(self.approved)
             n_processing = len(self.processing)
-            logging.info(f'CTDfile scan status: done={n_done}, processing={n_processing}, all raw={raw_hex_count}')
+            logging.info(f'CTDfile scan status: approved={n_approved}, processing={n_processing}, all raw={raw_hex_count}')
             logging.info(f'Status breakdown of files in raw: {raw_status_counts}')
 
         if self.on_change:
@@ -159,38 +162,36 @@ class Manager(AbstractContextManager):
                     logging.debug('Added processing CTDFile %s', ctdfile)
 
                     status = ctdfile.status()
-                    if status != 'processing' and status != 'processed':
-                        logging.warning(f'File status is {status} instead of processed/processing: {ctdfile}')
+                    if status != FileStatus.PROCESSING:
+                        logging.warning(f'File status is {status} instead of {FileStatus.PROCESSING}: {ctdfile}')
                 else:
                     logging.warning('Processing dir ignored, no hex file: %s', hex)
 
         return ctdfiles
 
-    def __scan_done_dir(self) -> list[CTDFile]:
+    def __scan_approved_dir(self) -> list[CTDFile]:
         ctdfiles: list[CTDFile] = []
         for ctd_dir in self.approved_dir.iterdir():
             if not ctd_dir.is_dir():
                 # ignore files
                 continue
 
-            done_raw = ctd_dir / 'raw'
-            if not done_raw.is_dir():
-                logging.warning('Unexpected directory structure, no raw %s', done_raw)
+            approved_raw = ctd_dir / 'raw'
+            if not approved_raw.is_dir():
+                logging.warning('Unexpected directory structure, no raw %s', approved_raw)
                 continue
 
-            hex = done_raw / f'{ctd_dir.name}.hex'
-            #hexs = list(done_raw.glob('*.hex'))
-            #assert len(hexs) == 1
+            hex = approved_raw / f'{ctd_dir.name}.hex'
 
             if hex.exists():
                 ctdfile = CTDFile(hex)
                 ctdfiles.append(ctdfile)
-                logging.debug('Added done CTDfile %s', ctdfile)
+                logging.debug('Added approved CTDfile %s', ctdfile)
 
-                if not ctdfile.status() == 'done':
-                    logging.warning(f'File status is {ctdfile.status()} instead of done: {ctdfile}')
+                if not ctdfile.status() == FileStatus.APPROVED:
+                    logging.warning(f'File status is {ctdfile.status()} instead of {FileStatus.APPROVED}: {ctdfile}')
             else:
-                logging.warning('Done dir ignored, no hex file: %s', hex)
+                logging.warning('Approved dir ignored, no hex file: %s', hex)
 
         return ctdfiles
 
@@ -205,24 +206,24 @@ class Manager(AbstractContextManager):
 
         logging.debug('set pending files: %s', basenames)
 
-        # warn about any that are processed
+        # warn about any that are already approved
         # user should move these to allow processing.
-        match_processed = self.processed & basenames_set
-        if match_processed:
+        match_approved = self.approved & basenames_set
+        if match_approved:
             # TODO user message
-            logging.warning(f'{len(match_processed)} selected files ignored. already processed: {match_processed}')
+            logging.warning(f'{len(match_approved)} selected files ignored. already approved: {match_approved}')
 
         # after scan_dirs(), valid files to process are those in pending or processing
-        valid = self.pending | self.processing
+        valid = self.raw | self.processing
 
         # Currently, hex files need to be in raw directory.
         # FUTURE could be more flexible and take Paths, no reason to restrict location.
-        unknown = basenames_set - valid - match_processed
+        unknown = basenames_set - valid - match_approved
         if unknown:
             print('WARN: selected unknown files', unknown)
 
-        self.pending = valid & basenames_set
-        logging.info(f'{len(self.pending)} files pending: {self.pending}')
+        self.raw = valid & basenames_set
+        logging.info(f'{len(self.raw)} files pending in raw: {self.raw}')
 
 
     def start(self):
@@ -230,7 +231,7 @@ class Manager(AbstractContextManager):
         assert self.recv is not None
 
         # copy pending set since we mutate it
-        pending = list(self.pending)
+        pending = list(self.raw)
 
         i = 0
         file_num = 1 # 1-based index
@@ -280,14 +281,14 @@ class Manager(AbstractContextManager):
         base_name = ctdfile.base_file_name
 
         try:
-            self.pending.remove(base_name)
+            self.raw.remove(base_name)
         except KeyError:
             # may happen when retrying a file
             pass
 
         self.processing.add(base_name)
 
-        self.send.put(("start", base_name, file_num, len(self.pending)))
+        self.send.put(("start", base_name, file_num, len(self.raw)))
 
         if self.lookup_latitude is not None:
             # attempt to get latitude from spreadsheet/database (depending on config)
@@ -304,8 +305,8 @@ class Manager(AbstractContextManager):
 
         process_hex_file(ctdfile, audit=self.audit_log, send=self.send, exist_ok=True)
 
-        self.processed.add(base_name)
-        self.send.put(("finish", base_name, file_num, len(self.processed)))
+        self.approved.add(base_name)
+        self.send.put(("finish", base_name, file_num, len(self.approved)))
 
     def check_stop_message(self):
         """Check for stop message from the app.
@@ -363,9 +364,9 @@ def start_manager(send: Queue, recv: Queue, basenames: list[str] | None = None):
             if basenames:
                 manager.set_pending(basenames)
 
-            if manager.pending:
-                print(f"Starting to process {len(manager.pending)} files")
-                send.put(("begin", len(manager.pending)))
+            if manager.raw:
+                print(f"Starting to process {len(manager.raw)} files")
+                send.put(("begin", len(manager.raw)))
                 manager.start()
                 send.put(("done",))
             else:

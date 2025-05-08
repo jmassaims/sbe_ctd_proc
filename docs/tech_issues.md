@@ -19,3 +19,11 @@ However, on another system, we saw other build errors:
 
 These errors were resolved by using Python 3.12, so we've decided to pin that version
 in this project using `uv python pin 3.12` (updates _.python-version_).
+
+## Old Status Names
+
+Status values were renamed. Some of these old names may be left and should be changed
+to the new status names for consistency, see [Process Flow](./process_flow.md).
+* pending -> raw
+* processed -> processing
+* done/destination -> approved

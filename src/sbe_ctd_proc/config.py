@@ -128,20 +128,7 @@ class Config:
                 path = self.find_config()
 
             self.config_file = path.resolve()
-
-            with open(self.config_file, 'r', newline='') as f:
-                toml_doc = tomlkit.load(f)
-
-                # configure logging before other config so log level respected
-                # TODO do this even earlier in startup?
-                self.setup_logging(toml_doc)
-
-                logging.info(f"loading config toml: {self.config_file}")
-                self.load_config(toml_doc)
-
-                self.check_ctd_config_dir()
-                self.setup_latitude_service(toml_doc)
-                self.setup_charts(toml_doc)
+            self.__read_config_file()
 
         except FileNotFoundError as e:
             # if running unit tests, missing config file is expected.
@@ -151,6 +138,26 @@ class Config:
             else:
                 logging.error('config.toml not found! see README')
                 sys.exit(1)
+
+    def __read_config_file(self):
+        """
+        Read properties from config_file TOML and initialize config attributes.
+        Note: may execute multiple times due to config reload mechanism.
+        """
+        with open(self.config_file, 'r', newline='') as f:
+                toml_doc = tomlkit.load(f)
+
+                # configure logging before other config so log level respected
+                # TODO do this even earlier in startup?
+                # Note: has no effect when run again unless we force, better to use log config file anyway.
+                self.setup_logging(toml_doc)
+
+                logging.info(f"loading config toml: {self.config_file}")
+                self.load_config(toml_doc)
+
+                self.check_ctd_config_dir()
+                self.setup_latitude_service(toml_doc)
+                self.setup_charts(toml_doc)
 
     def __init_empty_config(self):
         """setup empty data structures for when toml is missing.
@@ -265,7 +272,7 @@ class Config:
 
         format: str = logging_config['format']
 
-        logging.basicConfig(level=level, format=format)
+        logging.basicConfig(level=level, format=format, force=True)
 
     def setup_latitude_service(self, toml_doc: tomlkit.TOMLDocument):
         self.latitude_service = None
@@ -310,6 +317,9 @@ class Config:
         if self.latitude_service:
             self.latitude_service.refresh()
 
+    def reload(self):
+        """Reload the config toml file and refresh services"""
+        self.__read_config_file()
 
     def __init_db(self) -> OceanDB:
         """Initialize new OceanDB instance from config."""

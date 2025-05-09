@@ -5,10 +5,8 @@ from pathlib import Path
 from typing import Optional
 
 import tomlkit
-import tomlkit.container
 from tomlkit.items import Item, Table
 from tomlkit.container import Container
-import tomlkit.items
 
 from .db import OceanDB
 from .latitude_spreadsheet import LatitudeSpreadsheet
@@ -53,6 +51,7 @@ config_map = {
 
     'latitude_method': ('options', 'latitude_method'),
     'latitude_spreadsheet_file': ('options', 'latitude_spreadsheet_file'),
+    'chart_default_sensors': ('chart', 'default_sensors')
     # 'label_fonts': {
     #     'toml_path': ('options', 'label_fonts'),
     #     'default': '("Arial", 14, "bold")'
@@ -101,6 +100,11 @@ class Config:
 
     latitude_spreadsheet_file: Path
 
+    # charts
+    chart_default_sensors: list[str]
+    chart_axis: dict[str, list[float]]
+    sensor_map: dict[str, list[str]]
+
     # ---- initialized attributes ----
 
     # Lookup latitude using the configured implementation.
@@ -124,19 +128,7 @@ class Config:
                 path = self.find_config()
 
             self.config_file = path.resolve()
-
-            with open(self.config_file, 'r', newline='') as f:
-                toml_doc = tomlkit.load(f)
-
-                # configure logging before other config so log level respected
-                # TODO do this even earlier in startup?
-                self.setup_logging(toml_doc)
-
-                logging.info(f"loading config toml: {self.config_file}")
-                self.load_config(toml_doc)
-
-                self.check_ctd_config_dir()
-                self.setup_latitude_service(toml_doc)
+            self.__read_config_file()
 
         except FileNotFoundError as e:
             # if running unit tests, missing config file is expected.
@@ -146,6 +138,26 @@ class Config:
             else:
                 logging.error('config.toml not found! see README')
                 sys.exit(1)
+
+    def __read_config_file(self):
+        """
+        Read properties from config_file TOML and initialize config attributes.
+        Note: may execute multiple times due to config reload mechanism.
+        """
+        with open(self.config_file, 'r', newline='') as f:
+                toml_doc = tomlkit.load(f)
+
+                # configure logging before other config so log level respected
+                # TODO do this even earlier in startup?
+                # Note: has no effect when run again unless we force, better to use log config file anyway.
+                self.setup_logging(toml_doc)
+
+                logging.info(f"loading config toml: {self.config_file}")
+                self.load_config(toml_doc)
+
+                self.check_ctd_config_dir()
+                self.setup_latitude_service(toml_doc)
+                self.setup_charts(toml_doc)
 
     def __init_empty_config(self):
         """setup empty data structures for when toml is missing.
@@ -260,7 +272,7 @@ class Config:
 
         format: str = logging_config['format']
 
-        logging.basicConfig(level=level, format=format)
+        logging.basicConfig(level=level, format=format, force=True)
 
     def setup_latitude_service(self, toml_doc: tomlkit.TOMLDocument):
         self.latitude_service = None
@@ -292,12 +304,22 @@ class Config:
         else:
             raise Exception(f'Invalid latitude_method: {self.latitude_method}')
 
+    def setup_charts(self, toml_doc: tomlkit.TOMLDocument):
+        sensor_map: Table = toml_doc['sensor_map']
+        self.sensor_map = sensor_map.unwrap()
+
+        axis: Table = toml_doc['chart_axis']
+        self.chart_axis = axis.unwrap()
+
     def refresh_services(self):
         """Refresh service state that may have changed between processing runs."""
 
         if self.latitude_service:
             self.latitude_service.refresh()
 
+    def reload(self):
+        """Reload the config toml file and refresh services"""
+        self.__read_config_file()
 
     def __init_db(self) -> OceanDB:
         """Initialize new OceanDB instance from config."""
@@ -330,8 +352,30 @@ class Config:
             if not self.db_enabled:
                 return None
 
-            oceandb = self.__init_db()
-            return oceandb
+            self.oceandb = self.__init_db()
+            return self.oceandb
+
+    def get_chart_axis(self, id: str) -> list[float]:
+        """
+        get the chart axis min/max for the id
+        @throws LookupError if not found
+        """
+        try:
+            return self.chart_axis[id]
+        except KeyError:
+            pass
+
+        standard_id = None
+        # find mapping for this id
+        for x, alias in self.sensor_map.items():
+            if id in alias:
+                standard_id = x
+                break
+
+        if standard_id is None:
+            raise LookupError(f'"{id} not mapped in [sensor_map]"')
+
+        return self.chart_axis[standard_id]
 
 
 CONFIG = Config()

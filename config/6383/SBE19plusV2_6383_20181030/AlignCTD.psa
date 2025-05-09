@@ -10,7 +10,7 @@
 <NameAppend value="" />
   <OutputFile value="" />
 <LastProcessed value="0" />
-<CalcArray Size="6" >
+<CalcArray Size="5" >
 <CalcArrayItem index="0" CalcID="95" >
 <Calc UnitID="3" Ordinal="0" >
 <FullName value="Pressure, Strain Gauge [db]" />
@@ -39,7 +39,7 @@
 </Calc>
 </CalcArrayItem>
 </CalcArray>
-<ValArray size="6" >
+<ValArray size="5" >
 <ValArrayItem index="0" value="0.000000" variable_name="Pressure, Strain Gauge" />
 <ValArrayItem index="1" value="0.5" variable_name="Temperature" />
 <ValArrayItem index="2" value="0" variable_name="Conductivity" />

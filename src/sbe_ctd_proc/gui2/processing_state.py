@@ -84,6 +84,10 @@ class ProcessingState:
         await run.io_bound(move_to_approved_dir, ctdfile)
         self.mgr.scan_dirs()
 
+    def reload_config(self):
+        """reload state dependent on the app configuration"""
+        self.mgr.load_config()
+
     def respond_file_error(self, command: str):
         """Respond to a file error holding processing with: retry, abort, ignore"""
 

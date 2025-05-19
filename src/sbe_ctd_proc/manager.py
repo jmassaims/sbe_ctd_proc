@@ -34,6 +34,8 @@ class Manager(AbstractContextManager):
     processing: set[str]
     approved: set[str]
 
+    enable_auditlog: bool
+    "enable the auditlog for this Manager instance, if configured"
     audit_log: Optional[AuditLog]
 
     # Alternate latitude lookup method (spreadsheet or database).
@@ -51,23 +53,14 @@ class Manager(AbstractContextManager):
             self,
             send: Optional[Queue] = None,
             recv: Optional[Queue] = None,
-            auditlog_path: Optional[Path] = None,
-            lookup_latitude: Optional[Callable[[str], float]] = None
+            enable_auditlog = False
         ) -> None:
 
         self.send = send
         self.recv = recv
+        self.enable_auditlog = enable_auditlog
 
-        self.raw_dir = CONFIG.raw_dir
-
-        # TODO prompt to create if missing?
-        self.processing_dir = CONFIG.processing_dir
-        self.approved_dir = CONFIG.approved_dir
-
-        print('Manager auditlog_path', auditlog_path)
-        self.audit_log = AuditLog(auditlog_path) if auditlog_path else None
-
-        self.lookup_latitude = lookup_latitude
+        self.load_config()
 
     # important for type checks to work in with block
     def __enter__(self):
@@ -75,6 +68,21 @@ class Manager(AbstractContextManager):
 
     def __exit__(self, *exc_details):
         self.cleanup()
+
+    def load_config(self):
+        """
+        load/reload app config dependent state.
+        audit_log will only be loaded if Manager created with enable_auditlog True
+        """
+        self.raw_dir = CONFIG.raw_dir
+        self.processing_dir = CONFIG.processing_dir
+        self.approved_dir = CONFIG.approved_dir
+
+        # setup audit log if configured (only if enabled for this Manager)
+        auditlog_file = CONFIG.auditlog_file if self.enable_auditlog else None
+        self.audit_log = AuditLog(auditlog_file) if auditlog_file else None
+
+        self.lookup_latitude = CONFIG.lookup_latitude
 
     def cleanup(self):
         if self.audit_log:
@@ -358,7 +366,7 @@ def start_manager(send: Queue, recv: Queue, basenames: list[str] | None = None):
         basenames = None
 
     try:
-        with Manager(send, recv, auditlog_path=CONFIG.auditlog_file, lookup_latitude=CONFIG.lookup_latitude) as manager:
+        with Manager(send, recv, enable_auditlog=True) as manager:
             manager.scan_dirs()
 
             if basenames:

@@ -23,7 +23,8 @@ class TestConfigUtil(unittest.TestCase):
         self.assertEqual('SBE19plusV2_6180_20170929', dir.name)
 
     def test_before_date(self):
-        cast_date = datetime(2009, 1, 1)
+        # date before all dates in the config directory
+        cast_date = datetime(1950, 1, 1)
         with self.assertRaises(Exception):
             dir = get_config_dir("6180", cast_date)
 

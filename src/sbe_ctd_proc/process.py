@@ -309,25 +309,25 @@ def setup_processing_dir(ctdfile: CTDFile, config_folder: Path | None) -> Path:
     assert xmlcon_file is not None
     return xmlcon_file
 
-def move_to_destination_dir(ctdfile: CTDFile)-> None:
+def move_to_approved_dir(ctdfile: CTDFile)-> None:
     """
     Move the processing directory to the approved area.
 
     Reorganizes files in the directory by moving them into subdirectories.
     """
-    destination_dir = ctdfile.destination_dir
+    approved_dir = ctdfile.approved_dir
 
-    if destination_dir.exists():
-        raise FileExistsError(f'destination directory already exists: {destination_dir}')
+    if approved_dir.exists():
+        raise FileExistsError(f'destination directory already exists: {approved_dir}')
 
-    logging.info("Approved: mv %s %s", ctdfile.processing_dir, destination_dir)
+    logging.info("Approved: mv %s %s", ctdfile.processing_dir, approved_dir)
 
-    shutil.move(ctdfile.processing_dir, destination_dir)
+    shutil.move(ctdfile.processing_dir, approved_dir)
 
-    dest_raw = destination_dir / "raw"
-    dest_done = destination_dir / "done"
-    dest_psa = destination_dir / "psa"
-    dest_config = destination_dir / "config"
+    dest_raw = approved_dir / "raw"
+    dest_done = approved_dir / "done"
+    dest_psa = approved_dir / "psa"
+    dest_config = approved_dir / "config"
 
     # Ensure all sub directories are created
     for subdir in (dest_raw, dest_done, dest_psa, dest_config):
@@ -337,7 +337,7 @@ def move_to_destination_dir(ctdfile: CTDFile)-> None:
             logging.warning("subdirectory already existed in processing? %s", subdir)
 
     # reorganize files
-    for file in ctdfile.destination_dir.iterdir():
+    for file in ctdfile.approved_dir.iterdir():
         # only consider files
         if not file.is_file():
             continue
@@ -428,7 +428,7 @@ def process_hex_file(ctdfile: CTDFile,
 
     # Create instance of SBE with local processing dir psa/xmlcon files.
     sbe = SBE(
-        bin=CONFIG.sbe_bin_path,
+        bin=CONFIG.sbe_bin_dir,
         temp_path=ctdfile.processing_dir,  # default
         xmlcon=ctdfile.processing_dir / xmlcon_file.name,
         # AIMS processing modules

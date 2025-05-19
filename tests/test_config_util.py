@@ -23,7 +23,8 @@ class TestConfigUtil(unittest.TestCase):
         self.assertEqual('SBE19plusV2_6180_20170929', dir.name)
 
     def test_before_date(self):
-        cast_date = datetime(2009, 1, 1)
+        # date before all dates in the config directory
+        cast_date = datetime(1950, 1, 1)
         with self.assertRaises(Exception):
             dir = get_config_dir("6180", cast_date)
 
@@ -31,7 +32,7 @@ class TestConfigUtil(unittest.TestCase):
         cast_date = datetime(2025, 1, 1)
         dir = get_config_dir("6180", cast_date, config_dir=self.config_dir)
         self.assertEqual('6180', dir.parts[-2])
-        self.assertEqual('SBE19plusV2_6180_20191230', dir.name)
+        self.assertEqual('SBE19plusV2_6180_20230516', dir.name)
 
 if __name__ == '__main__':
     unittest.main()

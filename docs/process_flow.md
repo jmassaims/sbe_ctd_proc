@@ -4,14 +4,26 @@ _Work in progress._
 
 ## Status
 
-The main status a file goes through is `raw` -> `processing` -> `approved`
+The status of a file proceeds through: `raw` -> `processing` -> `approved`
+This status can be determined by scanning the three corresponding directories:
+* raw - hex file in the raw directory
+* processing - directory within the processing directory
+* approved - directory within the approved directory
+* ambiguous - same directory in both processing and approved
 
-TODOC all status, CTDFile holds status
+`CTDFile` tracks this status as well as `Manager`.
 
-* raw
-* processing
-* approved
-* error
+
+### Additional Status Information
+
+A file may have extra status information, but this is more difficult to determine
+or ephemeral within the context of the App.
+
+* Partially processesed - determine by calling `CTDFile.get_step_count()`, if all steps
+done, then fully processed
+* Running - Manager communicates this via `Queue` messages
+* error - Manager message, see `ProcessingState`
+  - TODO: could persist last error in file system
 
 ## Scan Raw
 

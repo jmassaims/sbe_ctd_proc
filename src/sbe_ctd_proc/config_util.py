@@ -25,7 +25,7 @@ def get_config_dir(serial_number: str | None, cast_date: datetime | None, config
     if serial_number is None:
         raise ValueError('serial number required to get config dir')
 
-    config_dir = config_dir or CONFIG.ctd_config_path
+    config_dir = config_dir or CONFIG.ctd_config_dir
     if config_dir is None:
         raise ValueError("psa config directory missing")
 

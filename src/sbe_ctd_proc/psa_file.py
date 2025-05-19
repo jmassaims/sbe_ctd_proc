@@ -20,7 +20,8 @@ def rewrite_psa_file(psa_file: Path, latitude: float):
                     f.writelines(
                         f'<Latitude value="{latitude}" />\n'
                     )
-                    logging.info(f"Latitude set to {latitude} in PSA file {psa_file} L{i}")
+                    line_num = i + 1 # editors start counting at line 1
+                    logging.info(f"Latitude set to {latitude} in PSA file {psa_file} L{line_num}")
                 else:
                     f.writelines(line)
     except TypeError:

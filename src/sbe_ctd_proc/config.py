@@ -71,7 +71,7 @@ config_map = {
 
     'latitude_method': ('options', 'latitude_method'),
     'latitude_spreadsheet_file': ('options', 'latitude_spreadsheet_file'),
-    'process_sequence': ('options', 'process_sequence'),
+    'process_steps': ('options', 'process_steps'),
     'tz_mapping': ('options', 'tz_mapping'),
     'chart_default_sensors': ('chart', 'default_sensors')
     # 'label_fonts': {

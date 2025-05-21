@@ -124,14 +124,14 @@ def process_cnv(
     noop = lambda *args, **kwargs: None
     log = log or noop
 
-    num_steps = len(CONFIG.process_sequence)
+    num_steps = len(CONFIG.process_steps)
     def send_step(name, num):
         if send:
             send.put(("process_step", name, num, num_steps))
 
     target_file_ext = '_C' # from dat_cnv
-    allowed_func_names = ['dat_cnv', 'filter', 'align_ctd', 'cell_thermal_mass', 'loop_edit', 'wild_edit', 'derive', 'bin_avg', 'derive_teos10']
-    for i, step in enumerate(CONFIG.process_sequence):
+    allowed_func_names = ['dat_cnv', 'filter', 'align_ctd', 'cell_thermal_mass', 'loop_edit', 'wild_edit', 'derive', 'bin_avg', 'derive_teos10', 'wild_edit']
+    for i, step in enumerate(CONFIG.process_steps):
         #import ipdb; ipdb.set_trace()
         func_name = step['function']
         if func_name not in allowed_func_names:
@@ -357,56 +357,18 @@ def process_hex_file(ctdfile: CTDFile,
 
     logging.debug("%s xmlcon config file: %s", base_file_name, xmlcon_file)
 
-    # # psa files for AIMS modules
-    # #add and adjust for cellTM and Wildedit
-    # psa_files = [
-    #     "Filter.psa",
-    #     "AlignCTD.psa",
-    #     "CellTM.psa",
-    #     "LoopEdit.psa",
-    #     "WildEdit.psa",
-    #     "Derive.psa",
-    #     "BinAvg.psa",
-    # ]
-    # # Remove name appends and enter latitude
-    # for psa_file in psa_files:
-    #     psa_file_path = ctdfile.processing_dir / psa_file
-    #     rewrite_psa_file(psa_file_path, latitude)
-
-    for i, step in enumerate(CONFIG.process_sequence):
+    for i, step in enumerate(CONFIG.process_steps):
         func_name = step['function']
         psa_file = step['psa_file']
         psa_file_path = ctdfile.processing_dir / psa_file
         rewrite_psa_file(psa_file_path, latitude)
 
     # Create instance of SBE with local processing dir psa/xmlcon files.
-    # sbe = SBE(
-    #     bin=CONFIG.sbe_bin_path,
-    #     temp_path=ctdfile.processing_dir,  # default
-    #     xmlcon=ctdfile.processing_dir / xmlcon_file.name,
-    #     # AIMS processing modules
-    #     psa_dat_cnv=ctdfile.processing_dir / "DatCnv.psa",
-    #     psa_filter=ctdfile.processing_dir / "Filter.psa",
-    #     psa_align_ctd=ctdfile.processing_dir / "AlignCTD.psa",
-    #     psa_cell_thermal_mass=ctdfile.processing_dir / "CellTM.psa",
-    #     psa_loop_edit=ctdfile.processing_dir / "LoopEdit.psa",
-    #     psa_wild_edit=ctdfile.processing_dir / 'WildEdit.psa',
-    #     psa_derive=ctdfile.processing_dir / "Derive.psa",
-    #     psa_bin_avg=ctdfile.processing_dir / "BinAvg.psa",
-
-    #     # unused for AIMS processing
-    #     # psa_dat_cnv=os.path.join(cwd, 'psa', 'DatCnv.psa'),
-    #     # psa_derive_teos10=os.path.join(cwd, 'psa', 'DeriveTEOS_10.psa'),
-    #     # psa_sea_plot=os.path.join(cwd, 'psa', 'SeaPlot.psa'),
-    #     # psa_section=os.path.join(cwd, 'psa', 'Section.psa'),
-
-    # )
-
     sbe = SBE(
         bin=CONFIG.sbe_bin_dir,
         temp_path=ctdfile.processing_dir,  # default
         xmlcon=ctdfile.processing_dir / xmlcon_file.name,
-        process_sequence=CONFIG.process_sequence,
+        process_steps=CONFIG.process_steps,
     )
 
     if audit:

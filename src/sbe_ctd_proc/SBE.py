@@ -56,19 +56,7 @@ class SBE:
 
         # Default config files
         self._xmlcon = kwargs.get('xmlcon')
-        # self._psa_align_ctd = kwargs.get('psa_align_ctd')
-        # self._psa_bin_avg = kwargs.get('psa_bin_avg')
-        # self._psa_cell_thermal_mass = kwargs.get('psa_cell_thermal_mass')
-        # self._psa_dat_cnv = kwargs.get('psa_dat_cnv')
-        # self._psa_derive = kwargs.get('psa_derive')
-        # self._psa_derive_teos10 = kwargs.get('psa_derive_teos10')
-        # self._psa_filter = kwargs.get('psa_filter')
-        # self._psa_loop_edit = kwargs.get('psa_loop_edit')
-        # self._psa_sea_plot = kwargs.get('psa_sea_plot')
-        # self._psa_section = kwargs.get('psa_section')
-        # self._psa_wild_edit = kwargs.get('psa_wild_edit')
-
-        for i, step in enumerate(CONFIG.process_sequence):
+        for i, step in enumerate(CONFIG.process_steps):
             process_step = step['function']
             psa_file = step['psa_file']
             match process_step:

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Align_CTD >
+  <Version value="7.23.1" />
+  <ServerName value="Align CTD" />
+  <InputDir value="C:\AIMS\Seabird\Data\Batch" />
+  <InputFileArray size="1" GrowBy="-1" >
+    <ArrayItem index="0" value="IMOS_ANMN-NRS_CPTU_20161107_NRSDAR_FV00_CTDPROCF.cnv" />
+  </InputFileArray>
+  <OutputDir value="C:\AIMS\Seabird\Data\Batch" />
+  <NameAppend value="A" />
+  <OutputFile value="IMOS_ANMN-NRS_CPTU_20161107_NRSDAR_FV00_CTDPROCF.cnv" />
+  <LastProcessed value="0" />
+  <CalcArray Size="10" >
+    <CalcArrayItem index="0" CalcID="95" >
+      <Calc UnitID="3" Ordinal="0" >
+        <FullName value="Pressure, Strain Gauge [db]" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="1" CalcID="97" >
+      <Calc UnitID="6" Ordinal="0" >
+        <FullName value="Temperature [ITS-90, deg C]" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="2" CalcID="12" >
+      <Calc UnitID="58" Ordinal="0" >
+        <FullName value="Conductivity [S/m]" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="3" CalcID="93" >
+      <Calc UnitID="38" Ordinal="0" >
+        <FullName value="Fluorescence, WET Labs ECO-AFL/FL [mg/m^3]" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="4" CalcID="150" >
+      <Calc UnitID="45" Ordinal="0" >
+        <FullName value="Turbidity, WET Labs ECO [NTU]" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="5" CalcID="150" >
+      <Calc UnitID="45" Ordinal="1" >
+        <FullName value="Turbidity, WET Labs ECO, 2 [NTU]" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="6" CalcID="36" >
+      <Calc UnitID="23" Ordinal="1" >
+        <FullName value="Frequency 1" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="7" CalcID="18" >
+      <Calc UnitID="32" Ordinal="0" >
+        <FullName value="Descent Rate [m/s]" />
+        <WindowSize value="2.000000" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="8" CalcID="15" >
+      <Calc UnitID="11" Ordinal="0" >
+        <FullName value="Density [density, kg/m^3]" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="9" CalcID="55" >
+      <Calc UnitID="40" Ordinal="0" >
+        <FullName value="Oxygen, SBE 43 [ml/l]" />
+        <WindowSize value="2.000000" />
+        <ApplyHysteresisCorrection value="1" />
+        <ApplyTauCorrection value="1" />
+      </Calc>
+    </CalcArrayItem>
+  </CalcArray>
+  <ValArray size="10" >
+    <ValArrayItem index="0" value="0.000000" variable_name="Pressure, Strain Gauge" />
+    <ValArrayItem index="1" value="0.500000" variable_name="Temperature" />
+    <ValArrayItem index="2" value="0.000000" variable_name="Conductivity" />
+    <ValArrayItem index="3" value="0.000000" variable_name="Fluorescence, WET Labs ECO-AFL/FL" />
+    <ValArrayItem index="4" value="0.000000" variable_name="Turbidity, WET Labs ECO" />
+    <ValArrayItem index="5" value="0.000000" variable_name="Turbidity, WET Labs ECO" />
+    <ValArrayItem index="6" value="0.000000" variable_name="Frequency" />
+    <ValArrayItem index="7" value="0.000000" variable_name="Descent Rate" />
+    <ValArrayItem index="8" value="0.000000" variable_name="Density" />
+    <ValArrayItem index="9" value="2.000000" variable_name="Oxygen, SBE 43" />
+  </ValArray>
+</Align_CTD>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Loop_Edit >
+  <Version value="7.23.2" />
+  <ServerName value="Loop Edit" />
+  <InputDir value="C:\AIMS\Seabird\Data\Batch" />
+  <InputFileArray size="1" GrowBy="-1" >
+    <ArrayItem index="0" value="SBE19plus_01906390_2015_03_17_0002CFA.cnv" />
+  </InputFileArray>
+  <OutputDir value="C:\AIMS\Seabird\Data\Batch" />
+  <NameAppend value="L" />
+  <OutputFile value="SBE19plus_01906390_2015_03_17_0002CFA.cnv" />
+  <LastProcessed value="0" />
+  <MinVelocityType value="0" high="1" low="0" initialValue="0" />
+  <MinCTD_Velocity value="0.250000" />
+  <TimeWindowSize value="300.000000" />
+  <PercentMeanSpeed value="20.000000" />
+  <ExcludeMarkedBad value="1" />
+  <RemoveSurfaceSoak value="1" />
+  <UseDeckPressure value="0" />
+  <SurfaceSoakDepth value="1.000000" />
+  <SurfaceSoakDepthMin value="0.500000" />
+  <SurfaceSoakDepthMax value="2.000000" />
+</Loop_Edit>

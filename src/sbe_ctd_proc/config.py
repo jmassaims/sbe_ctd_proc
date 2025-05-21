@@ -71,6 +71,8 @@ config_map = {
 
     'latitude_method': ('options', 'latitude_method'),
     'latitude_spreadsheet_file': ('options', 'latitude_spreadsheet_file'),
+    'process_steps': ('options', 'process_steps'),
+    'tz_mapping': ('options', 'tz_mapping'),
     'chart_default_sensors': ('chart', 'default_sensors')
     # 'label_fonts': {
     #     'toml_path': ('options', 'label_fonts'),
@@ -135,6 +137,8 @@ class Config:
     latitude_method: str
 
     latitude_spreadsheet_file: Path
+
+    processing_sequence: list[str]
 
     # charts
     chart_default_sensors: list[str]

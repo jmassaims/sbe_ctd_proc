@@ -9,7 +9,7 @@
     <ArrayItem index="0" value="" />
   </InputFileArray>
 <OutputDir value="" />
-<NameAppend value="" />
+  <NameAppend value="" />
   <OutputFile value="" />
   <LastProcessed value="0" />
   <ProcessScansToEnd value="1" />
@@ -48,7 +48,7 @@
     <CalcArrayItem index="4" CalcID="17" >
       <Calc UnitID="31" Ordinal="0" >
         <FullName value="Depth [salt water, m]" />
-        <Latitude value="-23.220000" />
+<Latitude value="-12.343266666666667" />
       </Calc>
     </CalcArrayItem>
     <CalcArrayItem index="5" CalcID="84" >
@@ -96,7 +96,7 @@
     </CalcArrayItem>
   </CalcArray>
   <MiscellaneousDataForCalculations >
-    <Latitude value="-23.220000" />
+<Latitude value="-12.343266666666667" />
     <Longitude value="150.967200" />
     <DescentRateAndAcceleration >
       <WindowSize value="2.000000" />

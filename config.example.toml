@@ -30,6 +30,28 @@ latitude_method = 'ask'
 # For latitude_method='constant', only for development purposes to quickly process many files.
 #constant_latitude = -19
 
+# The order of processing steps are performed.
+# dat_cnv is first step listed but the process is handled seperately
+# in the code
+# valid steps currently are: ['dat_cnv', 'filter', 'align_ctd', 'cell_thermal_mass', 'loop_edit', 'wild_edit', 'derive', 'bin_avg', 'derive_teos10', 'wild_edit']
+process_steps = [
+    {'function' = 'dat_cnv', 'psa_file' = 'DatCnv.psa', 'append' = 'C'}, 
+    {'function' = 'cell_thermal_mass', 'psa_file' = 'CellTM.psa', 'append' = 'T'}, 
+    {'function' = 'filter', 'psa_file'= 'Filter.psa', 'append'= 'F'}, 
+    {'function' = 'align_ctd', 'psa_file'= 'AlignCTD.psa', 'append'= 'A'}, 
+    {'function' = 'loop_edit', 'psa_file'= 'LoopEdit.psa', 'append'= 'L'}, 
+    {'function' = 'derive', 'psa_file'= 'DeriveIMOS.psa', 'append'= 'D'}, 
+    {'function' = 'bin_avg', 'psa_file'= 'BinAvg.psa', 'append'= 'B'},
+]
+
+# map some OceanDB timezones to IANA timezones
+tz_mapping = [
+    {'UTC/GMT' = 'UTC'},
+    {'EST' = 'Australia/Brisbane'},
+    {'WST' = 'Australia/Perth'},
+    {'CST' = 'Australia/Darwin'},
+]
+
 [database]
 enabled = false
 mdb_file = 'C:\Users\<USER>\pathto\OceanDBMMP.mdb'

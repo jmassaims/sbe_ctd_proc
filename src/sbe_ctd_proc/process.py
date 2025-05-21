@@ -48,7 +48,7 @@ def convert_hex_to_cnv(ctdfile: CTDFile, sbe: SBE) -> None:
         print("Processing file: ", ctdfile.hex_path)
         cnvfile = sbe.dat_cnv(hex_file.read())
         try:
-            dest_file = ctdfile.processing_dir / f"{ctdfile.base_file_name}C.cnv"
+            dest_file = ctdfile.processing_dir / f"{ctdfile.base_file_name}_C.cnv"
             with open(dest_file, "w") as cnv_write_file:
                 cnv_write_file.write(cnvfile)
             print("HEX file converted: ", dest_file)
@@ -124,88 +124,36 @@ def process_cnv(
     noop = lambda *args, **kwargs: None
     log = log or noop
 
-    num_steps = 7
+    num_steps = len(CONFIG.process_steps)
     def send_step(name, num):
         if send:
             send.put(("process_step", name, num, num_steps))
 
-
-    send_step("Filter", 1)
-    cnvpath = process_step(
-        ctdfile,
-        sbe.filter,
-        "C",
-        "CF",
-        "CNV file filtered successfully!",
-        "Error while filtering the CNV file!",
-    )
-    log(ctdfile, cnvpath, sbe.last_command)
-
-    send_step("Align", 2)
-    cnvpath = process_step(
-        ctdfile,
-        sbe.align_ctd,
-        "CF",
-        "CFA",
-        "CNV file aligned successfully!",
-        "Error while aligning the CNV file!",
-    )
-    log(ctdfile, cnvpath, sbe.last_command)
-
-    send_step("Cell Thermal Mass", 3)
-    cnvpath = process_step(
-        ctdfile,
-        sbe.cell_thermal_mass,
-        "CFA",
-        "CFAC",
-        "CNV file loop edited successfully!",
-        "Error while loop editing the CNV file!",
-    )
-    log(ctdfile, cnvpath, sbe.last_command)
-
-    send_step("Loop Edit", 4)
-    cnvpath = process_step(
-        ctdfile,
-        sbe.loop_edit,
-        "CFAC",
-        "CFACL",
-        "CNV file loop edited successfully!",
-        "Error while loop editing the CNV file!",
-    )
-    log(ctdfile, cnvpath, sbe.last_command)
-
-    send_step("Wild Edit", 5)
-    cnvpath = process_step(
-        ctdfile,
-        sbe.wild_edit,
-        "CFACL",
-        "CFACLW",
-        "CNV file loop edited successfully!",
-        "Error while loop editing the CNV file!",
-       )
-    log(ctdfile, cnvpath, sbe.last_command)
-
-    send_step("Derive", 6)
-    cnvpath = process_step(
-        ctdfile,
-        sbe.derive,
-        "CFACLW",
-        "CFACLWD",
-        "CNV file derived successfully!",
-        "Error while deriving the CNV file!",
-    )
-    log(ctdfile, cnvpath, sbe.last_command)
-
-    send_step("Bin Average", 7)
-    cnvpath = process_step(
-        ctdfile,
-        sbe.bin_avg,
-        "CFACLWD",
-        "CFACLWDB",
-        "CNV file bin averaged successfully!",
-        "Error while bin averaging the CNV file!",
-    )
-    log(ctdfile, cnvpath, sbe.last_command)
+    target_file_ext = '_C' # from dat_cnv
+    allowed_func_names = ['dat_cnv', 'filter', 'align_ctd', 'cell_thermal_mass', 'loop_edit', 'wild_edit', 'derive', 'bin_avg', 'derive_teos10', 'wild_edit']
+    for i, step in enumerate(CONFIG.process_steps):
+        #import ipdb; ipdb.set_trace()
+        func_name = step['function']
+        if func_name not in allowed_func_names:
+            raise ValueError(f"Invalid function name: {func_name}")
+        if func_name == 'dat_cnv':
+            # dat_cnv is already run before this function by convert_hex_to_cnv
+            result_file_ext = '_C'
+            continue
+        psa_file = step['psa_file']
+        append = step['append']
+        send_step(func_name, i+1)
+        result_file_ext = f"{target_file_ext}{append}"
+        cnvpath = process_step(
+            ctdfile,
+            getattr(sbe, func_name),
+            target_file_ext,
+            result_file_ext,
+            f"CNV file operation successful: {func_name}",
+            f"Error while performing operation : {func_name}",
+        )
+        log(ctdfile, cnvpath, sbe.last_command)
+        target_file_ext = result_file_ext
 
     return cnvpath
 
@@ -409,44 +357,18 @@ def process_hex_file(ctdfile: CTDFile,
 
     logging.debug("%s xmlcon config file: %s", base_file_name, xmlcon_file)
 
-    # psa files for AIMS modules
-    #add and adjust for cellTM and Wildedit
-    psa_files = [
-        "Filter.psa",
-        "AlignCTD.psa",
-        "CellTM.psa",
-        "LoopEdit.psa",
-        "WildEdit.psa",
-        "Derive.psa",
-        "BinAvg.psa",
-    ]
-    # Remove name appends and enter latitude
-    for psa_file in psa_files:
+    for i, step in enumerate(CONFIG.process_steps):
+        func_name = step['function']
+        psa_file = step['psa_file']
         psa_file_path = ctdfile.processing_dir / psa_file
         rewrite_psa_file(psa_file_path, latitude)
-
 
     # Create instance of SBE with local processing dir psa/xmlcon files.
     sbe = SBE(
         bin=CONFIG.sbe_bin_dir,
         temp_path=ctdfile.processing_dir,  # default
         xmlcon=ctdfile.processing_dir / xmlcon_file.name,
-        # AIMS processing modules
-        psa_dat_cnv=ctdfile.processing_dir / "DatCnv.psa",
-        psa_filter=ctdfile.processing_dir / "Filter.psa",
-        psa_align_ctd=ctdfile.processing_dir / "AlignCTD.psa",
-        psa_cell_thermal_mass=ctdfile.processing_dir / "CellTM.psa",
-        psa_loop_edit=ctdfile.processing_dir / "LoopEdit.psa",
-        psa_wild_edit=ctdfile.processing_dir / 'WildEdit.psa',
-        psa_derive=ctdfile.processing_dir / "Derive.psa",
-        psa_bin_avg=ctdfile.processing_dir / "BinAvg.psa",
-
-        # unused for AIMS processing
-        # psa_dat_cnv=os.path.join(cwd, 'psa', 'DatCnv.psa'),
-        # psa_derive_teos10=os.path.join(cwd, 'psa', 'DeriveTEOS_10.psa'),
-        # psa_sea_plot=os.path.join(cwd, 'psa', 'SeaPlot.psa'),
-        # psa_section=os.path.join(cwd, 'psa', 'Section.psa'),
-
+        process_steps=CONFIG.process_steps,
     )
 
     if audit:

@@ -1,0 +1,2 @@
+This CTD has dual Turbidity meters (one high and one low range).
+Select the applicable sensor sensitivity for the environment conditions by making the unused sensor 'Free' in the xmlcon file before processing through Seabird software.

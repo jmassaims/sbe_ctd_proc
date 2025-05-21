@@ -152,7 +152,7 @@
           <SerialNumber></SerialNumber>
           <CalibrationDate></CalibrationDate>
           <OutputType>2</OutputType>
-          <Free>1</Free>
+          <Free>0</Free>
         </NotInUse>
       </Sensor>
       <Sensor index="7" SensorID="27" >
@@ -160,7 +160,7 @@
           <SerialNumber></SerialNumber>
           <CalibrationDate></CalibrationDate>
           <OutputType>2</OutputType>
-          <Free>1</Free>
+          <Free>0</Free>
         </NotInUse>
       </Sensor>
       <Sensor index="8" SensorID="67" >
@@ -185,7 +185,7 @@
           <SerialNumber></SerialNumber>
           <CalibrationDate></CalibrationDate>
           <OutputType>2</OutputType>
-          <Free>1</Free>
+          <Free>0</Free>
         </NotInUse>
       </Sensor>
       <Sensor index="11" SensorID="42" >
@@ -204,7 +204,7 @@
           <SerialNumber></SerialNumber>
           <CalibrationDate></CalibrationDate>
           <OutputType>2</OutputType>
-          <Free>1</Free>
+          <Free>0</Free>
         </NotInUse>
       </Sensor>
       <Sensor index="13" SensorID="27" >

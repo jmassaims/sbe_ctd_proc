@@ -147,8 +147,15 @@ class OceanDB:
 
         d2 = pd.to_datetime(d)
         t2 = pd.to_datetime(t)
+        tz = self.__map_tz(tz) # map
         zoneinfo = ZoneInfo(tz)
 
         dt = datetime(d2.year, d2.month, d2.day, t2.hour, t2.minute, t2.second, t2.microsecond, zoneinfo)
         #logging.debug('%s + %s (%s) = %s', d, t, tz, dt)
         return dt
+    
+    def __map_tz(self, tz: str) -> str:
+        """Map db timezone string to an IANA timezone string"""
+        if tz == 'UTC/GMT':
+            tz = 'UTC'
+        return tz

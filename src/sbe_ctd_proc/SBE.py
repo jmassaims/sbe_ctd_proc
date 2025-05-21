@@ -56,17 +56,47 @@ class SBE:
 
         # Default config files
         self._xmlcon = kwargs.get('xmlcon')
-        self._psa_align_ctd = kwargs.get('psa_align_ctd')
-        self._psa_bin_avg = kwargs.get('psa_bin_avg')
-        self._psa_cell_thermal_mass = kwargs.get('psa_cell_thermal_mass')
-        self._psa_dat_cnv = kwargs.get('psa_dat_cnv')
-        self._psa_derive = kwargs.get('psa_derive')
-        self._psa_derive_teos10 = kwargs.get('psa_derive_teos10')
-        self._psa_filter = kwargs.get('psa_filter')
-        self._psa_loop_edit = kwargs.get('psa_loop_edit')
-        self._psa_sea_plot = kwargs.get('psa_sea_plot')
-        self._psa_section = kwargs.get('psa_section')
-        self._psa_wild_edit = kwargs.get('psa_wild_edit')
+        # self._psa_align_ctd = kwargs.get('psa_align_ctd')
+        # self._psa_bin_avg = kwargs.get('psa_bin_avg')
+        # self._psa_cell_thermal_mass = kwargs.get('psa_cell_thermal_mass')
+        # self._psa_dat_cnv = kwargs.get('psa_dat_cnv')
+        # self._psa_derive = kwargs.get('psa_derive')
+        # self._psa_derive_teos10 = kwargs.get('psa_derive_teos10')
+        # self._psa_filter = kwargs.get('psa_filter')
+        # self._psa_loop_edit = kwargs.get('psa_loop_edit')
+        # self._psa_sea_plot = kwargs.get('psa_sea_plot')
+        # self._psa_section = kwargs.get('psa_section')
+        # self._psa_wild_edit = kwargs.get('psa_wild_edit')
+
+        for i, step in enumerate(CONFIG.process_sequence):
+            process_step = step['function']
+            psa_file = step['psa_file']
+            match process_step:
+                case 'align_ctd':
+                    self._psa_align_ctd = self._temp_dir / psa_file
+                case 'bin_avg':
+                    self._psa_bin_avg = self._temp_dir / psa_file
+                case 'cell_thermal_mass':
+                    self._psa_cell_thermal_mass = self._temp_dir / psa_file
+                case 'dat_cnv':
+                    self._psa_dat_cnv = self._temp_dir / psa_file
+                case 'derive':
+                    self._psa_derive = self._temp_dir / psa_file
+                case 'derive_teos10':
+                    self._psa_derive_teos10 = self._temp_dir / psa_file
+                case 'filter':
+                    self._psa_filter = self._temp_dir / psa_file
+                case 'loop_edit':
+                    self._psa_loop_edit = self._temp_dir / psa_file
+                case 'sea_plot':
+                    self._psa_sea_plot = self._temp_dir / psa_file
+                case 'section':
+                    self._psa_section = self._temp_dir / psa_file
+                case 'wild_edit':
+                    self._psa_wild_edit = self._temp_dir / psa_file
+                case _:
+                    raise ValueError('Unknown SBE processing step: {}'.format(step))
+    
 
     def _write_temp_file(self, content, ext='.txt'):
         """Save in memory file content to temp dir and return path."""

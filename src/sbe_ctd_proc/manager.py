@@ -250,7 +250,7 @@ class Manager(AbstractContextManager):
                 print('Stop processing')
                 break
             except Exception as e:
-                logging.exception(f'Error processing f{base_name}')
+                logging.exception(f'Error processing {base_name}')
                 self.send.put(("file_error", base_name, str(e)))
                 # expecting App to respond with abort, retry, ignore
                 # both GUIs use these same commands.

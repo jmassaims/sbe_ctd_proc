@@ -52,7 +52,7 @@ class SBE:
             raise ValueError('SBE bin path not defined, cannot execute SBE programs.')
 
         # Temporary directory to store generated files
-        self._temp_dir = kwargs.get('temp_path', CONFIG.raw_path)
+        self._temp_dir = kwargs.get('temp_path', CONFIG.raw_dir)
 
         # Default config files
         self._xmlcon = kwargs.get('xmlcon')

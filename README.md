@@ -4,9 +4,14 @@
 Batch processing for Seabird CTD Data Processing.
 Automated calibration file and CTD selection to process all files in a directory easily.
 
-This script will process .hex files in a directory and ask for latitude for each file's
-derive step as well as parse/lookup the cast date and other information.
-The app is created with [NiceGUI](https://nicegui.io)
+This app will process .hex files in a directory and move them through a simple processing
+and approval workflow. The app can be configured to lookup the latitude for file from
+a database, spreadsheet, or by asking the user. It also can determine cast date in various
+Seabird formats used over the years as well as the serial number, which is used for
+Seabird configuration lookup.
+
+The app is created with [NiceGUI](https://nicegui.io), which is a web-based Python app
+development framework.
 
 * [Technical Overview](./docs/overview.md) - highlights and explanations of important concepts in code.
 * [Process Flow](./docs/process_flow.md) - description of the flow files go through.
@@ -45,7 +50,7 @@ Any path with `<USER>` is an example value and should be fixed unless you're not
 that feature.
 
 **Tip:** you can create/select directories with File Explorer, copy them, then paste in
-your editor to paste the path, which just needs quotes around it in _config.toml_.
+your code editor to paste the path, which just needs single quotes around it in _config.toml_.
 
 * Under `[paths]`, update `raw`, `processing`, `destination`
 
@@ -53,6 +58,7 @@ your editor to paste the path, which just needs quotes around it in _config.toml
 * Update `SBEDataProcessing` if you installed SBE Data Processing to another location
 * Under `[paths]`, set `ctd_config` to the directory of psa config files if you want to
 use a different location than the `config` directory in this project.
+* configure default sensors to plot in chart and axis min/max
 
 ### psa files config directory
 

@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import logging
 import sys
 from collections.abc import Callable
@@ -7,6 +8,7 @@ from typing import Optional
 import tomlkit
 from tomlkit.items import Item, Table
 from tomlkit.container import Container
+from tomlkit.exceptions import NonExistentKey
 
 from .db import OceanDB
 from .latitude_spreadsheet import LatitudeSpreadsheet
@@ -14,11 +16,11 @@ from .latitude_spreadsheet import LatitudeSpreadsheet
 # map from old config keys to new Config attrs
 old_mapping = {
     'USE_DATABASE': 'db_enabled',
-    'RAW_PATH': 'raw_path',
-    'PROCESSING_PATH': 'processing_path',
-    'DESTINATION_PATH': 'destination_path',
-    'CTD_CONFIG_PATH': 'ctd_config_path',
-    'SBEDataProcessing_PATH': 'sbe_bin_path',
+    'RAW_PATH': 'raw_dir',
+    'PROCESSING_PATH': 'processing_dir',
+    'DESTINATION_PATH': 'approved_dir',
+    'CTD_CONFIG_PATH': 'ctd_config_dir',
+    'SBEDataProcessing_PATH': 'sbe_bin_dir',
     'USE_DATABASE': 'db_enabled',
     'DATABASE_MDB_FILE': 'db_mdb_file',
     'DATABASE_MDW_FILE': 'db_mdw_file',
@@ -29,18 +31,36 @@ old_mapping = {
 }
 
 # mapping of Config attribute to config.toml path
-# by default, names ending with _path or _file must exist or config value set to None.
+# by convention, names ending with _dir or _file become Path values;
+# if they don't exist, set to None unless may_not_exist=True
+# default - set this value instead of None if config prop missing.
+# mkdir - make directory if it does not exist
 config_map = {
-    'raw_path': ('paths', 'raw'),
-    'processing_path': ('paths', 'processing'),
-    'destination_path': ('paths', 'destination'),
-    'ctd_config_path': ('paths', 'ctd_config'),
-    'sbe_bin_path': {
+    'raw_dir': {
+        'toml_path': ('paths', 'raw'),
+        'mkdir': True
+    },
+    'processing_dir': {
+        'toml_path': ('paths', 'processing'),
+        'mkdir': True
+    },
+    'approved_dir': {
+        'toml_path': ('paths', 'approved'),
+        'mkdir': True
+    },
+    'ctd_config_dir': {
+        'toml_path': ('paths', 'ctd_config'),
+        # final CONFIG.ctd_config_dir should exist, but there's fallback behavior in check_ctd_config_dir()
+        'may_not_exist': True
+    },
+    'sbe_bin_dir': {
         'toml_path': ('paths', 'SBEDataProcessing'),
         'default': r'C:\Program Files (x86)\Sea-Bird\SBEDataProcessing-Win32'
     },
-    'auditlog_file': ('paths', 'auditlog_file'),
-
+    'auditlog_file': {
+        'toml_path': ('paths', 'auditlog_file'),
+        'may_not_exist': True
+    },
     'db_enabled': ('database', 'enabled'),
     'db_mdb_file': ('database', 'mdb_file'),
     'db_mdw_file': ('database', 'mdw_file'),
@@ -60,9 +80,25 @@ config_map = {
     # }
 }
 
-# path/file config attributes that are not required to exist.
-# ctd_config_path should exist, but it's verified in check_ctd_config_dir()
-may_not_exist = {'auditlog_file', 'ctd_config_path'}
+@dataclass
+class RenamedConfigProp:
+    old_path: tuple[str, ...]
+    message: str
+
+    def check(self, doc: tomlkit.TOMLDocument) -> str | None:
+        try:
+            item = resolve_toml_path(doc, self.old_path)
+            if item:
+                return self.message
+        except NonExistentKey:
+            pass
+
+deprecated = [
+    RenamedConfigProp(
+        ('paths', 'destination'),
+        '[paths] destination renamed to approved'
+        )
+]
 
 class ConfigError(Exception):
     """Logical configuration error with app config system."""
@@ -78,10 +114,10 @@ class Config:
     # these attrs will always be set, but may be None if invalid
 
     # paths
-    raw_path: Path
-    processing_path: Path
-    destination_path: Path
-    sbe_bin_path: Path
+    raw_dir: Path
+    processing_dir: Path
+    approved_dir: Path
+    sbe_bin_dir: Path
     auditlog_file: Optional[Path]
 
     # database
@@ -92,7 +128,7 @@ class Config:
     db_password: str
 
     # CTD
-    ctd_config_path: Path
+    ctd_config_dir: Path
     livewire_mapping: dict
 
     # options
@@ -157,6 +193,7 @@ class Config:
                 self.setup_logging(toml_doc)
 
                 logging.info(f"loading config toml: {self.config_file}")
+                self.check_problems(toml_doc)
                 self.load_config(toml_doc)
 
                 self.check_ctd_config_dir()
@@ -172,9 +209,29 @@ class Config:
         new_attr = old_mapping[key]
         return getattr(self, new_attr)
 
+    def check_problems(self, toml_doc: tomlkit.TOMLDocument):
+        """
+        Check for config file problems
+        Exits program if any problems are found.
+        """
+        problems = []
+        for rule in deprecated:
+            msg = rule.check(toml_doc)
+            if msg:
+                problems.append(rule.message)
+
+        if problems:
+            lines = '\n'.join(problems)
+            s = 's' if len(problems) > 1 else ''
+            logging.error(f'config.toml has {len(problems)} problem{s} that must be fixed:\n{lines}')
+
+            sys.exit(1)
+
+
     def load_config(self, toml_doc: tomlkit.TOMLDocument):
-        """Load configuration from config.toml
-        Checks that _path and _file properties exist, otherwise sets None if not found,
+        """
+        Load configuration from config.toml using the config_map definition.
+        Checks that _dir and _file properties exist, otherwise sets None if not found,
         unless property in may_not_exist.
         """
 
@@ -182,12 +239,16 @@ class Config:
         self.invalid = invalid
 
         for attr, info in config_map.items():
-            default_val = None
             if type(info) is tuple:
                 toml_path = info
+                default_val = None
+                may_not_exist = False
+                mkdir = False
             else:
                 toml_path = info['toml_path']
-                default_val = info['default']
+                default_val = info['default'] if 'default'in info else None
+                may_not_exist = info['may_not_exist'] if 'may_not_exist' in info else False
+                mkdir = info['mkdir'] if 'mkdir' in info else False
 
             assert type(toml_path) is tuple and len(toml_path) > 0
 
@@ -200,7 +261,7 @@ class Config:
 
             except KeyError:
                 item = None
-                # TODO this should be conditional. For example, latitude_spreadsheet_file
+                # TODO this warning should be conditional. For example, latitude_spreadsheet_file
                 # only required when latitude_method is 'spreadsheet'
                 logging.warning(f'{self.config_file} missing "{toml_path}"')
                 setattr(self, attr, default_val)
@@ -214,12 +275,17 @@ class Config:
             initial_value = value
 
             # naming convention for Path config values.
-            if attr.endswith('_path'):
+            if attr.endswith('_dir'):
                 assert isinstance(value, str)
                 p = Path(value).resolve()
-                if attr in may_not_exist or p.is_dir():
+                if mkdir:
+                    p.mkdir(parents=False, exist_ok=True)
+                    value = p
+                elif may_not_exist or p.is_dir():
+                    # keep Path value when exists or not required to exist
                     value = p
                 else:
+                    # set final value to None
                     value = None
                     invalid.append(attr)
                     logging.warning(f'{attr} directory does not exist: {initial_value}')
@@ -227,7 +293,7 @@ class Config:
             elif attr.endswith('_file'):
                 assert isinstance(value, str)
                 p = Path(value).resolve()
-                if attr in may_not_exist or p.is_file():
+                if may_not_exist or p.is_file():
                     value = p
                 else:
                     value = None
@@ -242,17 +308,17 @@ class Config:
     These values are set to None and may crash the app with None/NoneType errors, see above warnings.''')
 
     def check_ctd_config_dir(self):
-        """set default ctd_config_path if not configured by user"""
-        if self.ctd_config_path is None:
+        """set default ctd_config_dir if not configured by user"""
+        if self.ctd_config_dir is None:
             project_root = Path(__file__).resolve().parent.parent.parent
             path = project_root / 'config'
             if path.exists():
-                self.ctd_config_path = path
+                self.ctd_config_dir = path
             else:
-                raise ConfigError(f'[ctd] config_path not set and default config dir not found: {path}')
+                raise ConfigError(f'[ctd] config_dir not set and default config dir not found: {path}')
 
-        elif not self.ctd_config_path.is_dir():
-            raise ConfigError(f'[paths] ctd_config directory does not exist: {self.ctd_config_path}')
+        elif not self.ctd_config_dir.is_dir():
+            raise ConfigError(f'[paths] ctd_config directory does not exist: {self.ctd_config_dir}')
 
     def find_config(self) -> Path:
         """Look for the app config file in the standard locations."""
@@ -381,5 +447,16 @@ class Config:
 
         return self.chart_axis[standard_id]
 
+
+def resolve_toml_path(doc: tomlkit.TOMLDocument, path: tuple[str, ...]):
+    """
+    Get the toml item at the path.
+    @throws NonExistentKey if path invalid
+    """
+    item = doc
+    for x in path:
+        item = item[x] # type: ignore
+
+    return item
 
 CONFIG = Config()

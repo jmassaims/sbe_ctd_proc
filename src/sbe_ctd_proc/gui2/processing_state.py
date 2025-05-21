@@ -9,7 +9,7 @@ from nicegui import app, run, ui
 
 from ..ctd_file import CTDFile
 from ..manager import Manager, start_manager
-from ..process import move_to_destination_dir
+from ..process import move_to_approved_dir
 
 
 class ProcessingState:
@@ -81,8 +81,12 @@ class ProcessingState:
         self.send.put_nowait(('skip', self.current_basename))
 
     async def approve(self, ctdfile: CTDFile):
-        await run.io_bound(move_to_destination_dir, ctdfile)
+        await run.io_bound(move_to_approved_dir, ctdfile)
         self.mgr.scan_dirs()
+
+    def reload_config(self):
+        """reload state dependent on the app configuration"""
+        self.mgr.load_config()
 
     def respond_file_error(self, command: str):
         """Respond to a file error holding processing with: retry, abort, ignore"""

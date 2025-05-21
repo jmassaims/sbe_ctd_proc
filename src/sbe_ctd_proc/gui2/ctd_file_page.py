@@ -7,7 +7,7 @@ from nicegui import ui, html
 from ..analysis import check_for_negatives
 from .processing_state import PROC_STATE
 from ..config import CONFIG
-from ..ctd_file import CTDFile
+from ..ctd_file import CTDFile, FileStatus
 from .components import PlotSection, build_negative_cols_view, build_scan_counts_view, \
     build_file_info_summary_view
 from .widgets import error_message
@@ -21,7 +21,7 @@ def ctd_file_page(base_file_name: str):
     except KeyError:
         logging.warning(f'Manager is not tracking CTDFile "{base_file_name}", trying raw')
 
-        hex_path = CONFIG.raw_path / f'{base_file_name}.hex'
+        hex_path = CONFIG.raw_dir / f'{base_file_name}.hex'
         if not hex_path.exists():
             error_message(f'HEX file does not exist: {hex_path}')
             return
@@ -34,13 +34,13 @@ def ctd_file_page(base_file_name: str):
 
     prev_file, next_file = get_prev_next_files(base_file_name)
 
-    is_approvable = file_status == 'processed'
+    is_approvable = file_status == FileStatus.PROCESSING
 
-    if file_status.startswith('proc'):
+    if file_status == FileStatus.PROCESSING:
         working_dir = ctdfile.processing_dir
         cnv_files = ctdfile.processing_cnvs
-    elif file_status == 'done':
-        working_dir = ctdfile.destination_dir
+    elif file_status == FileStatus.APPROVED:
+        working_dir = ctdfile.approved_dir
         cnv_files = ctdfile.destination_cnvs
     else:
         working_dir = None
@@ -122,13 +122,13 @@ def ctd_file_page(base_file_name: str):
 
             approve_btn.on_click(approve)
 
-        elif file_status == 'done':
-            ui.chip('Done', color='green', text_color='white')
+        elif file_status == FileStatus.APPROVED:
+            ui.chip('Approved', color='green', text_color='white')
 
-    if file_status == 'pending':
+    if file_status == FileStatus.RAW:
         ui.label('Not processed')
-    elif file_status == 'unknown':
-        error_message('Files in processing and done!')
+    elif file_status == FileStatus.AMBIGUOUS:
+        error_message('Files in processing and approved!')
 
     # Tabs: Chart, Scan Counts
     show_chart_tab = cnv_files is not None and len(cnv_files) > 0
@@ -199,10 +199,11 @@ def ctd_file_page(base_file_name: str):
 
 
 def get_prev_next_files(current_name: str) -> tuple[Optional[CTDFile], Optional[CTDFile]]:
-    """Returns the previous and next base file names that are processing/processed.
+    """
+    Returns the previous and next base file names that are processing.
     Values are None if no previous/next.
     """
-    ctdfiles = [f for f in PROC_STATE.mgr.ctdfiles if f.status().startswith('proc')]
+    ctdfiles = [f for f in PROC_STATE.mgr.ctdfiles if f.status() == FileStatus.PROCESSING]
 
     if not ctdfiles:
         return None, None
@@ -214,7 +215,7 @@ def get_prev_next_files(current_name: str) -> tuple[Optional[CTDFile], Optional[
             break
 
     if index is None:
-        # current file not in ctdfiles. this may happen when selected done file.
+        # current file not in ctdfiles. this may happen when selected approved file.
         # -1 so next_file will be the first processing ctdfile in the list
         index = -1
 

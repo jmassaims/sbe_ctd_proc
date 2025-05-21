@@ -5,6 +5,7 @@ from nicegui import ui, app
 from .ctd_file_page import ctd_file_page
 from .overview_page import overview_page
 from ..config import CONFIG
+from .processing_state import PROC_STATE
 
 def start_gui():
     # reload=False avoids error "You must call ui.run() to start the server."
@@ -19,6 +20,7 @@ async def watch_my_file():
         # assumming Change.modified event
         try:
             CONFIG.reload()
+            PROC_STATE.reload_config()
             # reload page
             # may not be working, but not important, user can reload manually
             ui.navigate.reload()

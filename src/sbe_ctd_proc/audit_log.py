@@ -266,7 +266,7 @@ class AuditLog:
             'hex_filename': ctd_file.hex_path.name,
             'hex_dir': str(ctd_file.hex_path.parent),
             'folder_name': ctd_file.base_file_name,
-            'processed_dir': str(ctd_file.destination_dir.resolve()),
+            'processed_dir': str(ctd_file.approved_dir.resolve()),
             'cast_date': ctd_file.cast_date.strftime(self.datetime_format) if ctd_file.cast_date else '',
             'cast_date_type': ctd_file.cast_date_type or '',
             'n_sensors': len(sensor_info),

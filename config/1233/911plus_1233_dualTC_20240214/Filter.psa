@@ -44,7 +44,7 @@
     </CalcArrayItem>
     <CalcArrayItem index="6" CalcID="179" >
       <Calc UnitID="46" Ordinal="0" >
-        <FullName value="Beam Transmission, WET Labs C-Star [%]" />
+        <FullName value="Turbidity, WET Labs ECO [NTU]" />
       </Calc>
     </CalcArrayItem>
     <CalcArrayItem index="7" CalcID="59" >

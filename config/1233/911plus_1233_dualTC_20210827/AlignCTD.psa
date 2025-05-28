@@ -74,10 +74,10 @@
     </CalcArrayItem>
   </CalcArray>
   <ValArray size="12" >
-    <ValArrayItem index="0" value="0.500000" variable_name="Temperature" />
-    <ValArrayItem index="1" value="0.500000" variable_name="Temperature" />
-    <ValArrayItem index="2" value="0.000000" variable_name="Conductivity" />
-    <ValArrayItem index="3" value="0.000000" variable_name="Conductivity" />
+    <ValArrayItem index="0" value="0.00000" variable_name="Temperature" />
+    <ValArrayItem index="1" value="0.00000" variable_name="Temperature" />
+    <ValArrayItem index="2" value="0.073" variable_name="Conductivity" />
+    <ValArrayItem index="3" value="0.073" variable_name="Conductivity" />
     <ValArrayItem index="4" value="0.000000" variable_name="Fluorescence, WET Labs ECO-AFL/FL" />
     <ValArrayItem index="5" value="0.000000" variable_name="Beam Transmission, WET Labs C-Star" />
     <ValArrayItem index="6" value="0.000000" variable_name="Frequency" />

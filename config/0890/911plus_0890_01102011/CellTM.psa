@@ -17,7 +17,7 @@
     <TA_TimeConstant value="7.000000" />
   </Primary>
   <Secondary >
-    <Correct value="0" />
+    <Correct value="1" />
     <TempSensor value="1" />
     <TA_Amplitude value="0.030000" />
     <TA_TimeConstant value="7.000000" />

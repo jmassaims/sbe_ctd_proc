@@ -2,12 +2,12 @@
 <Wild_Edit >
   <Version value="7.26.7.129" />
   <ServerName value="Wild Edit" />
-<InputDir value="" />
+  <InputDir value="" />
   <InputFileArray size="1" GrowBy="-1" >
     <ArrayItem index="0" value="" />
   </InputFileArray>
-<OutputDir value="" />
-<NameAppend value="" />
+  <OutputDir value="" />
+  <NameAppend value="" />
   <OutputFile value="" />
   <LastProcessed value="0" />
   <StdDevPassOne value="2.000000" />

@@ -2,13 +2,13 @@
 <Filter >
   <Version value="7.26.7.129" />
   <ServerName value="Filter" />
-  <InputDir value="" />
+  <InputDir value="C:\AIMS\sbe_data_proc_test_files\processing\YON20240215" />
   <InputFileArray size="1" GrowBy="-1" >
-    <ArrayItem index="0" value="" />
+    <ArrayItem index="0" value="YON20240215C.cnv" />
   </InputFileArray>
-  <OutputDir value="" />
-  <NameAppend value="" />
-  <OutputFile value="" />
+  <OutputDir value="C:\AIMS\sbe_data_proc_test_files\processing\YON20240215" />
+  <NameAppend value="F" />
+  <OutputFile value="YON20240215C" />
   <LastProcessed value="0" />
   <TimeConstFilterA value="0.000000" />
   <TimeConstFilterB value="0.150000" />
@@ -43,16 +43,7 @@
         <FullName value="Fluorescence, WET Labs ECO-AFL/FL [mg/m^3]" />
       </Calc>
     </CalcArrayItem>
-<<<<<<< Updated upstream
-    <CalcArrayItem index="6" CalcID="179" >
-      <Calc UnitID="46" Ordinal="0" >
-        <FullName value="Beam Transmission, WET Labs C-Star [%]" />
-      </Calc>
-    </CalcArrayItem>
-    <CalcArrayItem index="7" CalcID="59" >
-=======
     <CalcArrayItem index="6" CalcID="59" >
->>>>>>> Stashed changes
       <Calc UnitID="-1" Ordinal="0" >
         <FullName value="PAR/Irradiance, Biospherical/Licor" />
         <PAR_Units value="0" />

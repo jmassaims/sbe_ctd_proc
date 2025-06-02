@@ -2,12 +2,12 @@
 <Cell_Thermal_Mass >
   <Version value="7.26.7.129" />
   <ServerName value="Cell Thermal Mass" />
-<InputDir value="" />
+  <InputDir value="" />
   <InputFileArray size="1" GrowBy="-1" >
     <ArrayItem index="0" value="" />
   </InputFileArray>
-<OutputDir value="" />
-<NameAppend value="" />
+  <OutputDir value="" />
+  <NameAppend value="" />
   <OutputFile value="" />
   <LastProcessed value="0" />
   <Primary >
@@ -17,7 +17,7 @@
     <TA_TimeConstant value="7.000000" />
   </Primary>
   <Secondary >
-    <Correct value="1" />
+    <Correct value="0" />
     <TempSensor value="1" />
     <TA_Amplitude value="0.030000" />
     <TA_TimeConstant value="7.000000" />

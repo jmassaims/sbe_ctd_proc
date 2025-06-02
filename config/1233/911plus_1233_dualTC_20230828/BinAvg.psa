@@ -5,7 +5,7 @@
 <InputDir value="" />
   <InputFileArray size="0" GrowBy="-1" />
 <OutputDir value="" />
-<NameAppend value="" />
+  <NameAppend value="" />
   <OutputFile value="" />
   <LastProcessed value="0" />
   <BinType value="2" />

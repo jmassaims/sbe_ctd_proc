@@ -2,21 +2,21 @@
 <Derive >
   <Version value="7.26.7.129" />
   <ServerName value="Derive" />
-  <InstrumentPath value="C:\AIMS\sbe_ctd_proc\config\0890\911plus_0890_20241120\911plus_0890_dualTC_20241120.xmlcon" />
+  <InstrumentPath value="" />
   <InstrumentMatch value="0" />
-<InputDir value="" />
+  <InputDir value="" />
   <InputFileArray size="1" GrowBy="-1" >
     <ArrayItem index="0" value="" />
   </InputFileArray>
-<OutputDir value="" />
-<NameAppend value="" />
+  <OutputDir value="" />
+  <NameAppend value="" />
   <OutputFile value="" />
   <LastProcessed value="0" />
   <CalcArray Size="2" >
     <CalcArrayItem index="0" CalcID="17" >
       <Calc UnitID="31" Ordinal="0" >
         <FullName value="Depth [salt water, m]" />
-        <Latitude value="-17.000000" />
+        <Latitude value="-19.000000" />
       </Calc>
     </CalcArrayItem>
     <CalcArrayItem index="1" CalcID="70" >
@@ -26,7 +26,7 @@
     </CalcArrayItem>
   </CalcArray>
   <MiscellaneousDataForCalculations >
-    <Latitude value="-17.000000" />
+    <Latitude value="-19.000000" />
     <Longitude value="150.967200" />
     <DescentRateAndAcceleration >
       <WindowSize value="2.000000" />

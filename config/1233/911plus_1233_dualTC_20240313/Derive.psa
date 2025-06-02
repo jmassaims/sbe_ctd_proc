@@ -1,20 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Derive >
-  <Version value="7.26.6.28" />
+  <Version value="7.26.7.129" />
   <ServerName value="Derive" />
-  <InstrumentPath value="C:\AIMS\Seabird\Config\911plus_1233_dualTC_20210827.xmlcon" />
+  <InstrumentPath value="" />
   <InstrumentMatch value="0" />
-<InputDir value="" />
-  <InputFileArray size="0" GrowBy="-1" />
-<OutputDir value="" />
-<NameAppend value="" />
+  <InputDir value="" />
+  <InputFileArray size="1" GrowBy="-1" >
+    <ArrayItem index="0" value="" />
+  </InputFileArray>
+  <OutputDir value="" />
+  <NameAppend value="" />
   <OutputFile value="" />
   <LastProcessed value="0" />
   <CalcArray Size="3" >
     <CalcArrayItem index="0" CalcID="17" >
       <Calc UnitID="31" Ordinal="0" >
         <FullName value="Depth [salt water, m]" />
-    <Latitude value="-14.339483333333334" />
+        <Latitude value="-19.000000" />
       </Calc>
     </CalcArrayItem>
     <CalcArrayItem index="1" CalcID="70" >
@@ -29,7 +31,7 @@
     </CalcArrayItem>
   </CalcArray>
   <MiscellaneousDataForCalculations >
-    <Latitude value="-14.339483333333334" />
+    <Latitude value="-19.000000" />
     <Longitude value="0.000000" />
     <DescentRateAndAcceleration >
       <WindowSize value="2.000000" />

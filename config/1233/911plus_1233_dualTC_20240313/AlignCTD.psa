@@ -2,13 +2,15 @@
 <Align_CTD >
   <Version value="7.26.7.129" />
   <ServerName value="Align CTD" />
-<InputDir value="" />
-  <InputFileArray size="0" GrowBy="-1" />
-<OutputDir value="" />
-<NameAppend value="" />
+  <InputDir value="" />
+  <InputFileArray size="1" GrowBy="-1" >
+    <ArrayItem index="0" value="" />
+  </InputFileArray>
+  <OutputDir value="" />
+  <NameAppend value="" />
   <OutputFile value="" />
   <LastProcessed value="0" />
-  <CalcArray Size="12" >
+  <CalcArray Size="9" >
     <CalcArrayItem index="0" CalcID="81" >
       <Calc UnitID="6" Ordinal="0" >
         <FullName value="Temperature [ITS-90, deg C]" />
@@ -39,52 +41,34 @@
         <FullName value="Beam Transmission, WET Labs C-Star [%]" />
       </Calc>
     </CalcArrayItem>
-    <CalcArrayItem index="6" CalcID="36" >
-      <Calc UnitID="23" Ordinal="1" >
-        <FullName value="Frequency 1" />
-      </Calc>
-    </CalcArrayItem>
-    <CalcArrayItem index="7" CalcID="18" >
-      <Calc UnitID="32" Ordinal="0" >
-        <FullName value="Descent Rate [m/s]" />
-        <WindowSize value="2.000000" />
-      </Calc>
-    </CalcArrayItem>
-    <CalcArrayItem index="8" CalcID="15" >
-      <Calc UnitID="11" Ordinal="0" >
-        <FullName value="Density [density, kg/m^3]" />
-      </Calc>
-    </CalcArrayItem>
-    <CalcArrayItem index="9" CalcID="15" >
-      <Calc UnitID="11" Ordinal="1" >
-        <FullName value="Density, 2 [density, kg/m^3]" />
-      </Calc>
-    </CalcArrayItem>
-    <CalcArrayItem index="10" CalcID="59" >
+    <CalcArrayItem index="6" CalcID="59" >
       <Calc UnitID="-1" Ordinal="0" >
         <FullName value="PAR/Irradiance, Biospherical/Licor" />
         <PAR_Units value="0" />
       </Calc>
     </CalcArrayItem>
-    <CalcArrayItem index="11" CalcID="77" >
+    <CalcArrayItem index="7" CalcID="77" >
       <Calc UnitID="-1" Ordinal="0" >
         <FullName value="SPAR, Biospherical/Licor" />
         <SPAR_Units value="0" />
       </Calc>
     </CalcArrayItem>
+    <CalcArrayItem index="8" CalcID="14" >
+      <Calc UnitID="46" Ordinal="0" >
+        <FullName value="CPAR/Corrected Irradiance [%]" />
+        <DegreesFromVertical value="0.000000" />
+      </Calc>
+    </CalcArrayItem>
   </CalcArray>
-  <ValArray size="12" >
-    <ValArrayItem index="0" value="0.00000" variable_name="Temperature" />
-    <ValArrayItem index="1" value="0.00000" variable_name="Temperature" />
-    <ValArrayItem index="2" value="0.073" variable_name="Conductivity" />
-    <ValArrayItem index="3" value="0.073" variable_name="Conductivity" />
+  <ValArray size="9" >
+    <ValArrayItem index="0" value="0.000000" variable_name="Temperature" />
+    <ValArrayItem index="1" value="0.000000" variable_name="Temperature" />
+    <ValArrayItem index="2" value="0.000000" variable_name="Conductivity" />
+    <ValArrayItem index="3" value="0.000000" variable_name="Conductivity" />
     <ValArrayItem index="4" value="0.000000" variable_name="Fluorescence, WET Labs ECO-AFL/FL" />
     <ValArrayItem index="5" value="0.000000" variable_name="Beam Transmission, WET Labs C-Star" />
-    <ValArrayItem index="6" value="0.000000" variable_name="Frequency" />
-    <ValArrayItem index="7" value="0.000000" variable_name="Descent Rate" />
-    <ValArrayItem index="8" value="0.000000" variable_name="Density" />
-    <ValArrayItem index="9" value="0.000000" variable_name="Density" />
-    <ValArrayItem index="10" value="0.000000" variable_name="PAR/Irradiance, Biospherical/Licor" />
-    <ValArrayItem index="11" value="0.000000" variable_name="SPAR, Biospherical/Licor" />
+    <ValArrayItem index="6" value="0.000000" variable_name="PAR/Irradiance, Biospherical/Licor" />
+    <ValArrayItem index="7" value="0.000000" variable_name="SPAR, Biospherical/Licor" />
+    <ValArrayItem index="8" value="0.000000" variable_name="CPAR/Corrected Irradiance" />
   </ValArray>
 </Align_CTD>

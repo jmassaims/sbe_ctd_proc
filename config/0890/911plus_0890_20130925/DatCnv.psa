@@ -2,18 +2,18 @@
 <Data_Conversion >
   <Version value="7.26.7.129" />
   <ServerName value="Data Conversion" />
-  <InstrumentPath value="C:\AIMS\sbe_ctd_proc\config\0890\911plus_0890_20241120\911plus_0890_dualTC_20241120.xmlcon" />
+  <InstrumentPath value="" />
   <InstrumentMatch value="0" />
-<InputDir value="" />
+  <InputDir value="" />
   <InputFileArray size="1" GrowBy="-1" >
     <ArrayItem index="0" value="" />
   </InputFileArray>
-<OutputDir value="" />
-<NameAppend value="" />
+  <OutputDir value="" />
+  <NameAppend value="" />
   <OutputFile value="" />
   <LastProcessed value="0" />
   <ProcessScansToEnd value="1" />
-<ScansToSkip value="" />
+  <ScansToSkip value="0" />
   <ScansToProcess value="1" />
   <MergeHeaderFile value="0" />
   <OutputFormat value="0" high="1" low="0" initialValue="0" />
@@ -24,7 +24,7 @@
   <ScanRangeDuration value="2.000000" />
   <StartTimeOption value="0" />
   <PromptForNoteAndOrStartTime value="0" />
-  <CalcArray Size="13" >
+  <CalcArray Size="10" >
     <CalcArrayItem index="0" CalcID="65" >
       <Calc UnitID="3" Ordinal="0" >
         <FullName value="Pressure, Digiquartz [db]" />
@@ -45,53 +45,37 @@
         <FullName value="Scan Count" />
       </Calc>
     </CalcArrayItem>
-    <CalcArrayItem index="4" CalcID="17" >
-      <Calc UnitID="31" Ordinal="0" >
-        <FullName value="Depth [salt water, m]" />
-        <Latitude value="-23.220000" />
-      </Calc>
-    </CalcArrayItem>
-    <CalcArrayItem index="5" CalcID="84" >
+    <CalcArrayItem index="4" CalcID="84" >
       <Calc UnitID="52" Ordinal="0" >
         <FullName value="Time, Elapsed [seconds]" />
       </Calc>
     </CalcArrayItem>
-    <CalcArrayItem index="6" CalcID="14" >
+    <CalcArrayItem index="5" CalcID="14" >
       <Calc UnitID="46" Ordinal="0" >
         <FullName value="CPAR/Corrected Irradiance [%]" />
         <DegreesFromVertical value="0.000000" />
       </Calc>
     </CalcArrayItem>
-    <CalcArrayItem index="7" CalcID="77" >
+    <CalcArrayItem index="6" CalcID="77" >
       <Calc UnitID="-1" Ordinal="0" >
         <FullName value="SPAR, Biospherical/Licor" />
         <SPAR_Units value="0" />
       </Calc>
     </CalcArrayItem>
-    <CalcArrayItem index="8" CalcID="150" >
-      <Calc UnitID="45" Ordinal="0" >
-        <FullName value="Turbidity, WET Labs ECO [NTU]" />
-      </Calc>
-    </CalcArrayItem>
-    <CalcArrayItem index="9" CalcID="93" >
+    <CalcArrayItem index="7" CalcID="93" >
       <Calc UnitID="38" Ordinal="0" >
         <FullName value="Fluorescence, WET Labs ECO-AFL/FL [mg/m^3]" />
       </Calc>
     </CalcArrayItem>
-    <CalcArrayItem index="10" CalcID="59" >
+    <CalcArrayItem index="8" CalcID="59" >
       <Calc UnitID="-1" Ordinal="0" >
         <FullName value="PAR/Irradiance, Biospherical/Licor" />
         <PAR_Units value="0" />
       </Calc>
     </CalcArrayItem>
-    <CalcArrayItem index="11" CalcID="81" >
-      <Calc UnitID="6" Ordinal="1" >
-        <FullName value="Temperature, 2 [ITS-90, deg C]" />
-      </Calc>
-    </CalcArrayItem>
-    <CalcArrayItem index="12" CalcID="12" >
-      <Calc UnitID="58" Ordinal="1" >
-        <FullName value="Conductivity, 2 [S/m]" />
+    <CalcArrayItem index="9" CalcID="5" >
+      <Calc UnitID="46" Ordinal="0" >
+        <FullName value="Beam Transmission, Chelsea/Seatech [%]" />
       </Calc>
     </CalcArrayItem>
   </CalcArray>

@@ -2,16 +2,18 @@
 <Data_Conversion >
   <Version value="7.26.7.129" />
   <ServerName value="Data Conversion" />
-  <InstrumentPath value="C:\AIMS\sbe_ctd_proc\config\1233\911plus_1233_dualTC_20230828\911plus_1233_dualTC_20230828.xmlcon" />
+  <InstrumentPath value="" />
   <InstrumentMatch value="0" />
-<InputDir value="" />
-  <InputFileArray size="0" GrowBy="-1" />
-<OutputDir value="" />
+  <InputDir value="" />
+  <InputFileArray size="1" GrowBy="-1" >
+    <ArrayItem index="0" value="" />
+  </InputFileArray>
+  <OutputDir value="" />
   <NameAppend value="" />
   <OutputFile value="" />
   <LastProcessed value="0" />
   <ProcessScansToEnd value="1" />
-<ScansToSkip value="" />
+  <ScansToSkip value="0" />
   <ScansToProcess value="1" />
   <MergeHeaderFile value="0" />
   <OutputFormat value="0" high="1" low="0" initialValue="0" />
@@ -22,7 +24,7 @@
   <ScanRangeDuration value="2.000000" />
   <StartTimeOption value="0" />
   <PromptForNoteAndOrStartTime value="0" />
-  <CalcArray Size="14" >
+  <CalcArray Size="12" >
     <CalcArrayItem index="0" CalcID="84" >
       <Calc UnitID="52" Ordinal="0" >
         <FullName value="Time, Elapsed [seconds]" />
@@ -68,30 +70,19 @@
         <FullName value="Beam Transmission, WET Labs C-Star [%]" />
       </Calc>
     </CalcArrayItem>
-    <CalcArrayItem index="9" CalcID="36" >
-      <Calc UnitID="23" Ordinal="1" >
-        <FullName value="Frequency 1" />
-      </Calc>
-    </CalcArrayItem>
-    <CalcArrayItem index="10" CalcID="18" >
-      <Calc UnitID="32" Ordinal="0" >
-        <FullName value="Descent Rate [m/s]" />
-        <WindowSize value="2.000000" />
-      </Calc>
-    </CalcArrayItem>
-    <CalcArrayItem index="11" CalcID="59" >
+    <CalcArrayItem index="9" CalcID="59" >
       <Calc UnitID="-1" Ordinal="0" >
         <FullName value="PAR/Irradiance, Biospherical/Licor" />
         <PAR_Units value="0" />
       </Calc>
     </CalcArrayItem>
-    <CalcArrayItem index="12" CalcID="77" >
+    <CalcArrayItem index="10" CalcID="77" >
       <Calc UnitID="-1" Ordinal="0" >
         <FullName value="SPAR, Biospherical/Licor" />
         <SPAR_Units value="0" />
       </Calc>
     </CalcArrayItem>
-    <CalcArrayItem index="13" CalcID="14" >
+    <CalcArrayItem index="11" CalcID="14" >
       <Calc UnitID="46" Ordinal="0" >
         <FullName value="CPAR/Corrected Irradiance [%]" />
         <DegreesFromVertical value="0.000000" />

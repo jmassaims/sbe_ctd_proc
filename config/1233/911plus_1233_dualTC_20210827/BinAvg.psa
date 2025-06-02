@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Bin_Average >
-  <Version value="7.26.6.28" />
+  <Version value="7.26.7.129" />
   <ServerName value="Bin Average" />
 <InputDir value="" />
   <InputFileArray size="0" GrowBy="-1" />
 <OutputDir value="" />
-<NameAppend value="" />
+  <NameAppend value="" />
   <OutputFile value="" />
   <LastProcessed value="0" />
   <BinType value="2" />

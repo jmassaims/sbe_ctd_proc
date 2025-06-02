@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Loop_Edit >
-  <Version value="7.23.1" />
+  <Version value="7.26.7.129" />
   <ServerName value="Loop Edit" />
-<InputDir value="" />
-  <InputFileArray size="0" GrowBy="-1" />
-<OutputDir value="" />
-<NameAppend value="" />
+  <InputDir value="" />
+  <InputFileArray size="1" GrowBy="-1" >
+    <ArrayItem index="0" value="" />
+  </InputFileArray>
+  <OutputDir value="" />
+  <NameAppend value="" />
   <OutputFile value="" />
   <LastProcessed value="0" />
   <MinVelocityType value="0" high="1" low="0" initialValue="0" />
@@ -15,7 +17,7 @@
   <ExcludeMarkedBad value="1" />
   <RemoveSurfaceSoak value="1" />
   <UseDeckPressure value="1" />
-  <SurfaceSoakDepth value="1.000000" />
-  <SurfaceSoakDepthMin value="0.500000" />
-  <SurfaceSoakDepthMax value="2.000000" />
+  <SurfaceSoakDepth value="3.000000" />
+  <SurfaceSoakDepthMin value="2.000000" />
+  <SurfaceSoakDepthMax value="5.000000" />
 </Loop_Edit>

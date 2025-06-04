@@ -60,11 +60,14 @@ class AuditInfo(TypedDict):
     datcnv_in: str
 
     filter_in: str
+    filter_low_pass_tc_A: str
     filter_low_pass_tc_B: str
     filter_low_pass_A_vars: str
     filter_low_pass_B_vars: str
 
     alignctd_in: str
+    alignctd_adv: str
+    
 
     celltm_in: str
     celltm_alpha: str
@@ -84,6 +87,8 @@ class AuditInfo(TypedDict):
     binavg_bintype: str
     binavg_binsize: str
     binavg_excl_bad_scans: str
+    binavg_skipover: str
+    binavg_omit: str
 
 
 class AuditLog:
@@ -116,11 +121,13 @@ class AuditLog:
         'datcnv_in',
 
         'filter_in',
+        'filter_low_pass_tc_A',
         'filter_low_pass_tc_B',
         'filter_low_pass_A_vars',
         'filter_low_pass_B_vars',
 
         'alignctd_in',
+        'alignctd_adv',
 
         'celltm_in',
         'celltm_alpha',
@@ -139,6 +146,8 @@ class AuditLog:
         'binavg_bintype',
         'binavg_binsize',
         'binavg_excl_bad_scans',
+        'binavg_skipover',
+        'binavg_omit',
 
         # sensor meta
         'n_sensors',
@@ -194,11 +203,13 @@ class AuditLog:
         'datcnv_in',
 
         'filter_in',
+        'filter_low_pass_tc_A',
         'filter_low_pass_tc_B',
         'filter_low_pass_A_vars',
         'filter_low_pass_B_vars',
 
         'alignctd_in',
+        'alignctd_adv',
 
         'celltm_in',
         'celltm_alpha',
@@ -216,7 +227,9 @@ class AuditLog:
         'binavg_in',
         'binavg_bintype',
         'binavg_binsize',
-        'binavg_excl_bad_scans'
+        'binavg_excl_bad_scans',
+        'binavg_skipover',
+        'binavg_omit',
     ]
 
     # Format for date+time columns

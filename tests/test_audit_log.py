@@ -65,16 +65,30 @@ class TestAuditLog(unittest.TestCase):
         self._write_logs(audit)
         audit.close()
 
-        with open(temp_csv_file, 'r', newline='') as f:
-            reader = DictReader(f, dialect='excel')
-            rows = [r for r in reader]
-            self.assertEqual(len(rows), 2)
-            r1, r2 = rows
+        def check_assertions():
+            with open(temp_csv_file, 'r', newline='') as f:
+                reader = DictReader(f, dialect='excel')
+                rows = [r for r in reader]
+                self.assertEqual(len(rows), 2)
+                r1, r2 = rows
 
-            self.assertEqual(r1['latitude'], '-19.2')
+                self.assertEqual(r1['latitude'], '-19.2')
 
-            self.assertEqual(r2['latitude'], '-19.3')
-            self.assertEqual(r2['last_command'], 'updated')
+                self.assertEqual(r2['latitude'], '-19.3')
+                self.assertEqual(r2['last_command'], 'updated')
+
+        check_assertions()
+
+        # reopen same file, repeat tests with and without flush_after_log
+        audit = AuditLog(temp_csv_file, update_rows=True, flush_after_log=True)
+        self._write_logs(audit)
+        audit.close()
+        check_assertions()
+
+        audit = AuditLog(temp_csv_file, update_rows=True, flush_after_log=False)
+        self._write_logs(audit)
+        audit.close()
+        check_assertions()
 
     def _write_logs(self, audit: AuditLog):
         hex_file = self.data_dir / "19plus2_4525_20140618_test.hex"

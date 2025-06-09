@@ -290,6 +290,7 @@ class AuditLog:
 
         is_newfile = True
 
+        # always open file regardless of mode in order to claim it
         if filepath.exists():
             stat = filepath.stat()
             # consider existing files that are empty to be new files
@@ -303,11 +304,14 @@ class AuditLog:
             # only used if update_rows True, but always initialize empty rows
             self.rows = []
         else:
+            # checks file headers and loads rows
             self.check_existing_file()
-            self.file = open(filepath, 'a', newline='')
+            file_mode = 'w' if update_rows else 'a'
+            self.file = open(filepath, file_mode, newline='')
 
         self.writer = DictWriter(self.file, fieldnames=self.columns, dialect='excel')
-        if is_newfile:
+
+        if is_newfile and not update_rows:
             self.writer.writeheader()
 
     def close(self):
@@ -317,11 +321,11 @@ class AuditLog:
     def flush(self):
         if self.needs_flush:
             if self.file.closed:
-                # reopen file for writing
+                # reopen file for rewrite
                 self.file = open(self.filepath, 'w', newline='')
                 self.writer = DictWriter(self.file, fieldnames=self.columns, dialect='excel')
-                self.writer.writeheader()
 
+            self.writer.writeheader()
             self.writer.writerows(self.rows)
             self.file.close()
             self.needs_flush = False
@@ -348,7 +352,8 @@ class AuditLog:
         if self.update_rows:
             # look for existing row by hex_filename
             existing_index = None
-            for index in range(len(self.rows) - 1, 0, -1):
+            # iterate rows indexes in reverse
+            for index in range(len(self.rows) - 1, -1, -1):
                 if self.rows[index]['hex_filename'] == info['hex_filename']:
                     existing_index = index
                     break

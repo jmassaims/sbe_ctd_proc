@@ -99,6 +99,9 @@ class AuditInfoProcessing(TypedDict):
     # last processing step command
     last_command: str
 
+    approve_date: str
+    # TODO verify if newlines supported
+    approve_comment: str
 
 class AuditInfo(AuditInfoCTDFile, AuditInfoProcessing):
     """
@@ -225,7 +228,10 @@ class AuditLog:
         'other_sn',
         'other_calibdate',
 
-        'last_command'
+        'last_command',
+
+        'approve_date',
+        'approve_comment'
     ]
 
     # cnv variables added to AuditInfo with a simple CnvInfo.get(name)

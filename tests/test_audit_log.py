@@ -100,8 +100,10 @@ class TestAuditLog(unittest.TestCase):
         mixin_info: AuditInfoProcessing = {
             'con_filename': 'foo.xml',
             'latitude': -19.3,
-            'last_command': 'foo.exe'
-        } # type: ignore partial dict
+            'last_command': 'foo.exe',
+            'approve_comment': '',
+            'approve_date': ''
+        }
 
         audit.log(ctd_file, cnv_file, mixin_info)
 

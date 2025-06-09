@@ -455,7 +455,9 @@ def process_hex_file(ctdfile: CTDFile,
             mixin_info: AuditInfoProcessing = {
                 'con_filename': str(xmlcon_file.name),
                 'latitude': latitude,
-                'last_command': last_command
+                'last_command': last_command,
+                'approve_comment': '',
+                'approve_date': ''
             }
             audit.log(ctdfile, cnvpath, mixin_info)
     else:

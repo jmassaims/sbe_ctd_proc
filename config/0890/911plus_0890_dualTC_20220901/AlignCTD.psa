@@ -61,7 +61,7 @@
     </CalcArrayItem>
   </CalcArray>
   <ValArray size="9" >
-    <ValArrayItem index="0" value="0.000000" variable_name="Temperature" />
+    <ValArrayItem index="0" value="0.0000001" variable_name="Temperature" />
     <ValArrayItem index="1" value="0.000000" variable_name="Conductivity" />
     <ValArrayItem index="2" value="0.000000" variable_name="CPAR/Corrected Irradiance" />
     <ValArrayItem index="3" value="0.000000" variable_name="SPAR, Biospherical/Licor" />

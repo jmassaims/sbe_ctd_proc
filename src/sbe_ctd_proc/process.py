@@ -25,7 +25,7 @@ from multiprocessing import Queue
 import shutil
 from typing import Callable, Optional
 
-from .audit_log import AuditInfo, AuditLog
+from .audit_log import AuditInfoProcessing, AuditLog
 from .SBE import SBE
 from .ctd_file import CTDFile
 from .psa_file import rewrite_psa_file
@@ -452,11 +452,11 @@ def process_hex_file(ctdfile: CTDFile,
     if audit:
         # audit log function that adds information in this context.
         def log(ctdfile, cnvpath, last_command: str):
-            mixin_info: AuditInfo = {
+            mixin_info: AuditInfoProcessing = {
                 'con_filename': str(xmlcon_file.name),
                 'latitude': latitude,
                 'last_command': last_command
-            } # type: ignore partial dict
+            }
             audit.log(ctdfile, cnvpath, mixin_info)
     else:
         log = None

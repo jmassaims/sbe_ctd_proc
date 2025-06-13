@@ -27,3 +27,18 @@ to the new status names for consistency, see [Process Flow](./process_flow.md).
 * pending -> raw
 * processed -> processing
 * done/destination -> approved
+
+## Config Reload
+
+`config.toml` reload on change is implemented, but this needs more testing and work. There
+may still be state loaded from config in some objects that is not being reloaded correctly.
+
+# Concurrency
+
+Since this is a single user app that generally only has one worker thread, there
+ shouldn't be too many concurrency concerns. However, it can be an issue.
+
+`AuditLog` should be threadsafe with its internal lock.
+One `CONFIG.audit_log` instance is shared by throughout the app and in multiple threads.
+You could have files processing and user approving at same time, this lock should
+prevent concurrency problems in this situation.

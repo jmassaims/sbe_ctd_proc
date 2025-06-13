@@ -103,7 +103,7 @@ class TestAuditLog(unittest.TestCase):
             'last_command': 'foo.exe'
         } # type: ignore partial dict
 
-        audit.log(ctd_file, cnv_file, mixin_info)
+        audit.log_step(ctd_file, cnv_file, mixin_info)
 
         hex_file = self.data_dir / "WQR084.hex"
         ctd_file = CTDFile(hex_file)
@@ -119,11 +119,11 @@ class TestAuditLog(unittest.TestCase):
             'approve_date': ''
         }
 
-        audit.log(ctd_file, cnv_file, mixin_info)
+        audit.log_step(ctd_file, cnv_file, mixin_info)
 
         # call a 2nd time to test appends vs update_row behavior
         mixin_info['last_command'] = 'updated'
-        audit.log(ctd_file, cnv_file, mixin_info)
+        audit.log_step(ctd_file, cnv_file, mixin_info)
 
 
 if __name__ == '__main__':

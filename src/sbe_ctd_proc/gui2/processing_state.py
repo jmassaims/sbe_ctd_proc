@@ -80,8 +80,9 @@ class ProcessingState:
         assert self.send is not None
         self.send.put_nowait(('skip', self.current_basename))
 
-    async def approve(self, ctdfile: CTDFile):
-        await run.io_bound(move_to_approved_dir, ctdfile)
+    async def approve(self, ctdfile: CTDFile, comment=''):
+        # TODO raise exception if approving file that is currently processing
+        await run.io_bound(move_to_approved_dir, ctdfile, comment)
         self.mgr.scan_dirs()
 
     def reload_config(self):

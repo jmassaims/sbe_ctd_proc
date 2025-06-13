@@ -309,13 +309,16 @@ def setup_processing_dir(ctdfile: CTDFile, config_folder: Path | None) -> Path:
     assert xmlcon_file is not None
     return xmlcon_file
 
-def move_to_approved_dir(ctdfile: CTDFile)-> None:
+def move_to_approved_dir(ctdfile: CTDFile, approve_comment='')-> None:
     """
     Move the processing directory to the approved area.
 
     Reorganizes files in the directory by moving them into subdirectories.
+
+    @param approve_comment written to file
     """
     approved_dir = ctdfile.approved_dir
+    approve_comment = approve_comment.strip()
 
     if approved_dir.exists():
         raise FileExistsError(f'destination directory already exists: {approved_dir}')
@@ -352,6 +355,30 @@ def move_to_approved_dir(ctdfile: CTDFile)-> None:
             shutil.move(file, dest_raw)
         else:
             logging.warning(f"unexpected file in approved dir: {file}")
+
+    # what if processing?? maybe approve should be a message?
+    # if CONFIG.auditlog_file:
+
+
+    # write date and comment to file, append
+    approve_date = datetime.now()
+
+    if approve_comment != '':
+        # write the comment to a file as well
+        with open(approved_dir / "approve_comment.txt", newline='') as f:
+            f.write(f'{approve_date}\n')
+            f.write(f'{approve_comment}\n')
+
+    if CONFIG.audit_log:
+        # find the last CNV file
+        ctdfile.refresh_dirs()
+        cnv_files = ctdfile.destination_cnvs
+        # later steps have longer filenames since we append a character each time
+        cnv_files.sort(key=lambda p: len(p.name))
+        last_cnv_file = cnv_files[-1]
+
+        CONFIG.audit_log.log_approved(ctdfile, last_cnv_file, approve_comment)
+
 
 # not used yet
 def reset_processing_dir(ctdfile: CTDFile):
@@ -459,7 +486,7 @@ def process_hex_file(ctdfile: CTDFile,
                 'approve_comment': '',
                 'approve_date': ''
             }
-            audit.log(ctdfile, cnvpath, mixin_info)
+            audit.log_step(ctdfile, cnvpath, mixin_info)
     else:
         log = None
 
@@ -471,3 +498,7 @@ def process_hex_file(ctdfile: CTDFile,
     cnvpath = process_cnv(ctdfile, sbe, send)
 
     log(ctdfile, cnvpath, sbe.last_command)
+
+    if audit:
+        # write out log file
+        audit.flush()

@@ -356,16 +356,13 @@ def move_to_approved_dir(ctdfile: CTDFile, approve_comment='')-> None:
         else:
             logging.warning(f"unexpected file in approved dir: {file}")
 
-    # what if processing?? maybe approve should be a message?
-    # if CONFIG.auditlog_file:
-
 
     # write date and comment to file, append
     approve_date = datetime.now()
 
     if approve_comment != '':
         # write the comment to a file as well
-        with open(approved_dir / "approve_comment.txt", newline='') as f:
+        with open(approved_dir / "approve_comment.txt", mode='x', newline='') as f:
             f.write(f'{approve_date}\n')
             f.write(f'{approve_comment}\n')
 

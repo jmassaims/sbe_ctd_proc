@@ -16,10 +16,15 @@ approved = 'C:\Users\<USER>\data\CTD\processed'
 # Location where you installed SBE Data Processing
 SBEDataProcessing = 'C:\Program Files (x86)\Sea-Bird\SBEDataProcessing-Win32'
 
-auditlog_file = 'sbe_ctd_auditlog.csv'
-
 # Path to the psa config directory. config in this project is used by default.
 # ctd_config = ''
+
+[audit_log]
+# path to audit log file. will be created if it does not exist
+file = 'sbe_ctd_auditlog2.csv'
+# true to update hex file's row after each processing step and approve.
+# false will always append a new row to the audit log for these actions.
+update_rows = true
 
 [options]
 # how to lookup a file's latitude: 'ask', 'spreadsheet', 'database', 'constant'

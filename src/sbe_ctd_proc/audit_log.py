@@ -1,35 +1,40 @@
 from io import TextIOWrapper
+import threading
 import logging
 from pathlib import Path
-from typing import TypedDict
+from typing import Callable, TypedDict
 from csv import DictReader, DictWriter
-
-from .ctd_file import CTDFile
+from datetime import datetime
 from .parsing.cnv_info import CnvInfo, SensorInfo
 
+# imports only needed for type checking
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    # normal import would trigger circular import error
+    from .ctd_file import CTDFile
+
+
 # TODO logreq from DB
-class AuditInfo(TypedDict):
+class AuditInfoCTDFile(TypedDict):
     """
-    Data structure with information from a CTD file.
+    Data structure with information derived directly from CTDfile object or files.
 
     This is mostly .cnv file information.
-
     """
     hex_filename: str
     # aka 'base name' in code
     folder_name: str
-    con_filename: str
+
     hex_dir: str
     processed_dir: str
     cast_date: str
     cast_date_type: str
     start_time: str
     start_time_type: str
-    latitude: float
+
     # "meters: 1"
     interval: str
-    # last processing step command
-    last_command: str
+
     # number of active sensors
     n_sensors: int
     # concatenated active sensors "CNDC+TEMP+PRES+BAT_PERCENT+CPHL+OBS+PAR"
@@ -67,7 +72,7 @@ class AuditInfo(TypedDict):
 
     alignctd_in: str
     alignctd_adv: str
-    
+
 
     celltm_in: str
     celltm_alpha: str
@@ -91,10 +96,57 @@ class AuditInfo(TypedDict):
     binavg_omit: str
 
 
+class AuditInfoProcessing(TypedDict):
+    """
+    Audit log information from the processing/execution context.
+    """
+    con_filename: str
+    latitude: float
+    # last processing step command
+    last_command: str
+
+    approve_date: str
+    # TODO verify if newlines supported
+    approve_comment: str
+
+class AuditInfo(AuditInfoCTDFile, AuditInfoProcessing):
+    """
+    Combined information for the audit log
+    """
+    pass
+
 class AuditLog:
+    """
+    Manages the audit log.
+    Can operate in append mode or rewrite rows, see update_rows.
+    thread-safe
+    """
+
+    lock: threading.RLock
 
     filepath: Path
+    "path to csv file"
+
     file: TextIOWrapper
+    "open handle for csv file"
+
+    # do not change after init
+    update_rows: bool
+    """
+    look for previous rows with basename and update instead of always appending
+    true - update existing rows (lookuy be hex filename)
+    false - always append rows. this keeps the file open continuously.
+    """
+
+    flush_after_log: bool
+
+    rows: list[dict | AuditInfo]
+    """
+    current rows updated/appended by log method.
+
+    values may be mixed. i.e. appended rows will be types corresponding to AuditInfo
+    while existing row's values will be strings.
+    """
 
     # sensor prefixes that can have a second sensor and have created columns for it.
     # e.g. temp2
@@ -104,6 +156,7 @@ class AuditLog:
     # order to write columns to csv
     # if these are changed, the program will not be able to append to old audit log and
     # will need to move the old audit log (or choose new path).
+    # TODO could allow if initial columns subset of current
     columns: list[str] = [
         'hex_filename',
         'folder_name',
@@ -193,7 +246,10 @@ class AuditLog:
         'other_sn',
         'other_calibdate',
 
-        'last_command'
+        'last_command',
+
+        'approve_date',
+        'approve_comment'
     ]
 
     # cnv variables added to AuditInfo with a simple CnvInfo.get(name)
@@ -235,30 +291,66 @@ class AuditLog:
     # Format for date+time columns
     datetime_format = '%Y-%m-%d %H:%M:%S'
 
-    def __init__(self, filepath: str | Path, is_empty=False) -> None:
+    def __init__(self, filepath: str | Path, update_rows=False, flush_after_log=False) -> None:
+        """
+        Create AuditLog, open file. Check existing file's headers.
+        @param update_rows log will edit existing rows (basename lookup) instead of appending
+        @param flush_after_log flush after every log
+        """
         filepath = Path(filepath)
         self.filepath = filepath
+        self.update_rows = update_rows
+        self.flush_after_log = flush_after_log
+        self.needs_flush = False
+        self.lock = threading.RLock()
 
         if filepath.is_dir():
             raise Exception("path to directory")
 
-        is_newfile = not filepath.exists() or is_empty
+        is_newfile = True
+
+        # always open file regardless of mode in order to claim it
+        if filepath.exists():
+            stat = filepath.stat()
+            # consider existing files that are empty to be new files
+            # Note: this was added to support test mkstemp behavior.
+            is_newfile = stat.st_size == 0
 
         if is_newfile:
-            mode = 'x' if not filepath.exists() else 'w'
-            self.file = open(filepath, mode, newline='')
+            # only used if update_rows True, but always initialize field.
+            self.rows = []
         else:
-            self.check_existing_file()
-            self.file = open(filepath, 'a', newline='')
+            # checks file headers and loads rows
+            self._check_existing_file()
 
-        self.writer = DictWriter(self.file, fieldnames=self.columns, dialect='excel')
-        if is_newfile:
-            self.writer.writeheader()
+
+        if self.update_rows is False:
+            # append rows mode, keep file open
+            self.file = open(filepath, 'a', newline='')
+            self.writer = DictWriter(self.file, fieldnames=self.columns, dialect='excel')
+
+            if is_newfile:
+                self.writer.writeheader()
 
     def close(self):
+        self.flush()
         self.file.close()
 
-    def check_existing_file(self):
+    def flush(self):
+        with self.lock:
+            if self.needs_flush:
+                if not hasattr(self, 'file') or self.file.closed:
+                    # reopen file for rewrite
+                    self.file = open(self.filepath, 'w', newline='')
+                    self.writer = DictWriter(self.file, fieldnames=self.columns, dialect='excel')
+
+                # rewrite the entire file
+                self.writer.writeheader()
+                self.writer.writerows(self.rows)
+                self.file.close()
+                self.needs_flush = False
+
+    def _check_existing_file(self):
         with open(self.filepath, 'r', newline='') as f:
             # need to use DictReader for fieldname attr to exist
             r = DictReader(f, dialect='excel')
@@ -267,8 +359,76 @@ class AuditLog:
                 # Idea: auto-rename *_2.csv, *_3.csv, ...
                 raise Exception(f"Cannot append to audit log '{self.filepath.resolve()}'; columns have changed since audit log written")
 
+            self.rows = [r for r in r]
 
-    def log(self, ctd_file: CTDFile, cnv_file: str | Path, mixin_info: AuditInfo):
+    def _log(self, ctd_file: 'CTDFile', get_info: Callable[[int | None], AuditInfo]):
+        hex_filename = ctd_file.hex_path.name
+
+        with self.lock:
+            if self.update_rows:
+                # look for existing row by hex_filename
+                existing_index = None
+                # iterate rows indexes in reverse
+                for index in range(len(self.rows) - 1, -1, -1):
+                    if self.rows[index]['hex_filename'] == hex_filename:
+                        existing_index = index
+                        break
+
+                info = get_info(existing_index)
+
+                if existing_index is not None:
+                    self.rows[existing_index] = info
+                else:
+                    self.rows.append(info)
+
+                self.needs_flush = True
+                if self.flush_after_log:
+                    self.flush()
+
+            else:
+                # update_rows false, always append
+                info = get_info(None)
+                self.writer.writerow(info)
+
+
+    # Note: type-only CTDFile (quotes) to avoid circular import error
+    def log_step(self, ctd_file: 'CTDFile', cnv_file: str | Path, mixin_info: AuditInfoProcessing):
+        """
+        Log audit information about processing step to the log.
+        """
+        info = self.build_info(ctd_file, cnv_file, mixin_info)
+        self._log(ctd_file, lambda index: info)
+
+    def log_approved(self, ctd_file: 'CTDFile', cnv_file: Path, approve_comment: str):
+        """
+        Log approval of the file.
+
+        if update_rows mode, will only set the approve column values.
+        otherwise, will append a row where information in AuditInfoProcessing is blank
+        since that context is lost.
+        """
+
+        def get_info(index: int | None) -> AuditInfo:
+            approve_date = datetime.now().strftime(self.datetime_format)
+            if index is not None:
+                existing = self.rows[index]
+                existing['approve_date'] = approve_date
+                existing['approve_comment'] = approve_comment
+                return existing # type: ignore
+            else:
+                mixin: AuditInfoProcessing = {
+                    'con_filename': '',
+                    'last_command': '',
+                    'latitude': ctd_file.latitude or 0,
+                    'approve_date': approve_date,
+                    'approve_comment': approve_comment
+                }
+                info = self.build_info(ctd_file, cnv_file, mixin)
+                return info
+
+        self._log(ctd_file, get_info)
+
+    def build_info(self, ctd_file, cnv_file, mixin_info):
         cnv = CnvInfo(cnv_file)
 
         # ctd_file.serial_number
@@ -303,8 +463,7 @@ class AuditLog:
         # add special groups of properties.
         self._add_sensor_info(info, sensor_info)
         self._add_start_time_info(info, cnv)
-
-        self.writer.writerow(info)
+        return info
 
     def _add_sensor_info(self, info: AuditInfo, sensor_info: list[SensorInfo]):
         """adds columns for each sensor as well as 'sensors' field"""

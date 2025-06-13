@@ -78,9 +78,8 @@ class Manager(AbstractContextManager):
         self.processing_dir = CONFIG.processing_dir
         self.approved_dir = CONFIG.approved_dir
 
-        # setup audit log if configured (only if enabled for this Manager)
-        auditlog_file = CONFIG.auditlog_file if self.enable_auditlog else None
-        self.audit_log = AuditLog(auditlog_file) if auditlog_file else None
+        # setup audit log if enabled for this Manager
+        self.audit_log = CONFIG.audit_log if self.enable_auditlog else None
 
         self.lookup_latitude = CONFIG.lookup_latitude
 
@@ -228,7 +227,7 @@ class Manager(AbstractContextManager):
         # FUTURE could be more flexible and take Paths, no reason to restrict location.
         unknown = basenames_set - valid - match_approved
         if unknown:
-            print('WARN: selected unknown files', unknown)
+            logging.warning('selected unknown files', unknown)
 
         self.raw = valid & basenames_set
         logging.info(f'{len(self.raw)} files pending in raw: {self.raw}')
@@ -253,10 +252,10 @@ class Manager(AbstractContextManager):
                 self.process_file(ctdfile, file_num)
 
             except SkipFile:
-                print(f'skip file "{base_name}"')
+                logging.info(f'skip file "{base_name}"')
                 response = "ignore"
             except StopProcessing:
-                print('Stop processing')
+                logging.info('Stop processing')
                 break
             except Exception as e:
                 logging.exception(f'Error processing f{base_name}')
@@ -273,6 +272,9 @@ class Manager(AbstractContextManager):
                 if response == "abort":
                     raise e
 
+            finally:
+                self.after_processing_file()
+
             if response is None or response == "ignore":
                 file_num += 1
             elif response == "retry":
@@ -282,6 +284,17 @@ class Manager(AbstractContextManager):
                 raise Exception(f"Unknown response '{response}'")
 
             i += 1
+
+    def after_processing_file(self):
+        """
+        Called after processing a file regardless of success or error
+        """
+        if self.audit_log:
+            try:
+                self.audit_log.flush()
+            except:
+                # paranoid, but don't want to interrupt logic in start method
+                logging.exception('AuditLog flush error')
 
     def process_file(self, ctdfile: CTDFile, file_num: int):
         assert self.send is not None
@@ -303,7 +316,7 @@ class Manager(AbstractContextManager):
             try:
                 latitude = self.lookup_latitude(base_name)
             except LookupError:
-                print(f"WARNING: missing latitude for {base_name}. Fallback to asking user for latitude.")
+                logging.warning(f"missing latitude for {base_name}. Fallback to asking user for latitude.")
                 latitude = self.request_latitude(base_name)
         else:
             # default to asking if alternate method not configured.
@@ -313,6 +326,7 @@ class Manager(AbstractContextManager):
 
         process_hex_file(ctdfile, audit=self.audit_log, send=self.send, exist_ok=True)
 
+        # FIXME review code logic, this isn't approved
         self.approved.add(base_name)
         self.send.put(("finish", base_name, file_num, len(self.approved)))
 
@@ -324,7 +338,7 @@ class Manager(AbstractContextManager):
             if msg == 'stop':
                 raise StopProcessing()
             else:
-                print('Unknown message:', msg)
+                logging.warning('Unknown message:', msg)
 
     def request_latitude(self, base_name: str) -> float:
         """
@@ -373,12 +387,12 @@ def start_manager(send: Queue, recv: Queue, basenames: list[str] | None = None):
                 manager.set_pending(basenames)
 
             if manager.raw:
-                print(f"Starting to process {len(manager.raw)} files")
+                logging.info(f"Starting to process {len(manager.raw)} files")
                 send.put(("begin", len(manager.raw)))
                 manager.start()
                 send.put(("done",))
             else:
-                print("No files need to be processed.")
+                logging.info("No files need to be processed.")
                 send.put(("usermsg", "No files need to be processed."))
 
     except Exception as e:

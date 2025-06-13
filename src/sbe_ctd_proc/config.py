@@ -10,6 +10,7 @@ from tomlkit.items import Item, Table
 from tomlkit.container import Container
 from tomlkit.exceptions import NonExistentKey
 
+from .audit_log import AuditLog
 from .db import OceanDB
 from .latitude_spreadsheet import LatitudeSpreadsheet
 
@@ -154,6 +155,8 @@ class Config:
 
     oceandb: Optional[OceanDB]
 
+    audit_log: Optional[AuditLog]
+
     # old config for Tkinter app
     # needs to be a tuple, TBD if add to toml
     label_fonts = ("Arial", 14, "bold")
@@ -164,7 +167,6 @@ class Config:
                 path = self.find_config()
 
             self.config_file = path.resolve()
-            self.__read_config_file()
 
         except FileNotFoundError as e:
             # if running unit tests, missing config file is expected.
@@ -174,6 +176,8 @@ class Config:
             else:
                 logging.error('config.toml not found! see README')
                 sys.exit(1)
+
+        self.__read_config_file()
 
     def __read_config_file(self):
         """
@@ -193,6 +197,7 @@ class Config:
                 self.load_config(toml_doc)
 
                 self.check_ctd_config_dir()
+                self.setup_audit_log(toml_doc)
                 self.setup_latitude_service(toml_doc)
                 self.setup_charts(toml_doc)
 
@@ -339,6 +344,33 @@ class Config:
         format: str = logging_config['format']
 
         logging.basicConfig(level=level, format=format, force=True)
+
+    def setup_audit_log(self, toml_doc: tomlkit.TOMLDocument):
+        try:
+            audit_log_cfg = toml_doc['audit_log']
+            # also allow disabling auditlog by commenting/deleteing file property
+            file_value: str = audit_log_cfg['file'] # type: ignore
+        except NonExistentKey:
+            # audit log is optional
+            return
+
+        assert isinstance(audit_log_cfg, (Container, Table))
+
+        path = Path(file_value)
+        self.auditlog_file = path.resolve()
+
+        update_rows = audit_log_cfg['update_rows']
+        assert isinstance(update_rows, bool)
+
+        # created this config option, but it's a bit confusing and not necessary for the
+        # user to worry about, so always set it True for now.
+        # We're no longer logging after each step (Seabird program execution)
+        instant_write = True
+        # instant_write = audit_log_cfg['instant_write']
+        # assert isinstance(instant_write, bool)
+
+        logging.info(f'audit log: {self.auditlog_file} update_rows={update_rows} instant_write={instant_write}')
+        self.audit_log = AuditLog(self.auditlog_file, update_rows=update_rows, flush_after_log=instant_write)
 
     def setup_latitude_service(self, toml_doc: tomlkit.TOMLDocument):
         self.latitude_service = None

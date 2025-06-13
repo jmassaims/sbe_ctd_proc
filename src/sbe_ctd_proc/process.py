@@ -25,7 +25,7 @@ from multiprocessing import Queue
 import shutil
 from typing import Callable, Optional
 
-from .audit_log import AuditInfo, AuditLog
+from .audit_log import AuditInfoProcessing, AuditLog
 from .SBE import SBE
 from .ctd_file import CTDFile
 from .psa_file import rewrite_psa_file
@@ -309,13 +309,16 @@ def setup_processing_dir(ctdfile: CTDFile, config_folder: Path | None) -> Path:
     assert xmlcon_file is not None
     return xmlcon_file
 
-def move_to_approved_dir(ctdfile: CTDFile)-> None:
+def move_to_approved_dir(ctdfile: CTDFile, approve_comment='')-> None:
     """
     Move the processing directory to the approved area.
 
     Reorganizes files in the directory by moving them into subdirectories.
+
+    @param approve_comment written to file
     """
     approved_dir = ctdfile.approved_dir
+    approve_comment = approve_comment.strip()
 
     if approved_dir.exists():
         raise FileExistsError(f'destination directory already exists: {approved_dir}')
@@ -352,6 +355,27 @@ def move_to_approved_dir(ctdfile: CTDFile)-> None:
             shutil.move(file, dest_raw)
         else:
             logging.warning(f"unexpected file in approved dir: {file}")
+
+
+    # write date and comment to file, append
+    approve_date = datetime.now()
+
+    if approve_comment != '':
+        # write the comment to a file as well
+        with open(approved_dir / "approve_comment.txt", mode='x', newline='') as f:
+            f.write(f'{approve_date}\n')
+            f.write(f'{approve_comment}\n')
+
+    if CONFIG.audit_log:
+        # find the last CNV file
+        ctdfile.refresh_dirs()
+        cnv_files = ctdfile.destination_cnvs
+        # later steps have longer filenames since we append a character each time
+        cnv_files.sort(key=lambda p: len(p.name))
+        last_cnv_file = cnv_files[-1]
+
+        CONFIG.audit_log.log_approved(ctdfile, last_cnv_file, approve_comment)
+
 
 # not used yet
 def reset_processing_dir(ctdfile: CTDFile):
@@ -452,12 +476,14 @@ def process_hex_file(ctdfile: CTDFile,
     if audit:
         # audit log function that adds information in this context.
         def log(ctdfile, cnvpath, last_command: str):
-            mixin_info: AuditInfo = {
+            mixin_info: AuditInfoProcessing = {
                 'con_filename': str(xmlcon_file.name),
                 'latitude': latitude,
-                'last_command': last_command
-            } # type: ignore partial dict
-            audit.log(ctdfile, cnvpath, mixin_info)
+                'last_command': last_command,
+                'approve_comment': '',
+                'approve_date': ''
+            }
+            audit.log_step(ctdfile, cnvpath, mixin_info)
     else:
         log = None
 
@@ -469,3 +495,7 @@ def process_hex_file(ctdfile: CTDFile,
     cnvpath = process_cnv(ctdfile, sbe, send)
 
     log(ctdfile, cnvpath, sbe.last_command)
+
+    if audit:
+        # write out log file
+        audit.flush()

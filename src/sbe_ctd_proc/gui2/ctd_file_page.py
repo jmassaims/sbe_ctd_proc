@@ -103,24 +103,7 @@ def ctd_file_page(base_file_name: str):
 
         if is_approvable:
             approve_btn = ui.button('Approve', icon='thumb_up', color='green')
-            async def approve():
-                approve_btn.disable()
-                await PROC_STATE.approve(ctdfile)
-
-                # go to next file in processing state.
-                prev, next = get_prev_next_files(base_file_name)
-                # prefer next, otherwise go back to previous
-                next_processing = next or prev
-                if next_processing:
-                    ui.navigate.to(f'/ctd_file/{next_processing.base_file_name}')
-                else:
-                    # go back to overview page
-                    ui.navigate.to('/')
-
-                # Alternatively, could refresh page with:
-                # ui.navigate.reload()
-
-            approve_btn.on_click(approve)
+            approve_btn.on_click(lambda: open_approve_dialog(approve_btn, ctdfile))
 
         elif file_status == FileStatus.APPROVED:
             ui.chip('Approved', color='green', text_color='white')
@@ -222,3 +205,36 @@ def get_prev_next_files(current_name: str) -> tuple[Optional[CTDFile], Optional[
     prev_file = ctdfiles[index - 1] if index > 0 else None
     next_file = ctdfiles[index + 1] if index < len(ctdfiles) - 1 else None
     return prev_file, next_file
+
+def open_approve_dialog(approve_btn, ctdfile: CTDFile):
+    # called by Approve button in dialog
+    async def approve(dialog, comment):
+        approve_btn.disable()
+        dialog.close()
+        await PROC_STATE.approve(ctdfile, comment)
+
+        # go to next file in processing state.
+        prev, next = get_prev_next_files(ctdfile.base_file_name)
+        # prefer next, otherwise go back to previous
+        next_processing = next or prev
+        if next_processing:
+            ui.navigate.to(f'/ctd_file/{next_processing.base_file_name}')
+        else:
+            # go back to overview page
+            ui.navigate.to('/')
+
+        # Alternatively, could refresh page with:
+        # ui.navigate.reload()
+
+    with ui.dialog() as dialog, ui.card().style('min-width: 20em; width: 50vw'):
+        ui.label('Approve').classes('text-h5')
+
+        textarea = ui.textarea(label='Comment').classes('w-full')
+
+        with ui.row().classes('justify-between w-full'):
+            ui.button('Cancel', on_click=dialog.close).props('flat')
+            # NOW pass comment text
+            ui.button('Approve', icon='thumb_up', color='green',
+                      on_click=lambda: approve(dialog, textarea.value))
+
+    dialog.open()

@@ -73,9 +73,10 @@ class OceanDB:
     def lookup_latitude(self, base_file_name: str) -> float:
         return self.get_ctd_data(base_file_name).lat
 
-    def get_ctd_data(self, base_file_name: str) -> CTDdataRecord:
+    def get_ctd_data(self, base_file_name: str, case_sensitive=False) -> CTDdataRecord:
         """"Get the ctd_data record for the file name
-        @param base_file_name
+        @param base_file_name base hex filename (without .hex)
+        @param case_sensitive false by default
         @throws LookupError if matched nothing/multiple
         @throws ValueError if base_file_name has file extension
         """
@@ -89,7 +90,7 @@ class OceanDB:
         hex_filename = f'{base_file_name}.hex'
 
         ctd_deployment = ctd_data[
-            ctd_data['FileName'].str.contains(f'^{hex_filename}', case=False, regex=True, na=False)]
+            ctd_data['FileName'].str.contains(f'^{hex_filename}', case=case_sensitive, regex=True, na=False)]
 
         if not ctd_deployment.empty:
             # hex filename match
@@ -99,17 +100,24 @@ class OceanDB:
 
         else:
             # no match on hex filename
-            # maybe has been processed in the past so db filename includes processing steps appended
+            # may have been processed in the past so db filename includes processing steps appended
             # Example: FileName='WQN015CFACLWDB.cnv'
-            match_on = f'basename "{base_file_name}"'
+
+            # add C at the end of regex, otherwise could get false positives where one
+            # filename is the prefix of another. For example: WQR10 would match WQR100
+            # TODO what if base_file_name contains regex special characters?
+            regex = f'^{base_file_name}C'
+            # less confusing startswith text for logs and messages
+            match_on = f'startswith "{regex[1:]}"'
+
             ctd_deployment = ctd_data[
-                ctd_data['FileName'].str.contains(f'^{base_file_name}', regex=True, na=False)]
+                ctd_data['FileName'].str.contains(regex, case=case_sensitive, regex=True, na=False)]
 
             if ctd_deployment.empty:
                 # filename not in the db
-                raise LookupError(f'no ctd_data record FileName startswith "{base_file_name}"')
+                raise LookupError(f'no ctd_data record FileName {match_on}')
             elif len(ctd_deployment) > 1:
-                raise LookupError(f'multiple ctd_data records FileName stratswith "{base_file_name}"')
+                raise LookupError(f'multiple ctd_data records FileName {match_on}')
 
         rec = CTDdataRecord(
             basename=base_file_name,

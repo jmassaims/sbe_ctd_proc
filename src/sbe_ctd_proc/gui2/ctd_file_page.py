@@ -1,14 +1,17 @@
+from datetime import datetime
 import logging
 import os
 from typing import Optional
 
 from nicegui import ui, html
 
+from sbe_ctd_proc.analysis.data_checker import DataChecker
+
 from ..analysis import check_for_negatives
 from .processing_state import PROC_STATE
 from ..config import CONFIG
 from ..ctd_file import CTDFile, FileStatus
-from .components import PlotSection, build_negative_cols_view, build_scan_counts_view, \
+from .components import PlotSection, build_data_checker_view, build_scan_counts_view, \
     build_file_info_summary_view
 from .widgets import error_message
 
@@ -31,6 +34,8 @@ def ctd_file_page(base_file_name: str):
     ctdfile.parse_hex()
     ctdfile.refresh_dirs()
     file_status = ctdfile.status()
+
+    db = CONFIG.get_db()
 
     prev_file, next_file = get_prev_next_files(base_file_name)
 
@@ -127,6 +132,18 @@ def ctd_file_page(base_file_name: str):
         matching = [f for f in cnv_files if f.name.endswith('B.cnv')]
         bin_file = matching[0] if matching else None
 
+    data_checker = DataChecker()
+    show_data_checker_tab = False
+    if bin_file:
+        data_checker.check_for_negatives(bin_file)
+        show_data_checker_tab = True
+
+    if db and ctdfile.cast_date:
+        ctd_data = db.get_ctd_data(base_file_name)
+        if isinstance(ctd_data.date_first_in_pos, datetime):
+            data_checker.check_cast_dates(ctdfile.cast_date, ctd_data.date_first_in_pos)
+            show_data_checker_tab = True
+
     def on_tab_change(name: str):
         # lazy-load and refresh the Info tab when it's selected.
         if name == 'Info':
@@ -141,17 +158,15 @@ def ctd_file_page(base_file_name: str):
         if derive_file:
             sc_tab = ui.tab('Scan Counts')
 
-        if bin_file:
-            negative_cols = check_for_negatives(bin_file)
+        if show_data_checker_tab:
             # UI: maybe "Data Checks" with multiple checkes in this tab.
-            neg_tab = ui.tab('Data Checker')
+            data_checker_tab = ui.tab('Data Checker')
 
-            negative_col_count = len(negative_cols)
-            if negative_col_count > 0:
+            if data_checker.problem_count > 0:
                 # show red badge with problem count.
-                with neg_tab:
+                with data_checker_tab:
                     # override top so badge isn't on text
-                    ui.badge(str(negative_col_count), color='red') \
+                    ui.badge(str(data_checker.problem_count), color='red') \
                         .props('floating').style('top: 2px;')
 
         hex_tab = ui.tab('Hex File')
@@ -173,8 +188,8 @@ def ctd_file_page(base_file_name: str):
                 build_scan_counts_view(derive_file)
 
         if bin_file:
-            with ui.tab_panel(neg_tab):
-                build_negative_cols_view(bin_file, negative_cols)
+            with ui.tab_panel(data_checker_tab):
+                build_data_checker_view(data_checker)
 
         with ui.tab_panel(hex_tab):
             lines = ctdfile.info.get_header_lines()

@@ -69,3 +69,8 @@ default_sensors = ['temp', 'cond']
 temp = [20, 35]
 cond = [5.0, 6.0]
 sal = [34, 35]
+
+[data_checker]
+# Indicate problem if file cast date differs from database cast date by more than (hours)
+# default is 24, set to nan to disable check
+date_difference_limit = 24

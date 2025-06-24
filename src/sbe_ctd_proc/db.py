@@ -19,7 +19,8 @@ class CTDdataRecord():
     cast_number: int
     site: str
     station: str
-    date_first_in_pos: datetime
+    # set to str when there is an error message
+    date_first_in_pos: datetime | str
 
 class OceanDB:
     def __init__(self, db_file, mdw_file, db_user, db_password) -> None:
@@ -119,6 +120,12 @@ class OceanDB:
             elif len(ctd_deployment) > 1:
                 raise LookupError(f'multiple ctd_data records FileName {match_on}')
 
+        try:
+            date_first_in_pos=self.__merge_datetime(ctd_deployment, 'DateFirstInPos', 'TimeFirstInPos', 'TimeZone')
+        except Exception as e:
+            date_first_in_pos=str(e)
+            logging.exception('Unable to create FirstInPos datetime')
+
         rec = CTDdataRecord(
             basename=base_file_name,
             filename=ctd_deployment['FileName'].values[0],
@@ -127,7 +134,7 @@ class OceanDB:
             cast_number=ctd_deployment['CastNumber'].values[0].item(),
             site=ctd_deployment['Site'].values[0],
             station=ctd_deployment['Station'].values[0],
-            date_first_in_pos=self.__merge_datetime(ctd_deployment, 'DateFirstInPos', 'TimeFirstInPos', 'TimeZone')
+            date_first_in_pos=date_first_in_pos
         )
 
         logging.info(f"OceanDB: found {match_on} in ctd_data latitude={rec.lat}, site={rec.site}, station={rec.station}")
@@ -151,12 +158,32 @@ class OceanDB:
     def __merge_datetime(self, series: pd.DataFrame, date_col: str, time_col: str, tz_col: str) -> datetime:
         d: np.datetime64 = series[date_col].values[0]
         t: np.datetime64 = series[time_col].values[0]
-        tz: str = series[tz_col].values[0]
+        tz: str = series[tz_col].values[0].strip()
 
         d2 = pd.to_datetime(d)
         t2 = pd.to_datetime(t)
-        zoneinfo = ZoneInfo(tz)
+
+        try:
+            if tz.startswith('UTC-') or tz.startswith('UTC+'):
+                # values like UTC-31 or UTC+11
+                offset = tz[3:]
+                if len(offset) == 3:
+                    # add 00 to match required HHMM format
+                    offset = f'{offset}00'
+
+                # tz values like "UTC-31" will cause this error:
+                # ValueError: offset must be a timedelta strictly between -timedelta(hours=24) and timedelta(hours=24), not datetime.timedelta(days=-2, seconds=61200).
+                # could potentially workaround this by subtracting days
+                zoneinfo = datetime.strptime(offset, "%z").tzinfo
+            else:
+                zoneinfo = ZoneInfo(tz)
+        except Exception as e:
+            raise InvalidTimeZoneException(f'Error with timezone "{tz}"') from e
 
         dt = datetime(d2.year, d2.month, d2.day, t2.hour, t2.minute, t2.second, t2.microsecond, zoneinfo)
         #logging.debug('%s + %s (%s) = %s', d, t, tz, dt)
         return dt
+
+
+class InvalidTimeZoneException(ValueError):
+    ...

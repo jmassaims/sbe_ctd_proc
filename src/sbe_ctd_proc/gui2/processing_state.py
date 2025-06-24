@@ -37,14 +37,17 @@ class ProcessingState:
     current_serial_number: str | None = None
     current_cast_date: datetime | None = None
 
-    # file error processing is waiting on
+    # file error during processing, waiting for response
+    # shows file error dialog
     is_file_error: bool = False
     file_error_base_name: str | None = None
     file_error_message: str | None = None
 
+    # shows Latitude request dialog, waiting for response
     is_requesting_latitude: bool = False
 
     # error that stopped processing
+    # shows processing error dialog
     is_processing_error: bool = False
     processing_error: str
 
@@ -102,15 +105,28 @@ class ProcessingState:
         self.file_error_base_name = ''
         self.file_error_message = ''
 
-    def respond_latitude(self, latitude: float):
+    def respond_latitude(self, latitude: float | str):
+        """
+        Respond with the current file's latitude (float)
+        or "skip" / "stop" command
+        """
         if not self.is_requesting_latitude:
             raise Exception('Not requesting latitude')
 
         self.is_requesting_latitude = False
 
-        assert self.send is not None
-        self.send.put_nowait(('submit_latitude', self.current_basename, latitude))
+        if isinstance(latitude, str):
+            # skip or stop command
+            if latitude == 'stop':
+                self.stop_processing()
+            elif latitude == 'skip':
+                self.skip_file()
+            else:
+                raise Exception(f'Unknown command "{latitude}"')
 
+        else:
+            assert self.send is not None
+            self.send.put_nowait(('submit_latitude', self.current_basename, latitude))
 
     def clear_processing_error(self):
         self.is_processing_error = False

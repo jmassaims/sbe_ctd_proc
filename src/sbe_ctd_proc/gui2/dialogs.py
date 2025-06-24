@@ -62,13 +62,8 @@ def setup_latitude_dialog():
                     return
 
                 proc.respond_latitude(latitude)
-            elif command == 'stop':
-                proc.stop_processing()
-            elif command == 'skip':
-                proc.skip_file()
             else:
-                raise Exception(f'Unknown command "{command}"')
-
+                proc.respond_latitude(command)
 
         with ui.row():
             ui.button('Stop', color='red', on_click=lambda: submit('stop'))

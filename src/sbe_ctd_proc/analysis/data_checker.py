@@ -14,10 +14,12 @@ class DataChecker:
 
     problem_count: int
 
+    checked_for_negatives: bool = False
     scanned_bin_file: Path
     negative_cols: list[MeasurementSeries]
     check_for_negatives_error: Exception | None
 
+    checked_cast_dates: bool = False
     file_cast_date: datetime
     db_cast_date: datetime
     date_diff_seconds: float
@@ -30,16 +32,15 @@ class DataChecker:
         self.check_for_negatives_error = None
         self.check_cast_dates_error = None
 
-        # hours to seconds
-        print('HERE', CONFIG.date_difference_limit)
+        # hours to seconds (may be nan)
         self.date_diff_limit = CONFIG.date_difference_limit * 3600
-        print('HERE', CONFIG.date_difference_limit, self.date_diff_limit)
 
     def check_for_negatives(self, bin_file: Path):
         try:
             self.scanned_bin_file = bin_file
             self.negative_cols = check_for_negatives(bin_file)
             self.problem_count += len(self.negative_cols)
+            self.checked_for_negatives = True
         except Exception as e:
             logging.exception('check_for_negatives error')
             self.problem_count += 1
@@ -59,6 +60,8 @@ class DataChecker:
             diff = self.date_diff_seconds = (db_cast_date - file_cast_date).total_seconds()
             if self.date_diff_limit and diff > self.date_diff_limit:
                 self.problem_count += 1
+
+            self.checked_cast_dates = True
 
         except Exception as e:
             logging.exception('check_cast_dates error')

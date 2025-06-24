@@ -86,8 +86,10 @@ class CTDFile:
             logging.warning("CTDFile processing_dir, approved_dir attrs not set due to missing CONFIG attribute(s)")
 
     def parse_hex(self):
-        """Parse serial number and cast date from hex file.
+        """
+        Parse serial number and cast date from hex file.
         Applies the LIVEWIRE_MAPPING if it has an entry for the serial number.
+        May fallback to other cast date lookup methods depending on configuration.
         """
         if hasattr(self, 'info'):
             # avoid parsing multiple times
@@ -107,6 +109,9 @@ class CTDFile:
             logging.warning(f"No cast date found in: {self.hex_path}")
             self.cast_date = None
             self.cast_date_type = None
+
+            if CONFIG.db_cast_date_fallback:
+                self.__try_database_cast_date()
 
         # Livewire ctds have different temperature IDs - Adjust them here
         # use CONFIG stored mapping
@@ -168,6 +173,23 @@ class CTDFile:
             return FileStatus.PROCESSING
         else:
             return FileStatus.RAW
+
+    def __try_database_cast_date(self):
+        """
+        try to lookup file in database and set cast_date and cast_date_type="database"
+        does nothing if database disable or lookup fails
+        """
+        db = CONFIG.get_db()
+        if not db:
+            return
+
+        try:
+            ctd_data = db.get_ctd_data(self.base_file_name)
+            if isinstance(ctd_data.date_first_in_pos, datetime):
+                self.cast_date = ctd_data.date_first_in_pos
+                self.cast_date_type = 'database'
+        except LookupError:
+            logging.warning(f'Could not find {self.base_file_name} in database, file has no cast_date')
 
     def __repr__(self) -> str:
         return f'CTDFile(hex_path="{self.hex_path}")'

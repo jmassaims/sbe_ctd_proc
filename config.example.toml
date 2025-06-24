@@ -41,6 +41,8 @@ mdb_file = 'C:\Users\<USER>\pathto\OceanDBMMP.mdb'
 mdw_file = 'C:\Users\<USER>\pathto\OceanDBMMPSecurity.mdw'
 user = 'readonly'
 password = 'readonly'
+# lookup cast date in database if parsing hex file fails (default true)
+cast_date_fallback = true
 
 [livewire_mapping]
 # Livewire ctds have different temperature IDs - Adjust them here

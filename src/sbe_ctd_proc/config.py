@@ -67,6 +67,11 @@ config_map = {
     'db_mdw_file': ('database', 'mdw_file'),
     'db_user': ('database', 'user'),
     'db_password': ('database', 'password'),
+    'db_cast_date_fallback': {
+        'toml_path': ('database', 'cast_date_fallback'),
+        'default': True,
+        'may_not_exist': True
+    },
 
     'livewire_mapping': ('livewire_mapping',),
 
@@ -131,6 +136,7 @@ class Config:
     db_mdw_file: Path
     db_user: str
     db_password: str
+    db_cast_date_fallback: bool
 
     # CTD
     ctd_config_dir: Path

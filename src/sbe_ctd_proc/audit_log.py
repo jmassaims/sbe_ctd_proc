@@ -127,7 +127,7 @@ class AuditLog:
     filepath: Path
     "path to csv file"
 
-    file: TextIOWrapper
+    file: TextIOWrapper | None
     "open handle for csv file"
 
     # do not change after init
@@ -303,6 +303,7 @@ class AuditLog:
         self.flush_after_log = flush_after_log
         self.needs_flush = False
         self.lock = threading.RLock()
+        self.file = None
 
         if filepath.is_dir():
             raise Exception("path to directory")
@@ -334,12 +335,13 @@ class AuditLog:
 
     def close(self):
         self.flush()
-        self.file.close()
+        if self.file:
+            self.file.close()
 
     def flush(self):
         with self.lock:
             if self.needs_flush:
-                if not hasattr(self, 'file') or self.file.closed:
+                if self.file is None or self.file.closed:
                     # reopen file for rewrite
                     self.file = open(self.filepath, 'w', newline='')
                     self.writer = DictWriter(self.file, fieldnames=self.columns, dialect='excel')

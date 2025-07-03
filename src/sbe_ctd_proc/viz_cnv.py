@@ -133,7 +133,9 @@ def plot_for_cnv_file(cnv_file: str | None = None,
                 #tickwidth=1
             )
 
-        s = go.Scatter(x=m.values, y=y_values, name=id, xaxis=f"x{axis_num}")
+        # text displayed in legend and on chart hover
+        name = m.description or id # fallback to id if no description
+        s = go.Scatter(x=m.values, y=y_values, name=name, xaxis=f"x{axis_num}")
         fig.add_trace(s)
         trace_count += 1
 

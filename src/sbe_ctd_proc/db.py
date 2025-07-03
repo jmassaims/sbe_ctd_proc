@@ -72,6 +72,11 @@ class OceanDB:
         engine.dispose()
 
     def lookup_latitude(self, base_file_name: str) -> float:
+        """
+        Get latitude for this file.
+        @param base_file_name base hex filename (without .hex)
+        @throws LookupError if not found
+        """
         return self.get_ctd_data(base_file_name).lat
 
     def get_ctd_data(self, base_file_name: str, case_sensitive=False) -> CTDdataRecord:

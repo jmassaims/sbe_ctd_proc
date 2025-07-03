@@ -139,10 +139,13 @@ def ctd_file_page(base_file_name: str):
         show_data_checker_tab = True
 
     if db and ctdfile.cast_date:
-        ctd_data = db.get_ctd_data(base_file_name)
-        if isinstance(ctd_data.date_first_in_pos, datetime):
-            data_checker.check_cast_dates(ctdfile.cast_date, ctd_data.date_first_in_pos)
-            show_data_checker_tab = True
+        try:
+            ctd_data = db.get_ctd_data(base_file_name)
+            if isinstance(ctd_data.date_first_in_pos, datetime):
+                data_checker.check_cast_dates(ctdfile.cast_date, ctd_data.date_first_in_pos)
+                show_data_checker_tab = True
+        except:
+            logging.warning(f'"{base_file_name}" file not in db, cannot check_cast_dates')
 
     def on_tab_change(name: str):
         # lazy-load and refresh the Info tab when it's selected.

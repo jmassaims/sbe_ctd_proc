@@ -1482,7 +1482,7 @@ wheels = [
 [[package]]
 name = "seabirdscientific"
 version = "2.5.3"
-source = { git = "https://github.com/arlowhite/seabirdscientific?branch=fix-cnv-to-instrument-data#795a802ee6dab0f980c00d122431c936dda3a8d9" }
+source = { git = "https://github.com/arlowhite/seabirdscientific?branch=fix-cnv-to-instrument-data#6e04c7fe6f6c0b9610e165dd52c6e9cefc88a979" }
 dependencies = [
     { name = "gsw" },
     { name = "matplotlib" },

@@ -46,3 +46,6 @@ dependencies = [
 [tool.hatch.envs.test.scripts]
 run-coverage = "pytest --cov-config=pyproject.toml --cov=pkg --cov=tests"
 run = "run-coverage --no-cov"
+
+[tool.uv.sources]
+seabirdscientific = { git = "https://github.com/arlowhite/seabirdscientific", branch = "fix-cnv-to-instrument-data" }

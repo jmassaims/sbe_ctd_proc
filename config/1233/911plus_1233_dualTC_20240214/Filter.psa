@@ -2,13 +2,13 @@
 <Filter >
   <Version value="7.26.7.129" />
   <ServerName value="Filter" />
-  <InputDir value="C:\AIMS\sbe_data_proc_test_files\processing\YON20240215" />
+  <InputDir value="" />
   <InputFileArray size="1" GrowBy="-1" >
-    <ArrayItem index="0" value="YON20240215C.cnv" />
+    <ArrayItem index="0" value="" />
   </InputFileArray>
-  <OutputDir value="C:\AIMS\sbe_data_proc_test_files\processing\YON20240215" />
-  <NameAppend value="F" />
-  <OutputFile value="YON20240215C" />
+  <OutputDir value="" />
+  <NameAppend value="" />
+  <OutputFile value="" />
   <LastProcessed value="0" />
   <TimeConstFilterA value="0.000000" />
   <TimeConstFilterB value="0.150000" />

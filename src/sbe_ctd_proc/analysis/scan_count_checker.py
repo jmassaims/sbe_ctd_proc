@@ -13,12 +13,19 @@ infer whether the cast data is close in time.
 from pathlib import Path
 import pandas as pd
 
-def create_scan_count_dataframe(input_file: str | Path) -> pd.DataFrame:
-    """Create a new DataFrame with columns:
-    Depth_bin, min_scan_count, max_scan_count, difference.
+def get_binavg_skipover(bin_file: str | Path) -> int:
+    """Extracts the binavg_skipover value from a binned file."""
+    with open(bin_file, 'r') as f:
+        for line in f:
+            if line.strip().startswith('# binavg_skipover'):
+                try:
+                    return int(line.strip().split('=')[1].strip())
+                except (IndexError, ValueError):
+                    raise ValueError(f"Invalid format for binavg_skipover in {bin_file}")
+    return 0  # Default to 0 if not found
 
-    File should typiically end in D (derive), but this is not checked.
-    """
+def create_scan_count_dataframe(input_file: str | Path, bin_file: str | Path) -> pd.DataFrame:
+    """Create a DataFrame showing scan count spread for each depth bin, skipping rows from binavg_skipover."""
 
     # Initialize variables to store column numbers
     depSM_column = None
@@ -27,12 +34,9 @@ def create_scan_count_dataframe(input_file: str | Path) -> pd.DataFrame:
 
     # Open the .cnv file for reading
     with open(input_file, 'r') as file:
-        # Read all lines from the file
         lines = file.readlines()
 
-        # Iterate through each line in the file to find column numbers
         for line in lines:
-            # Check if the line contains the desired phrases
             if "depSM" in line:
                 depSM_column = int(line.split('=')[0].split()[-1]) + 1
             elif "flag: flag" in line:
@@ -40,54 +44,48 @@ def create_scan_count_dataframe(input_file: str | Path) -> pd.DataFrame:
             elif "scan: Scan Count" in line:
                 scan_count_column = int(line.split('=')[0].split()[-1]) + 1
 
-            # If all column numbers are found, break the loop
-            if depSM_column is not None and flag_column is not None and scan_count_column is not None:
+            if depSM_column and flag_column and scan_count_column:
                 break
 
-        # Initialize lists to store the extracted columns
         depSM_data = []
         flag_data = []
         scan_count_data = []
 
-        # Iterate through each line in the file to extract data columns
         for line in lines:
-            # Skip lines that start with '*' or '#'
             if line.startswith('*') or line.startswith('#'):
                 continue
 
-            # Split the line into columns based on whitespace
             columns = line.split()
-
-            # Extract the columns using the previously determined column numbers
             if len(columns) >= max(depSM_column, flag_column, scan_count_column):
                 depSM_data.append(columns[depSM_column - 1])
                 flag_data.append(columns[flag_column - 1])
                 scan_count_data.append(columns[scan_count_column - 1])
 
-    # Create a DataFrame from the extracted data
     data = pd.DataFrame({
         'depSM': depSM_data,
         'flag': flag_data,
         'scan_count': scan_count_data
     })
 
-    # Convert flag column to numeric
     data['flag'] = pd.to_numeric(data['flag'], errors='coerce')
     data['scan_count'] = pd.to_numeric(data['scan_count'], errors='coerce')
+    data['depSM'] = pd.to_numeric(data['depSM'], errors='coerce')
 
-    # Filter out rows where the value in the flag column is less than 0
-    data = data[data['flag'] >= 0]
+    #Get skipover count and apply
+    skip_count = get_binavg_skipover(bin_file)
+    if skip_count > 0:
+        data = data.iloc[skip_count:].reset_index(drop=True)
 
-    # Add a new column rounding the depSM values to the nearest whole number
-    data['Depth_bin'] = data['depSM'].astype(float).round()
+    # Filter flagged data
+    data = data[data['flag'] >= 0].reset_index(drop=True)
 
-    # Group by Depth_bin and aggregate to find the minimum and maximum scan_count values
-    aggregated_data = data.groupby('Depth_bin').agg(min_scan_count=('scan_count', 'min'), max_scan_count=('scan_count', 'max'))
+    # Add Depth_bin and aggregate
+    data['Depth_bin'] = data['depSM'].round()
+    aggregated_data = data.groupby('Depth_bin').agg(
+        min_scan_count=('scan_count', 'min'),
+        max_scan_count=('scan_count', 'max')
+    ).reset_index()
 
-    # Reset index to make Depth_bin a column instead of an index
-    aggregated_data.reset_index(inplace=True)
-
-    # Calculate the difference between min_scan_count and max_scan_count
     aggregated_data['difference'] = aggregated_data['max_scan_count'] - aggregated_data['min_scan_count']
 
     return aggregated_data

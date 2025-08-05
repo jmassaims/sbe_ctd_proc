@@ -188,7 +188,7 @@ def ctd_file_page(base_file_name: str):
 
         if derive_file:
             with ui.tab_panel(sc_tab):
-                build_scan_counts_view(derive_file)
+                build_scan_counts_view(derive_file, bin_file)
 
         if bin_file:
             with ui.tab_panel(data_checker_tab):

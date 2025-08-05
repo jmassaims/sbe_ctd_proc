@@ -57,10 +57,13 @@ def plot_for_cnv_file(cnv_file: str | None = None,
     # However, MeasurementSeries already has: description, label, units, values: np.ndarray
     # vars = [(x, viz.interpret_sbs_variable(x)) for x in measurements]
 
-    if 'depSM' in measurements:
-        ymetric = 'depSM'
-    else:
-        ymetric = 'prdM'
+    lower_ymetrics = {v.lower(): v for v in measurements}
+
+    if 'depsm' in lower_ymetrics:
+        ymetric = lower_ymetrics['depsm']
+    elif 'prdm' in lower_ymetrics:
+        ymetric = lower_ymetrics['prdm']
+
 
     y_values = measurements[ymetric].values
     y_var = viz.interpret_sbs_variable(ymetric)

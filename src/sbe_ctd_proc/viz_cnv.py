@@ -56,6 +56,13 @@ def plot_for_cnv_file(cnv_file: str | None = None,
     measurements = instr_data.measurements
     # However, MeasurementSeries already has: description, label, units, values: np.ndarray
     # vars = [(x, viz.interpret_sbs_variable(x)) for x in measurements]
+    
+    flag_values = measurements.get('flag')
+    if flag_values is not None:
+        mask = flag_values.values == 0.0
+    else:
+        mask = None  # no flag; don't filter
+    
 
     lower_ymetrics = {v.lower(): v for v in measurements}
 
@@ -138,7 +145,10 @@ def plot_for_cnv_file(cnv_file: str | None = None,
 
         # text displayed in legend and on chart hover
         name = m.description or id # fallback to id if no description
-        s = go.Scatter(x=m.values, y=y_values, name=name, xaxis=f"x{axis_num}")
+        x_vals = m.values[mask] if mask is not None else m.values
+        y_vals = y_values[mask] if mask is not None else y_values
+        
+        s = go.Scatter(x=x_vals, y=y_vals, name=name, xaxis=f"x{axis_num}")
         fig.add_trace(s)
         trace_count += 1
 

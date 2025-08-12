@@ -96,7 +96,7 @@ class OceanDB:
         hex_filename = f'{base_file_name}.hex'
 
         ctd_deployment = ctd_data[
-            ctd_data['FileName'].str.contains(f'^{hex_filename}', case=case_sensitive, regex=True, na=False)]
+            ctd_data['Linkfile1'].str.contains(f'^{hex_filename}', case=case_sensitive, regex=True, na=False)]
 
         if not ctd_deployment.empty:
             # hex filename match
@@ -117,13 +117,13 @@ class OceanDB:
             match_on = f'startswith "{regex[1:]}"'
 
             ctd_deployment = ctd_data[
-                ctd_data['FileName'].str.contains(regex, case=case_sensitive, regex=True, na=False)]
+                ctd_data['Linkfile1'].str.contains(regex, case=case_sensitive, regex=True, na=False)]
 
             if ctd_deployment.empty:
                 # filename not in the db
-                raise LookupError(f'no ctd_data record FileName {match_on}')
+                raise LookupError(f'no ctd_data record Linkfile1 {match_on}')
             elif len(ctd_deployment) > 1:
-                raise LookupError(f'multiple ctd_data records FileName {match_on}')
+                raise LookupError(f'multiple ctd_data records Linkfile1 {match_on}')
 
         try:
             date_first_in_pos=self.__merge_datetime(ctd_deployment, 'DateFirstInPos', 'TimeFirstInPos', 'TimeZone')
@@ -133,7 +133,7 @@ class OceanDB:
 
         rec = CTDdataRecord(
             basename=base_file_name,
-            filename=ctd_deployment['FileName'].values[0],
+            filename=ctd_deployment['Linkfile1'].values[0],
             lat=ctd_deployment['Latitude'].values[0],
             lon=ctd_deployment['Longitude'].values[0],
             cast_number=ctd_deployment['CastNumber'].values[0].item(),
@@ -152,9 +152,9 @@ class OceanDB:
 
         ctd_data = self.ctd_data
         suffix = 'CFACLWDB.cnv'
-        match = ctd_data[ctd_data['FileName'].str.endswith(suffix, na=False)]
+        match = ctd_data[ctd_data['Linkfile1'].str.endswith(suffix, na=False)]
         if not match.empty:
-            filename = match['FileName'].values[0]
+            filename = match['Linkfile1'].values[0]
             lat = float(match['Latitude'].values[0])
             return filename[:-len(suffix)], lat
         else:
